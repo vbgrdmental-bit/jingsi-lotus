@@ -2,6 +2,7 @@
 let appState = {
     chapters: [],
     episodesIndex: [],
+    rawEpisodesCache: null,
     chapterEpisodesCache: {}, // Maps chapterId -> full episode lists
     progress: {
         completed: {}, // Map of episodeId -> true
@@ -655,27 +656,46 @@ function performSearch(query) {
         .then(results => {
             renderSearchResults(results, query);
         })
-        .catch(err => {
-            console.warn("Falling back to local metadata-only search:", err.message);
-            const results = localFallbackSearch(query);
+        .catch(async err => {
+            console.warn("Falling back to local client-side search:", err.message);
+            const results = await localFallbackSearch(query);
             renderSearchResults(results, query);
         });
 }
 
-function localFallbackSearch(query) {
+async function localFallbackSearch(query) {
     const clean = query.toLowerCase();
     const keywords = clean.split(/[\s　]+/).filter(k => k.length > 0);
     const results = [];
     
     if (keywords.length === 0) return results;
 
-    for (const ep of appState.episodesIndex) {
+    // Load raw_episodes.json if not cached yet for full text search online
+    if (!appState.rawEpisodesCache) {
+        try {
+            const res = await fetch('./data/raw_episodes.json');
+            if (res.ok) {
+                appState.rawEpisodesCache = await res.json();
+            }
+        } catch (e) {
+            console.error("Failed to load raw episodes for search:", e);
+        }
+    }
+
+    const dataSource = appState.rawEpisodesCache || appState.episodesIndex;
+
+    for (const ep of dataSource) {
         const epIdStr = String(ep.episode_id);
         const titleStr = ep.title.toLowerCase();
+        const summaryStr = (ep.summary || '').toLowerCase();
+        const textStr = (ep.full_text || '').toLowerCase();
         
         let matchesAll = true;
         for (const kw of keywords) {
-            if (!(epIdStr === kw || titleStr.includes(kw))) {
+            if (!(epIdStr === kw || 
+                  titleStr.includes(kw) || 
+                  summaryStr.includes(kw) || 
+                  textStr.includes(kw))) {
                 matchesAll = false;
                 break;
             }
