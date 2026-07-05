@@ -1,0 +1,14 @@
+{
+  "name": "jing-si-lotus-sutra",
+  "version": "1.0.0",
+  "description": "Jing Si Lotus Sutra metadata crawler and web application",
+  "main": "scripts/crawler.js",
+  "scripts": {
+    "crawl": "node scripts/crawler.js",
+    "export": "node scripts/export.js",
+    "start": "node scripts/server.js"
+  },
+  "dependencies": {
+    "cheerio": "^1.2.0"
+  }
+}

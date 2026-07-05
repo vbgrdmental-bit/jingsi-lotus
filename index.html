@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>靜思妙蓮華 晨語聞法</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="app.css">
+</head>
+<body class="dark-mode">
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-main">
+                <h1>靜思法髓妙蓮華 <span class="subtitle">靜思法脈勤行道，慈濟宗門人間路</span></h1>
+                <div class="theme-toggle-container">
+                    <button id="themeToggleBtn" aria-label="切換主題">
+                        <!-- Sun Icon (default dark mode, show sun to switch to sepia) -->
+                        <svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="5"></circle>
+                            <line x1="12" y1="1" x2="12" y2="3"></line>
+                            <line x1="12" y1="21" x2="12" y2="23"></line>
+                            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                            <line x1="1" y1="12" x2="3" y2="12"></line>
+                            <line x1="21" y1="12" x2="23" y2="12"></line>
+                            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- 1. Search Bar (加強顯示) -->
+            <div class="search-card enhanced-search">
+                <div class="search-input-wrapper">
+                    <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                    <input type="text" id="searchInput" placeholder="搜尋集數、標題或關鍵字（如：阿難）..." autocomplete="off">
+                    <button id="clearSearchBtn" class="clear-search-btn hidden" aria-label="清除">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 2. Global Progress Tracker -->
+            <div class="progress-card">
+                <div class="progress-info">
+                    <span class="progress-label">我的薰法香進度</span>
+                    <span id="globalPercent" class="progress-percent">0%</span>
+                </div>
+                <div class="progress-bar-bg">
+                    <div id="globalProgressBar" class="progress-bar" style="width: 0%"></div>
+                </div>
+                <div class="progress-subinfo">
+                    <span id="globalStats">已讀完 0 集 / 共 0 集</span>
+                    <span id="globalVisits" class="visitor-counter-text">
+                        <span id="busuanzi_container_site_pv" style="display:none">
+                            累積薰法香人次：<span id="busuanzi_value_site_pv">0</span> 人
+                        </span>
+                        <span id="localVisitsText">累積薰法香人次：0 人</span>
+                    </span>
+                </div>
+            </div>
+
+            <!-- 3. Resume Reading Bookmark Shortcut -->
+            <div id="resumeCard" class="resume-card hidden">
+                <span class="resume-tag">上次閱讀</span>
+                <div class="resume-content">
+                    <div id="resumeTitle" class="resume-title">載入中...</div>
+                    <button id="resumeBtn" class="resume-btn">
+                        <span>繼續讀</span>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 4. Divider Line -->
+            <hr class="home-divider">
+            
+            <!-- Search Results Container -->
+            <div id="searchResults" class="search-results-container hidden"></div>
+
+            <!-- 5. Chapter List -->
+            <div id="chapterList" class="chapter-list">
+                <!-- Chapters loaded dynamically -->
+                <div class="loading-spinner-container">
+                    <div class="loading-spinner"></div>
+                    <p>正在載入妙法蓮華經目錄...</p>
+                </div>
+            </div>
+            
+            <!-- Footer Verse -->
+            <div class="footer-verse">南無妙法蓮華經</div>
+        </main>
+    </div>
+
+
+    <!-- Episode Detail Modal Panel -->
+    <div id="detailPanel" class="detail-panel hidden">
+        <!-- Detail Header -->
+        <div class="panel-header">
+            <button id="closePanelBtn" class="icon-btn" aria-label="關閉">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+            <div class="panel-header-title">
+                <div class="panel-meta-row">
+                    <span id="panelEpIdBadge" class="epid-badge">0000</span>
+                    <span id="panelChapterName" class="chapter-name-text">品名</span>
+                    <span id="panelRelativeNum" class="relative-num-text">(第 0 集)</span>
+                </div>
+                <div class="panel-title-row">
+                    <h2 id="panelEpisodeTitle">集標題</h2>
+                    <button id="editTitleBtn" class="edit-title-btn hidden" title="修改集標題">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                            <path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                        </svg>
+                    </button>
+                </div>
+                <div id="panelDate" class="date-badge">2024-03-27</div>
+            </div>
+            <div class="panel-header-right">
+                <button id="panelCompleteBtn" class="complete-toggle-btn" aria-label="標記完成">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="checkbox-svg">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                        <polyline points="9 11 12 14 22 4" class="checkmark"></polyline>
+                    </svg>
+                    <span class="btn-text">已完成</span>
+                </button>
+                <div id="panelCompleteStats" class="panel-complete-stats-text">0 人已完成</div>
+            </div>
+        </div>
+
+        <!-- Video Area -->
+        <div id="videoContainer" class="video-container">
+            <!-- YouTube Iframe injected dynamically -->
+        </div>
+        <div id="videoNavigationBar" class="video-navigation-bar">
+            <div class="nav-btn-group">
+                <button id="prevEpisodeBtn" class="nav-episode-btn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                        <polyline points="15 18 9 12 15 6"></polyline>
+                    </svg>
+                    <span>前一集</span>
+                </button>
+                <button id="nextEpisodeBtn" class="nav-episode-btn">
+                    <span>下一集</span>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                        <polyline points="9 18 15 12 9 6"></polyline>
+                    </svg>
+                </button>
+            </div>
+            <a id="videoSearchBtn" class="nav-search-btn" target="_blank" href="#" title="若影片無法播放，按此搜尋大愛 YouTube">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+            </a>
+        </div>
+
+        <!-- Tab Selector -->
+        <div class="tabs-container">
+            <div class="tabs-left">
+                <button class="tab-btn active" data-tab="tab-summary">經文提綱 (大綱)</button>
+                <button class="tab-btn" data-tab="tab-text">開示逐字稿 (全文)</button>
+            </div>
+            <a id="pdfDownloadLink" href="#" target="_blank" class="pdf-btn hidden">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+                <span>PDF下載</span>
+            </a>
+        </div>
+
+        <!-- Tab Content -->
+        <div class="panel-body">
+            <div class="source-note-container">
+                <div class="source-note-group">
+                    <span class="source-note">※ 以下內容摘自「奈普敦智慧平台」 & 大愛電視 YouTube</span>
+                </div>
+                <div class="edit-buttons-group">
+                    <button id="editSummaryBtn" class="edit-action-btn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                            <path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                        </svg>
+                        <span>修改大綱</span>
+                    </button>
+                    <button id="editFullTextBtn" class="edit-action-btn hidden">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                            <path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                        </svg>
+                        <span>修改逐字稿</span>
+                    </button>
+                </div>
+            </div>
+            <!-- Tab: Summary -->
+            <div id="tab-summary" class="tab-pane active">
+                <div id="sutraSummary" class="outline-content">
+                    <!-- Outline bullets -->
+                </div>
+            </div>
+
+            <!-- Tab: Full Text -->
+            <div id="tab-text" class="tab-pane">
+                <div id="sutraFullText" class="transcript-content">
+                    <!-- Full transcript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Content Modal -->
+    <div id="editModal" class="modal-overlay hidden">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>手動編輯第 <span id="editEpId"></span> 集內容</h3>
+                <button id="closeEditModalBtn" class="icon-btn" aria-label="關閉">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="editTitleSection" class="edit-field">
+                    <label for="editTitle">集標題 (僅管理員可修改)</label>
+                    <input type="text" id="editTitle" placeholder="例如：萬法唯心當警策">
+                </div>
+
+                <div id="editSummarySection" class="edit-field">
+                    <label for="editSummary">經文提綱 (大綱)</label>
+                    <textarea id="editSummary" rows="6" placeholder="輸入大綱，每行一條..."></textarea>
+                </div>
+                <div id="editFullTextSection" class="edit-field">
+                    <label for="editFullText">開示逐字稿 (全文)</label>
+                    <textarea id="editFullText" rows="10" placeholder="輸入逐字稿全文..."></textarea>
+                </div>
+                <div id="editAuthorSection" class="edit-row">
+                    <div class="edit-field flex-1">
+                        <label for="editAuthor">修改者姓名</label>
+                        <input type="text" id="editAuthor" placeholder="例如：美玲">
+                    </div>
+                    <div class="edit-field flex-1">
+                        <label for="editDate">修改日期</label>
+                        <input type="text" id="editDate" readonly>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="cancelEditBtn" class="btn btn-secondary">取消</button>
+                <button id="saveEditBtn" class="btn btn-primary">儲存修改</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- App Logic Scripts -->
+    <script src="app.js"></script>
+</body>
+</html>
