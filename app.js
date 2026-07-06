@@ -1333,31 +1333,11 @@ function appendBottomInfoBar(container, sourceText, isSummaryTab, editHistoryLin
     const bar = document.createElement('div');
     bar.className = 'bottom-info-bar';
     
-    const infoLeft = document.createElement('div');
-    infoLeft.className = 'bottom-info-left';
+    // 1. Top row containing the edit button (aligned right)
+    const topRow = document.createElement('div');
+    topRow.className = 'bottom-info-top-row';
     
-    const sourceSpan = document.createElement('span');
-    sourceSpan.className = 'sermon-source-note';
-    sourceSpan.textContent = sourceText;
-    infoLeft.appendChild(sourceSpan);
-    
-    if (editHistoryLines && editHistoryLines.length > 0) {
-        const divider = document.createElement('div');
-        divider.className = 'bottom-info-divider';
-        infoLeft.appendChild(divider);
-        
-        editHistoryLines.forEach(line => {
-            const historySpan = document.createElement('span');
-            historySpan.className = 'sermon-edit-history-note';
-            historySpan.textContent = line;
-            infoLeft.appendChild(historySpan);
-        });
-    }
-    
-    bar.appendChild(infoLeft);
-    
-    const isLocalhost = isLocalEnvironment();
-    if (isLocalhost && appState.activeEpisode && !appState.activeEpisode._isOutroCard) {
+    if (appState.activeEpisode && !appState.activeEpisode._isOutroCard) {
         const btn = document.createElement('button');
         btn.className = 'edit-action-btn';
         if (isSummaryTab) {
@@ -1383,8 +1363,33 @@ function appendBottomInfoBar(container, sourceText, isSummaryTab, editHistoryLin
             btn.addEventListener('click', () => window.showModalSection('full_text'));
             elements.editFullTextBtn = btn;
         }
-        bar.appendChild(btn);
+        topRow.appendChild(btn);
     }
+    bar.appendChild(topRow);
+    
+    // 2. Bottom part containing left info block
+    const infoLeft = document.createElement('div');
+    infoLeft.className = 'bottom-info-left';
+    
+    const sourceSpan = document.createElement('span');
+    sourceSpan.className = 'sermon-source-note';
+    sourceSpan.textContent = sourceText;
+    infoLeft.appendChild(sourceSpan);
+    
+    if (editHistoryLines && editHistoryLines.length > 0) {
+        const divider = document.createElement('div');
+        divider.className = 'bottom-info-divider';
+        infoLeft.appendChild(divider);
+        
+        editHistoryLines.forEach(line => {
+            const historySpan = document.createElement('span');
+            historySpan.className = 'sermon-edit-history-note';
+            historySpan.textContent = line;
+            infoLeft.appendChild(historySpan);
+        });
+    }
+    
+    bar.appendChild(infoLeft);
     container.appendChild(bar);
 }
 
@@ -1523,11 +1528,11 @@ function showDetailPanel(episodeId, isResume) {
     if (episode.edit_history && episode.edit_history.length > 0) {
         episode.edit_history.forEach(item => {
             if (item.mode === 'summary') {
-                summaryHistory.push(`※ （${item.date} 由 ${item.author} 修改）`);
+                summaryHistory.push(`※ ${item.date} 由 ${item.author} 修改`);
             }
         });
     } else if (episode.is_edited && episode.edited_by && episode.edited_date) {
-        summaryHistory.push(`※ （${episode.edited_date} 由 ${episode.edited_by} 修改）`);
+        summaryHistory.push(`※ ${episode.edited_date} 由 ${episode.edited_by} 修改`);
     }
 
     // Append bottom bar at Outline tab
@@ -1560,11 +1565,11 @@ function showDetailPanel(episodeId, isResume) {
     if (episode.edit_history && episode.edit_history.length > 0) {
         episode.edit_history.forEach(item => {
             if (item.mode === 'full_text') {
-                fullTextHistory.push(`※ （${item.date} 由 ${item.author} 修改）`);
+                fullTextHistory.push(`※ ${item.date} 由 ${item.author} 修改`);
             }
         });
     } else if (episode.is_edited && episode.edited_by && episode.edited_date && !isNotesOnly) {
-        fullTextHistory.push(`※ （${episode.edited_date} 由 ${episode.edited_by} 修改）`);
+        fullTextHistory.push(`※ ${episode.edited_date} 由 ${episode.edited_by} 修改`);
     }
 
     // Append bottom bar at Transcript tab
@@ -2193,7 +2198,7 @@ window.openPreReadDetail = function(idx) {
     if (entry.edit_history && entry.edit_history.length > 0) {
         entry.edit_history.forEach(item => {
             if (item.mode === 'summary') {
-                summaryHistory.push(`※ （${item.date} 由 ${item.author} 修改）`);
+                summaryHistory.push(`※ ${item.date} 由 ${item.author} 修改`);
             }
         });
     }
@@ -2223,7 +2228,7 @@ window.openPreReadDetail = function(idx) {
     if (entry.edit_history && entry.edit_history.length > 0) {
         entry.edit_history.forEach(item => {
             if (item.mode === 'full_text') {
-                fullTextHistory.push(`※ （${item.date} 由 ${item.author} 修改）`);
+                fullTextHistory.push(`※ ${item.date} 由 ${item.author} 修改`);
             }
         });
     }

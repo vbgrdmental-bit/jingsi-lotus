@@ -796,13 +796,17 @@ h1 .subtitle {
 
 .bottom-info-bar {
     display: flex !important;
-    justify-content: space-between !important;
-    align-items: center !important;
-    margin-top: 32px !important;
-    padding-top: 12px !important;
-    border-top: 1px dashed var(--border-color) !important;
+    flex-direction: column !important;
     width: 100% !important;
-    gap: 12px !important;
+    margin-top: 32px !important;
+    gap: 8px !important;
+}
+
+.bottom-info-top-row {
+    display: flex !important;
+    justify-content: flex-end !important;
+    width: 100% !important;
+    margin-bottom: 4px !important;
 }
 
 .pdf-btn {
@@ -1640,8 +1644,12 @@ body.sepia-mode .episode-global-completes {
         padding-left: 0 !important;
     }
     
+    .tabs-right {
+        gap: 4px !important;
+    }
+    
     .tab-btn {
-        padding: 0 10px !important;
+        padding: 0 8px !important;
         height: 100% !important;
         font-size: 0.82rem !important;
         display: inline-flex !important;
