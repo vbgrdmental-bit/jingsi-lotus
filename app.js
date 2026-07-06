@@ -792,15 +792,6 @@ function setActiveTab(tabId) {
             pane.classList.remove('active');
         }
     });
-
-    // Toggle corresponding edit button based on active tab
-    if (tabId === 'tab-summary') {
-        if (elements.editSummaryBtn) elements.editSummaryBtn.classList.remove('hidden');
-        if (elements.editFullTextBtn) elements.editFullTextBtn.classList.add('hidden');
-    } else {
-        if (elements.editSummaryBtn) elements.editSummaryBtn.classList.add('hidden');
-        if (elements.editFullTextBtn) elements.editFullTextBtn.classList.remove('hidden');
-    }
 }
 
 function fetchMetadata() {
@@ -1332,6 +1323,50 @@ window.openEpisodeDetail = function(episodeId, isResume = false) {
     }
 };
 
+// Append bottom info bar containing source note (left) and edit button (right)
+function appendBottomInfoBar(container, sourceText, isSummaryTab) {
+    const bar = document.createElement('div');
+    bar.className = 'bottom-info-bar';
+    
+    const sourceSpan = document.createElement('span');
+    sourceSpan.className = 'sermon-source-note';
+    sourceSpan.textContent = sourceText;
+    bar.appendChild(sourceSpan);
+    
+    const isLocalhost = window.location.hostname === 'localhost' || 
+                        window.location.hostname === '127.0.0.1' || 
+                        window.location.hostname === '::1';
+    if (isLocalhost && appState.activeEpisode && !appState.activeEpisode._isOutroCard) {
+        const btn = document.createElement('button');
+        btn.className = 'edit-action-btn';
+        if (isSummaryTab) {
+            btn.id = 'editSummaryBtn';
+            btn.innerHTML = `
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                    <path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                </svg>
+                <span>修改大綱</span>
+            `;
+            btn.addEventListener('click', () => showModalSection('summary'));
+            elements.editSummaryBtn = btn;
+        } else {
+            btn.id = 'editFullTextBtn';
+            btn.innerHTML = `
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                    <path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                </svg>
+                <span>修改全文</span>
+            `;
+            btn.addEventListener('click', () => showModalSection('full_text'));
+            elements.editFullTextBtn = btn;
+        }
+        bar.appendChild(btn);
+    }
+    container.appendChild(bar);
+}
+
 // Render episode panel once data is available in cache
 function showDetailPanel(episodeId, isResume) {
     const epHeader = appState.episodesIndex.find(ep => ep.episode_id === episodeId);
@@ -1488,11 +1523,8 @@ function showDetailPanel(episodeId, isResume) {
         elements.sutraSummary.appendChild(div);
     }
 
-    // Append source note at bottom of Outline
-    const outlineSource = document.createElement('span');
-    outlineSource.className = 'sermon-source-note';
-    outlineSource.textContent = sermonSourceText;
-    elements.sutraSummary.appendChild(outlineSource);
+    // Append bottom bar at Outline tab
+    appendBottomInfoBar(elements.sutraSummary, sermonSourceText, true);
 
     // 5. Populate Sermon Text (full_text)
     elements.sutraFullText.innerHTML = '';
@@ -1534,11 +1566,8 @@ function showDetailPanel(episodeId, isResume) {
         elements.sutraFullText.appendChild(pNode);
     }
 
-    // Append source note at bottom of Transcript
-    const transcriptSource = document.createElement('span');
-    transcriptSource.className = 'sermon-source-note';
-    transcriptSource.textContent = sermonSourceText;
-    elements.sutraFullText.appendChild(transcriptSource);
+    // Append bottom bar at Transcript tab
+    appendBottomInfoBar(elements.sutraFullText, sermonSourceText, false);
 
 
     // 6. PDF Link
@@ -2175,11 +2204,8 @@ window.openPreReadDetail = function(idx) {
         });
     }
 
-    // Append source note at bottom of Outline
-    const outlineSource = document.createElement('span');
-    outlineSource.className = 'sermon-source-note';
-    outlineSource.textContent = `※ 以上內容精選自「大愛台YouTube」`;
-    elements.sutraSummary.appendChild(outlineSource);
+    // Append bottom bar at Outline tab
+    appendBottomInfoBar(elements.sutraSummary, `※ 以上內容精選自「大愛台YouTube」`, true);
 
     // --- Transcript tab (逐字稿) ---
     elements.sutraFullText.innerHTML = '';
@@ -2210,11 +2236,8 @@ window.openPreReadDetail = function(idx) {
         });
     }
 
-    // Append source note at bottom of Transcript
-    const transcriptSource = document.createElement('span');
-    transcriptSource.className = 'sermon-source-note';
-    transcriptSource.textContent = `※ 以上內容精選自「大愛台YouTube」`;
-    elements.sutraFullText.appendChild(transcriptSource);
+    // Append bottom bar at Transcript tab
+    appendBottomInfoBar(elements.sutraFullText, `※ 以上內容精選自「大愛台YouTube」`, false);
 
 
     // --- Navigation: prev / next among pre-read items ---

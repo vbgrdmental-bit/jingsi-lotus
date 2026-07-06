@@ -740,9 +740,9 @@ h1 .subtitle {
 }
 
 .font-adjust-btn {
-    background-color: var(--border-color);
-    border: 1px solid var(--border-color);
-    color: var(--text-secondary);
+    background-color: var(--accent-light);
+    border: 1px solid var(--accent-color);
+    color: var(--accent-color);
     font-size: 0.78rem;
     font-weight: bold;
     padding: 2px 7px;
@@ -756,21 +756,31 @@ h1 .subtitle {
 }
 
 .font-adjust-btn:hover {
-    background-color: var(--accent-light);
-    color: var(--accent-color);
+    background-color: var(--accent-color);
+    color: #fff;
     border-color: var(--accent-color);
 }
 
 .sermon-source-note {
     font-size: 0.65rem;
     color: var(--text-hint);
-    text-align: center;
+    text-align: left;
+    margin: 0;
+    padding: 0;
+    border-top: none;
+    display: inline-block;
+    flex-grow: 1;
+}
+
+.bottom-info-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     margin-top: 32px;
-    margin-bottom: 16px;
     padding-top: 12px;
     border-top: 1px dashed var(--border-color);
     width: 100%;
-    display: block;
+    gap: 12px;
 }
 
 .pdf-btn {
@@ -812,6 +822,7 @@ h1 .subtitle {
     padding: 20px 16px 40px 16px;
     background-color: var(--bg-color);
     transition: background-color var(--transition-speed);
+    font-size: var(--reading-font-size, 1.05rem) !important;
 }
 
 .tab-pane {
