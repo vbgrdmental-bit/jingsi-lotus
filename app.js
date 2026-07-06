@@ -232,7 +232,7 @@ function initEventListeners() {
     }
 
     // Helper to setup edit modal sections
-    const showModalSection = (mode) => {
+    window.showModalSection = (mode) => {
         appState.editMode = mode;
         if (!appState.activeEpisode) return;
         
@@ -1499,32 +1499,20 @@ function showDetailPanel(episodeId, isResume) {
         elements.sutraSummary.appendChild(emptyDiv);
     }
 
-    // Render Edit History at the bottom of Outline (latest first)
+    // Gather Edit History for Outline
+    let summaryHistory = [];
     if (episode.edit_history && episode.edit_history.length > 0) {
         episode.edit_history.forEach(item => {
-            if (item.mode !== 'summary') return; // Only show summary edits in Outline tab
-            const div = document.createElement('div');
-            div.className = 'outline-item edit-note-item';
-            div.style.marginTop = '16px';
-            div.innerHTML = `
-                <span class="outline-bullet">※</span>
-                <p class="outline-text edit-note-text">（${item.date} 由 ${item.author} 修改）</p>
-            `;
-            elements.sutraSummary.appendChild(div);
+            if (item.mode === 'summary') {
+                summaryHistory.push(`※ （${item.date} 由 ${item.author} 修改）`);
+            }
         });
     } else if (episode.is_edited && episode.edited_by && episode.edited_date) {
-        const div = document.createElement('div');
-        div.className = 'outline-item edit-note-item';
-        div.style.marginTop = '16px';
-        div.innerHTML = `
-            <span class="outline-bullet">※</span>
-            <p class="outline-text edit-note-text">（${episode.edited_date} 由 ${episode.edited_by} 修改）</p>
-        `;
-        elements.sutraSummary.appendChild(div);
+        summaryHistory.push(`※ （${episode.edited_date} 由 ${episode.edited_by} 修改）`);
     }
 
     // Append bottom bar at Outline tab
-    appendBottomInfoBar(elements.sutraSummary, sermonSourceText, true);
+    appendBottomInfoBar(elements.sutraSummary, sermonSourceText, true, summaryHistory);
 
     // 5. Populate Sermon Text (full_text)
     elements.sutraFullText.innerHTML = '';
@@ -1548,26 +1536,20 @@ function showDetailPanel(episodeId, isResume) {
         elements.sutraFullText.appendChild(emptyP);
     }
 
-    // Render Edit History at the bottom of Transcript (latest first)
+    // Gather Edit History for Transcript
+    let fullTextHistory = [];
     if (episode.edit_history && episode.edit_history.length > 0) {
         episode.edit_history.forEach(item => {
-            if (item.mode !== 'full_text') return; // Only show transcript edits in Transcript tab
-            const pNode = document.createElement('p');
-            pNode.className = 'edit-note-paragraph';
-            pNode.style.marginTop = '16px';
-            pNode.textContent = `（${item.date} 由 ${item.author} 修改）`;
-            elements.sutraFullText.appendChild(pNode);
+            if (item.mode === 'full_text') {
+                fullTextHistory.push(`※ （${item.date} 由 ${item.author} 修改）`);
+            }
         });
     } else if (episode.is_edited && episode.edited_by && episode.edited_date && !isNotesOnly) {
-        const pNode = document.createElement('p');
-        pNode.className = 'edit-note-paragraph';
-        pNode.style.marginTop = '16px';
-        pNode.textContent = `（${episode.edited_date} 由 ${episode.edited_by} 修改）`;
-        elements.sutraFullText.appendChild(pNode);
+        fullTextHistory.push(`※ （${episode.edited_date} 由 ${episode.edited_by} 修改）`);
     }
 
     // Append bottom bar at Transcript tab
-    appendBottomInfoBar(elements.sutraFullText, sermonSourceText, false);
+    appendBottomInfoBar(elements.sutraFullText, sermonSourceText, false, fullTextHistory);
 
 
     // 6. PDF Link
@@ -2189,23 +2171,18 @@ window.openPreReadDetail = function(idx) {
             </div>`;
     }
 
-    // Render Edit History at the bottom of Outline (latest first)
+    // Gather Edit History for Outline
+    let summaryHistory = [];
     if (entry.edit_history && entry.edit_history.length > 0) {
         entry.edit_history.forEach(item => {
-            if (item.mode !== 'summary') return; // Only show summary edits in Outline tab
-            const div = document.createElement('div');
-            div.className = 'outline-item edit-note-item';
-            div.style.marginTop = '16px';
-            div.innerHTML = `
-                <span class="outline-bullet">※</span>
-                <p class="outline-text edit-note-text">（${item.date} 由 ${item.author} 修改）</p>
-            `;
-            elements.sutraSummary.appendChild(div);
+            if (item.mode === 'summary') {
+                summaryHistory.push(`※ （${item.date} 由 ${item.author} 修改）`);
+            }
         });
     }
 
     // Append bottom bar at Outline tab
-    appendBottomInfoBar(elements.sutraSummary, `※ 以上內容精選自「大愛台YouTube」`, true);
+    appendBottomInfoBar(elements.sutraSummary, `※ 以上內容精選自「大愛台YouTube」`, true, summaryHistory);
 
     // --- Transcript tab (逐字稿) ---
     elements.sutraFullText.innerHTML = '';
@@ -2224,20 +2201,18 @@ window.openPreReadDetail = function(idx) {
             </div>`;
     }
 
-    // Render Edit History at the bottom of Transcript (latest first)
+    // Gather Edit History for Transcript
+    let fullTextHistory = [];
     if (entry.edit_history && entry.edit_history.length > 0) {
         entry.edit_history.forEach(item => {
-            if (item.mode !== 'full_text') return; // Only show transcript edits in Transcript tab
-            const pNode = document.createElement('p');
-            pNode.className = 'edit-note-paragraph';
-            pNode.style.marginTop = '16px';
-            pNode.textContent = `（${item.date} 由 ${item.author} 修改）`;
-            elements.sutraFullText.appendChild(pNode);
+            if (item.mode === 'full_text') {
+                fullTextHistory.push(`※ （${item.date} 由 ${item.author} 修改）`);
+            }
         });
     }
 
     // Append bottom bar at Transcript tab
-    appendBottomInfoBar(elements.sutraFullText, `※ 以上內容精選自「大愛台YouTube」`, false);
+    appendBottomInfoBar(elements.sutraFullText, `※ 以上內容精選自「大愛台YouTube」`, false, fullTextHistory);
 
 
     // --- Navigation: prev / next among pre-read items ---
