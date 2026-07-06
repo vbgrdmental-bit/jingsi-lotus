@@ -86,7 +86,7 @@ const server = http.createServer((req, res) => {
         req.on('end', () => {
             try {
                 const payload = JSON.parse(body);
-                const { episode_id, mode, title, summary, full_text, author, date } = payload;
+                const { episode_id, mode, title, summary, full_text, author, date, comment } = payload;
                 
                 const dbPath = path.join(__dirname, '..', 'data', 'raw_episodes.json');
                 const rawEpisodes = JSON.parse(fs.readFileSync(dbPath, 'utf-8'));
@@ -148,14 +148,16 @@ const server = http.createServer((req, res) => {
 
                         // Check duplicate consecutive edits by same person on same day and mode
                         const isDuplicate = ep.edit_history.length > 0 && 
-                                            ep.edit_history[0].date === date && 
-                                            ep.edit_history[0].author === author && 
-                                            ep.edit_history[0].mode === mode;
+                                             ep.edit_history[0].date === date && 
+                                             ep.edit_history[0].author === author && 
+                                             ep.edit_history[0].mode === mode &&
+                                             ep.edit_history[0].comment === comment;
                         if (!isDuplicate) {
                             ep.edit_history.unshift({
                                 date: date,
                                 author: author,
-                                mode: mode
+                                mode: mode,
+                                comment: comment || ''
                             });
                         }
                     }
@@ -195,7 +197,7 @@ const server = http.createServer((req, res) => {
         req.on('end', () => {
             try {
                 const payload = JSON.parse(body);
-                const { id, mode, title, summary, full_text, author, date } = payload;
+                const { id, mode, title, summary, full_text, author, date, comment } = payload;
 
                 const prPath = path.join(__dirname, '..', 'data', 'preread.json');
                 let prereadData = [];
@@ -214,11 +216,11 @@ const server = http.createServer((req, res) => {
                 } else if (mode === 'summary' && summary !== undefined) {
                     entry.summary = summary;
                     if (!entry.edit_history) entry.edit_history = [];
-                    entry.edit_history.unshift({ date, author, mode });
+                    entry.edit_history.unshift({ date, author, mode, comment: comment || '' });
                 } else if (mode === 'full_text' && full_text !== undefined) {
                     entry.full_text = full_text;
                     if (!entry.edit_history) entry.edit_history = [];
-                    entry.edit_history.unshift({ date, author, mode });
+                    entry.edit_history.unshift({ date, author, mode, comment: comment || '' });
                 }
 
                 // Sort by id to keep order

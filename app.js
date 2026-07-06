@@ -74,7 +74,9 @@ const elements = {
     editTitleSection: document.getElementById('editTitleSection'),
     editSummarySection: document.getElementById('editSummarySection'),
     editFullTextSection: document.getElementById('editFullTextSection'),
-    editAuthorSection: document.getElementById('editAuthorSection')
+    editAuthorSection: document.getElementById('editAuthorSection'),
+    editComment: document.getElementById('editComment'),
+    editCommentSection: document.getElementById('editCommentSection')
 };
 
 // Initialize Application
@@ -247,11 +249,17 @@ function initEventListeners() {
         
         elements.editEpId.textContent = appState.activeEpisode.episode_id;
         
+        // Reset comment input
+        if (elements.editComment) {
+            elements.editComment.value = '';
+        }
+        
         if (mode === 'title') {
             elements.editTitleSection.classList.remove('hidden');
             elements.editSummarySection.classList.add('hidden');
             elements.editFullTextSection.classList.add('hidden');
             elements.editAuthorSection.classList.add('hidden');
+            if (elements.editCommentSection) elements.editCommentSection.classList.add('hidden');
             
             elements.editTitle.value = appState.activeEpisode.title || '';
             if (appState.activeEpisode._isPreRead) {
@@ -264,32 +272,34 @@ function initEventListeners() {
             elements.editSummarySection.classList.remove('hidden');
             elements.editFullTextSection.classList.add('hidden');
             elements.editAuthorSection.classList.remove('hidden');
+            if (elements.editCommentSection) elements.editCommentSection.classList.remove('hidden');
 
             if (appState.activeEpisode._isPreRead) {
                 const idx = appState.activeEpisode._preReadIdx;
                 elements.editSummary.value = (window._preReadItems[idx] && window._preReadItems[idx].summary) || '';
-                document.querySelector('#editModal h3').innerHTML = `修改品前導讀大綱`;
+                document.querySelector('#editModal h3').innerHTML = `手動修改品前導讀第 ${idx + 1} 集 (大綱)`;
             } else {
                 const notesOnlyEpisodes = [16, 17, 19, 20, 23, 29];
                 const isNotesOnly = notesOnlyEpisodes.includes(appState.activeEpisode.episode_id) && !appState.activeEpisode.is_edited;
                 elements.editSummary.value = isNotesOnly ? (appState.activeEpisode.full_text || '') : (appState.activeEpisode.summary || '');
-                document.querySelector('#editModal h3').innerHTML = `手動修改第 <span id="editEpId">${appState.activeEpisode.episode_id}</span> 經文提綱 (大綱)`;
+                document.querySelector('#editModal h3').innerHTML = `手動修改第 <span id="editEpId">${appState.activeEpisode.episode_id}</span> 集 (大綱)`;
             }
         } else if (mode === 'full_text') {
             elements.editTitleSection.classList.add('hidden');
             elements.editSummarySection.classList.add('hidden');
             elements.editFullTextSection.classList.remove('hidden');
             elements.editAuthorSection.classList.remove('hidden');
+            if (elements.editCommentSection) elements.editCommentSection.classList.remove('hidden');
 
             if (appState.activeEpisode._isPreRead) {
                 const idx = appState.activeEpisode._preReadIdx;
                 elements.editFullText.value = (window._preReadItems[idx] && window._preReadItems[idx].full_text) || '';
-                document.querySelector('#editModal h3').innerHTML = `修改品前導讀逐字稿`;
+                document.querySelector('#editModal h3').innerHTML = `手動修改品前導讀第 ${idx + 1} 集 (全文)`;
             } else {
                 const notesOnlyEpisodes = [16, 17, 19, 20, 23, 29];
                 const isNotesOnly = notesOnlyEpisodes.includes(appState.activeEpisode.episode_id) && !appState.activeEpisode.is_edited;
                 elements.editFullText.value = isNotesOnly ? '' : (appState.activeEpisode.full_text || '');
-                document.querySelector('#editModal h3').innerHTML = `手動修改第 <span id="editEpId">${appState.activeEpisode.episode_id}</span> 開示逐字稿 (全文)`;
+                document.querySelector('#editModal h3').innerHTML = `手動修改第 <span id="editEpId">${appState.activeEpisode.episode_id}</span> 集 (全文)`;
             }
         }
         
@@ -332,8 +342,9 @@ function initEventListeners() {
 
                 const now = new Date();
                 const dateStr = `${now.getFullYear()}/${String(now.getMonth()+1).padStart(2,'0')}/${String(now.getDate()).padStart(2,'0')}`;
+                const comment = elements.editComment ? elements.editComment.value.trim() : '';
 
-                let payload = { id: idx, mode, date: dateStr, author: '管理員' };
+                let payload = { id: idx, mode, date: dateStr, author: '管理員', comment };
 
                 if (mode === 'title') {
                     const newTitle = elements.editTitle.value.trim();
@@ -366,12 +377,14 @@ function initEventListeners() {
                     const isDuplicate = entry.edit_history.length > 0 && 
                                         entry.edit_history[0].date === payload.date && 
                                         entry.edit_history[0].author === payload.author && 
-                                        entry.edit_history[0].mode === mode;
+                                        entry.edit_history[0].mode === mode &&
+                                        entry.edit_history[0].comment === payload.comment;
                     if (!isDuplicate) {
                         entry.edit_history.unshift({
                             date: payload.date,
                             author: payload.author,
-                            mode: mode
+                            mode: mode,
+                            comment: payload.comment
                         });
                     }
                 }
@@ -458,7 +471,8 @@ function initEventListeners() {
                 summary: summary,
                 full_text: full_text,
                 author: author,
-                date: elements.editDate.value
+                date: elements.editDate.value,
+                comment: elements.editComment ? elements.editComment.value.trim() : ''
             };
             
             elements.saveEditBtn.disabled = true;
@@ -498,12 +512,14 @@ function initEventListeners() {
                         const isDuplicate = ep.edit_history.length > 0 && 
                                             ep.edit_history[0].date === payload.date && 
                                             ep.edit_history[0].author === payload.author && 
-                                            ep.edit_history[0].mode === mode;
+                                            ep.edit_history[0].mode === mode &&
+                                            ep.edit_history[0].comment === payload.comment;
                         if (!isDuplicate) {
                             ep.edit_history.unshift({
                                 date: payload.date,
                                 author: payload.author,
-                                mode: mode
+                                mode: mode,
+                                comment: payload.comment
                             });
                         }
                     }
@@ -562,12 +578,14 @@ function initEventListeners() {
                     const isDuplicate = ep.edit_history.length > 0 && 
                                         ep.edit_history[0].date === payload.date && 
                                         ep.edit_history[0].author === payload.author && 
-                                        ep.edit_history[0].mode === mode;
+                                        ep.edit_history[0].mode === mode &&
+                                        ep.edit_history[0].comment === payload.comment;
                     if (!isDuplicate) {
                         ep.edit_history.unshift({
                             date: payload.date,
                             author: payload.author,
-                            mode: mode
+                            mode: mode,
+                            comment: payload.comment
                         });
                     }
                 }
@@ -1596,7 +1614,11 @@ function showDetailPanel(episodeId, isResume) {
     if (episode.edit_history && episode.edit_history.length > 0) {
         episode.edit_history.forEach(item => {
             if (item.mode === 'summary') {
-                summaryHistory.push(`※ ${item.date} 由 ${item.author} 修改`);
+                if (item.comment) {
+                    summaryHistory.push(`※ ${item.date} ${item.author} ${item.comment}`);
+                } else {
+                    summaryHistory.push(`※ ${item.date} 由 ${item.author} 修改`);
+                }
             }
         });
     } else if (episode.is_edited && episode.edited_by && episode.edited_date) {
@@ -1633,7 +1655,11 @@ function showDetailPanel(episodeId, isResume) {
     if (episode.edit_history && episode.edit_history.length > 0) {
         episode.edit_history.forEach(item => {
             if (item.mode === 'full_text') {
-                fullTextHistory.push(`※ ${item.date} 由 ${item.author} 修改`);
+                if (item.comment) {
+                    fullTextHistory.push(`※ ${item.date} ${item.author} ${item.comment}`);
+                } else {
+                    fullTextHistory.push(`※ ${item.date} 由 ${item.author} 修改`);
+                }
             }
         });
     } else if (episode.is_edited && episode.edited_by && episode.edited_date && !isNotesOnly) {
@@ -2300,7 +2326,11 @@ window.openPreReadDetail = function(idx) {
     if (entry.edit_history && entry.edit_history.length > 0) {
         entry.edit_history.forEach(item => {
             if (item.mode === 'summary') {
-                summaryHistory.push(`※ ${item.date} 由 ${item.author} 修改`);
+                if (item.comment) {
+                    summaryHistory.push(`※ ${item.date} ${item.author} ${item.comment}`);
+                } else {
+                    summaryHistory.push(`※ ${item.date} 由 ${item.author} 修改`);
+                }
             }
         });
     }
@@ -2330,7 +2360,11 @@ window.openPreReadDetail = function(idx) {
     if (entry.edit_history && entry.edit_history.length > 0) {
         entry.edit_history.forEach(item => {
             if (item.mode === 'full_text') {
-                fullTextHistory.push(`※ ${item.date} 由 ${item.author} 修改`);
+                if (item.comment) {
+                    fullTextHistory.push(`※ ${item.date} ${item.author} ${item.comment}`);
+                } else {
+                    fullTextHistory.push(`※ ${item.date} 由 ${item.author} 修改`);
+                }
             }
         });
     }
