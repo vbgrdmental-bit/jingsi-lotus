@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="app.css?v=1.3">
+    <link rel="stylesheet" href="app.css?v=1.4">
 </head>
 <body class="dark-mode">
     <div class="app-container">
@@ -239,10 +239,14 @@
                     <label for="editFullText">開示逐字稿 (全文)</label>
                     <textarea id="editFullText" rows="10" placeholder="輸入逐字稿全文..."></textarea>
                 </div>
+                <div id="editCommentSection" class="edit-field">
+                    <label for="editComment">修改摘要</label>
+                    <input type="text" id="editComment" placeholder="例如：修改錯字、新增標題、新增日期…">
+                </div>
                 <div id="editAuthorSection" class="edit-row">
                     <div class="edit-field flex-1">
                         <label for="editAuthor">修改者姓名</label>
-                        <input type="text" id="editAuthor" placeholder="例如：美玲">
+                        <input type="text" id="editAuthor" placeholder="例如：大寶">
                     </div>
                     <div class="edit-field flex-1">
                         <label for="editDate">修改日期</label>
@@ -258,6 +262,6 @@
     </div>
 
     <!-- App Logic Scripts -->
-    <script src="app.js?v=1.3"></script>
+    <script src="app.js?v=1.4"></script>
 </body>
 </html>
