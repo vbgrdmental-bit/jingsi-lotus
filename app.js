@@ -16,6 +16,15 @@ let appState = {
     zenMode: false
 };
 
+// Check if running in a local environment (local server or file:// protocol)
+function isLocalEnvironment() {
+    return window.location.hostname === 'localhost' || 
+           window.location.hostname === '127.0.0.1' || 
+           window.location.hostname === '::1' ||
+           window.location.hostname === '' ||
+           window.location.protocol === 'file:';
+}
+
 // DOM Elements
 const elements = {
     themeToggleBtn: document.getElementById('themeToggleBtn'),
@@ -826,9 +835,7 @@ function fetchMetadata() {
 }
 
 function fetchGlobalStats() {
-    const isLocalhost = window.location.hostname === 'localhost' || 
-                        window.location.hostname === '127.0.0.1' || 
-                        window.location.hostname === '::1';
+    const isLocalhost = isLocalEnvironment();
 
     const localText = document.getElementById('localVisitsText');
     const bzContainer = document.getElementById('busuanzi_container_site_pv');
@@ -1223,9 +1230,7 @@ function renderEpisodeList(chapterId) {
             relativeNumLabel = `(第${index + 1}集)`;
         }
 
-        const isLocalhost = window.location.hostname === 'localhost' || 
-                            window.location.hostname === '127.0.0.1' || 
-                            window.location.hostname === '::1';
+        const isLocalhost = isLocalEnvironment();
         const compCount = appState.globalStats && appState.globalStats.episode_completions ? (appState.globalStats.episode_completions[ep.episode_id] || 0) : 0;
         const compText = isLocalhost ? `<span id="episodeCompleteCount-${ep.episode_id}" class="episode-global-completes">（已有 ${compCount} 人完成）</span>` : '';
 
@@ -1324,18 +1329,34 @@ window.openEpisodeDetail = function(episodeId, isResume = false) {
 };
 
 // Append bottom info bar containing source note (left) and edit button (right)
-function appendBottomInfoBar(container, sourceText, isSummaryTab) {
+function appendBottomInfoBar(container, sourceText, isSummaryTab, editHistoryLines = []) {
     const bar = document.createElement('div');
     bar.className = 'bottom-info-bar';
+    
+    const infoLeft = document.createElement('div');
+    infoLeft.className = 'bottom-info-left';
     
     const sourceSpan = document.createElement('span');
     sourceSpan.className = 'sermon-source-note';
     sourceSpan.textContent = sourceText;
-    bar.appendChild(sourceSpan);
+    infoLeft.appendChild(sourceSpan);
     
-    const isLocalhost = window.location.hostname === 'localhost' || 
-                        window.location.hostname === '127.0.0.1' || 
-                        window.location.hostname === '::1';
+    if (editHistoryLines && editHistoryLines.length > 0) {
+        const divider = document.createElement('div');
+        divider.className = 'bottom-info-divider';
+        infoLeft.appendChild(divider);
+        
+        editHistoryLines.forEach(line => {
+            const historySpan = document.createElement('span');
+            historySpan.className = 'sermon-edit-history-note';
+            historySpan.textContent = line;
+            infoLeft.appendChild(historySpan);
+        });
+    }
+    
+    bar.appendChild(infoLeft);
+    
+    const isLocalhost = isLocalEnvironment();
     if (isLocalhost && appState.activeEpisode && !appState.activeEpisode._isOutroCard) {
         const btn = document.createElement('button');
         btn.className = 'edit-action-btn';
@@ -1348,7 +1369,7 @@ function appendBottomInfoBar(container, sourceText, isSummaryTab) {
                 </svg>
                 <span>修改大綱</span>
             `;
-            btn.addEventListener('click', () => showModalSection('summary'));
+            btn.addEventListener('click', () => window.showModalSection('summary'));
             elements.editSummaryBtn = btn;
         } else {
             btn.id = 'editFullTextBtn';
@@ -1359,7 +1380,7 @@ function appendBottomInfoBar(container, sourceText, isSummaryTab) {
                 </svg>
                 <span>修改全文</span>
             `;
-            btn.addEventListener('click', () => showModalSection('full_text'));
+            btn.addEventListener('click', () => window.showModalSection('full_text'));
             elements.editFullTextBtn = btn;
         }
         bar.appendChild(btn);
@@ -1385,9 +1406,7 @@ function showDetailPanel(episodeId, isResume) {
         ? `※ 以上內容摘自「奈普敦智慧平台」 & 大愛電視 YouTube（本集僅有導讀問答與心得筆記，無逐字稿）`
         : `※ 以上內容摘自「奈普敦智慧平台」 & 大愛電視 YouTube`;
 
-    const isLocalhost = window.location.hostname === 'localhost' || 
-                        window.location.hostname === '127.0.0.1' || 
-                        window.location.hostname === '::1';
+    const isLocalhost = isLocalEnvironment();
     if (elements.editTitleBtn) {
         if (isLocalhost) elements.editTitleBtn.classList.remove('hidden');
         else elements.editTitleBtn.classList.add('hidden');
@@ -2110,9 +2129,7 @@ window.openPreReadDetail = function(idx) {
     if (elements.panelCompleteStats) elements.panelCompleteStats.style.display = 'none';
 
     // Show editTitleBtn only for admin (localhost); hide summary/fulltext edit buttons
-    const isLocalhost = window.location.hostname === 'localhost' ||
-                        window.location.hostname === '127.0.0.1' ||
-                        window.location.hostname === '::1';
+    const isLocalhost = isLocalEnvironment();
     if (elements.editTitleBtn) {
         if (isLocalhost) elements.editTitleBtn.classList.remove('hidden');
         else elements.editTitleBtn.classList.add('hidden');
