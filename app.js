@@ -39,10 +39,11 @@ const elements = {
     nextEpisodeBtn: document.getElementById('nextEpisodeBtn'),
     videoSearchBtn: document.getElementById('videoSearchBtn'),
     pdfDownloadLink: document.getElementById('pdfDownloadLink'),
+    fontDecBtn: document.getElementById('fontDecBtn'),
+    fontIncBtn: document.getElementById('fontIncBtn'),
     sutraSummary: document.getElementById('sutraSummary'),
     sutraFullText: document.getElementById('sutraFullText'),
     panelBody: document.querySelector('#detailPanel .panel-body'),
-    sourceNote: document.querySelector('#detailPanel .source-note'),
     searchInput: document.getElementById('searchInput'),
     clearSearchBtn: document.getElementById('clearSearchBtn'),
     searchResults: document.getElementById('searchResults'),
@@ -177,13 +178,26 @@ function initEventListeners() {
         }
     });
 
-    // Font size controls
-    document.querySelectorAll('.font-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            const size = e.target.dataset.size;
-            setFontSize(size);
+    // Font size controls (A- / A+ dynamic adjustment)
+    let currentFontSize = parseFloat(localStorage.getItem('jingsi_reading_fontsize') || '1.05');
+    function updateReadingFontSize() {
+        document.documentElement.style.setProperty('--reading-font-size', `${currentFontSize}rem`);
+        localStorage.setItem('jingsi_reading_fontsize', currentFontSize.toString());
+    }
+    updateReadingFontSize();
+
+    if (elements.fontDecBtn) {
+        elements.fontDecBtn.addEventListener('click', () => {
+            currentFontSize = Math.max(0.75, currentFontSize - 0.08);
+            updateReadingFontSize();
         });
-    });
+    }
+    if (elements.fontIncBtn) {
+        elements.fontIncBtn.addEventListener('click', () => {
+            currentFontSize = Math.min(1.8, currentFontSize + 0.08);
+            updateReadingFontSize();
+        });
+    }
 
     // Tab buttons
     document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -1332,14 +1346,9 @@ function showDetailPanel(episodeId, isResume) {
     // Update source note text for notes-only episodes
     const notesOnlyEpisodes = [16, 17, 19, 20, 23, 29];
     const isNotesOnly = notesOnlyEpisodes.includes(episodeId) && !episode.is_edited;
-    
-    if (elements.sourceNote) {
-        if (isNotesOnly) {
-            elements.sourceNote.textContent = `※ 以下內容摘自「奈普敦智慧平台」 & 大愛電視 YouTube（本集僅有導讀問答與心得筆記，無逐字稿）`;
-        } else {
-            elements.sourceNote.textContent = `※ 以下內容摘自「奈普敦智慧平台」 & 大愛電視 YouTube`;
-        }
-    }
+    const sermonSourceText = isNotesOnly 
+        ? `※ 以上內容摘自「奈普敦智慧平台」 & 大愛電視 YouTube（本集僅有導讀問答與心得筆記，無逐字稿）`
+        : `※ 以上內容摘自「奈普敦智慧平台」 & 大愛電視 YouTube`;
 
     const isLocalhost = window.location.hostname === 'localhost' || 
                         window.location.hostname === '127.0.0.1' || 
@@ -1434,7 +1443,6 @@ function showDetailPanel(episodeId, isResume) {
             const div = document.createElement('div');
             div.className = 'outline-item';
             div.innerHTML = `
-                <span class="outline-bullet">⊙</span>
                 <p class="outline-text">${b.trim()}</p>
             `;
             elements.sutraSummary.appendChild(div);
@@ -1446,7 +1454,6 @@ function showDetailPanel(episodeId, isResume) {
             const div = document.createElement('div');
             div.className = 'outline-item';
             div.innerHTML = `
-                <span class="outline-bullet">⊙</span>
                 <p class="outline-text">${b.trim()}</p>
             `;
             elements.sutraSummary.appendChild(div);
@@ -1480,6 +1487,12 @@ function showDetailPanel(episodeId, isResume) {
         `;
         elements.sutraSummary.appendChild(div);
     }
+
+    // Append source note at bottom of Outline
+    const outlineSource = document.createElement('span');
+    outlineSource.className = 'sermon-source-note';
+    outlineSource.textContent = sermonSourceText;
+    elements.sutraSummary.appendChild(outlineSource);
 
     // 5. Populate Sermon Text (full_text)
     elements.sutraFullText.innerHTML = '';
@@ -1520,6 +1533,12 @@ function showDetailPanel(episodeId, isResume) {
         pNode.textContent = `（${episode.edited_date} 由 ${episode.edited_by} 修改）`;
         elements.sutraFullText.appendChild(pNode);
     }
+
+    // Append source note at bottom of Transcript
+    const transcriptSource = document.createElement('span');
+    transcriptSource.className = 'sermon-source-note';
+    transcriptSource.textContent = sermonSourceText;
+    elements.sutraFullText.appendChild(transcriptSource);
 
 
     // 6. PDF Link
@@ -2099,9 +2118,6 @@ window.openPreReadDetail = function(idx) {
     // Hide PDF link
     elements.pdfDownloadLink.classList.add('hidden');
 
-    // Source note — same position/style as regular episodes
-    if (elements.sourceNote) elements.sourceNote.textContent = '※摘自大愛台YouTube';
-
     // --- Embed YouTube ---
     elements.videoContainer.innerHTML = '';
     const fallbackDiv = document.getElementById('videoFallback');
@@ -2133,7 +2149,7 @@ window.openPreReadDetail = function(idx) {
             if (!line.trim()) return;
             const div = document.createElement('div');
             div.className = 'outline-item';
-            div.innerHTML = `<span class="outline-bullet">⊙</span><p class="outline-text">${line.trim()}</p>`;
+            div.innerHTML = `<p class="outline-text">${line.trim()}</p>`;
             elements.sutraSummary.appendChild(div);
         });
     } else {
@@ -2158,6 +2174,12 @@ window.openPreReadDetail = function(idx) {
             elements.sutraSummary.appendChild(div);
         });
     }
+
+    // Append source note at bottom of Outline
+    const outlineSource = document.createElement('span');
+    outlineSource.className = 'sermon-source-note';
+    outlineSource.textContent = `※ 以上內容精選自「大愛台YouTube」`;
+    elements.sutraSummary.appendChild(outlineSource);
 
     // --- Transcript tab (逐字稿) ---
     elements.sutraFullText.innerHTML = '';
@@ -2187,6 +2209,12 @@ window.openPreReadDetail = function(idx) {
             elements.sutraFullText.appendChild(pNode);
         });
     }
+
+    // Append source note at bottom of Transcript
+    const transcriptSource = document.createElement('span');
+    transcriptSource.className = 'sermon-source-note';
+    transcriptSource.textContent = `※ 以上內容精選自「大愛台YouTube」`;
+    elements.sutraFullText.appendChild(transcriptSource);
 
 
     // --- Navigation: prev / next among pre-read items ---

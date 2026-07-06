@@ -178,25 +178,26 @@
         <!-- Tab Selector -->
         <div class="tabs-container">
             <div class="tabs-left">
-                <button class="tab-btn active" data-tab="tab-summary">經文提綱 (大綱)</button>
-                <button class="tab-btn" data-tab="tab-text">開示逐字稿 (全文)</button>
+                <button class="tab-btn active" data-tab="tab-summary">大綱</button>
+                <button class="tab-btn" data-tab="tab-text">全文</button>
             </div>
-            <a id="pdfDownloadLink" href="#" target="_blank" class="pdf-btn hidden">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                    <polyline points="7 10 12 15 17 10"></polyline>
-                    <line x1="12" y1="15" x2="12" y2="3"></line>
-                </svg>
-                <span>PDF下載</span>
-            </a>
+            <div class="tabs-right">
+                <button id="fontDecBtn" class="font-adjust-btn" title="縮小字體">A-</button>
+                <button id="fontIncBtn" class="font-adjust-btn" title="放大字體">A+</button>
+                <a id="pdfDownloadLink" href="#" target="_blank" class="pdf-btn hidden">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                    <span>PDF下載</span>
+                </a>
+            </div>
         </div>
 
         <!-- Tab Content -->
         <div class="panel-body">
             <div class="source-note-container">
-                <div class="source-note-group">
-                    <span class="source-note">※ 以下內容摘自「奈普敦智慧平台」 & 大愛電視 YouTube</span>
-                </div>
                 <div class="edit-buttons-group">
                     <button id="editSummaryBtn" class="edit-action-btn">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12">
