@@ -1535,17 +1535,21 @@ function showDetailPanel(episodeId, isResume) {
     if (curIdx > 0) {
         elements.prevEpisodeBtn.disabled = false;
         elements.prevEpisodeBtn.dataset.epId = appState.episodesIndex[curIdx - 1].episode_id;
+        delete elements.prevEpisodeBtn.dataset.preReadIdx;
     } else {
         elements.prevEpisodeBtn.disabled = true;
         delete elements.prevEpisodeBtn.dataset.epId;
+        delete elements.prevEpisodeBtn.dataset.preReadIdx;
     }
 
     if (curIdx !== -1 && curIdx < appState.episodesIndex.length - 1) {
         elements.nextEpisodeBtn.disabled = false;
         elements.nextEpisodeBtn.dataset.epId = appState.episodesIndex[curIdx + 1].episode_id;
+        delete elements.nextEpisodeBtn.dataset.preReadIdx;
     } else {
         elements.nextEpisodeBtn.disabled = true;
         delete elements.nextEpisodeBtn.dataset.epId;
+        delete elements.nextEpisodeBtn.dataset.preReadIdx;
     }
 
     // 7. Handle font size and tab styling
