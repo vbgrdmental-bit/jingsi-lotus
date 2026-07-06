@@ -1459,3 +1459,138 @@ body.sepia-mode .episode-global-completes {
     opacity: 0.8;
 }
 
+/* Mobile Optimization for Details Panel */
+@media (max-width: 600px) {
+    /* 1. Panel Header compact layout (approx 10% height) */
+    .panel-header {
+        padding: 8px 12px !important;
+        gap: 8px !important;
+        height: 10vh !important;
+        min-height: 56px !important;
+        max-height: 70px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+    }
+    
+    .icon-btn#closePanelBtn {
+        padding: 4px !important;
+        margin-right: -4px !important;
+    }
+    
+    .panel-header-title {
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: center !important;
+        gap: 2px !important;
+        flex-grow: 1 !important;
+        min-width: 0 !important;
+    }
+    
+    .panel-meta-row {
+        margin-bottom: 0px !important;
+        font-size: 0.65rem !important;
+        gap: 4px !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        line-height: 1 !important;
+    }
+    
+    .epid-badge {
+        padding: 1px 4px !important;
+        font-size: 0.6rem !important;
+        border-radius: 3px !important;
+    }
+    
+    .panel-header-title h2 {
+        font-size: 0.88rem !important;
+        line-height: 1.2 !important;
+        margin: 0 !important;
+        font-weight: 700 !important;
+        display: -webkit-box !important;
+        -webkit-line-clamp: 2 !important;
+        -webkit-box-orient: vertical !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+    }
+    
+    .date-badge {
+        display: none !important; /* Hide date on mobile header to save space */
+    }
+    
+    .panel-header-right {
+        gap: 2px !important;
+        align-items: flex-end !important;
+    }
+    
+    .complete-toggle-btn {
+        padding: 4px 8px !important;
+        font-size: 0.68rem !important;
+        border-radius: 12px !important;
+        gap: 4px !important;
+    }
+    
+    .complete-toggle-btn svg {
+        width: 12px !important;
+        height: 12px !important;
+    }
+    
+    .panel-complete-stats-text {
+        font-size: 0.6rem !important;
+        padding-right: 4px !important;
+        margin-top: 1px !important;
+    }
+
+    /* 2. Spacing below video and tabs */
+    .video-navigation-bar {
+        padding: 6px 12px !important;
+        gap: 8px !important;
+    }
+    
+    .nav-episode-btn {
+        padding: 5px 10px !important;
+        font-size: 0.78rem !important;
+    }
+    
+    .nav-search-btn {
+        padding: 5px !important;
+    }
+    
+    .tab-btn {
+        padding: 8px 10px !important;
+        font-size: 0.82rem !important;
+    }
+    
+    .pdf-btn {
+        padding: 4px 8px !important;
+        font-size: 0.75rem !important;
+    }
+
+    /* 3. Panel Body and source note / edit buttons spacing */
+    .panel-body {
+        padding: 10px 12px 20px 12px !important;
+    }
+    
+    .source-note-container {
+        margin-bottom: 8px !important;
+        gap: 6px !important;
+    }
+    
+    .source-note {
+        margin-bottom: 0px !important;
+        font-size: 0.65rem !important;
+    }
+    
+    .edit-action-btn {
+        padding: 4px 10px !important;
+        font-size: 0.68rem !important;
+        gap: 4px !important;
+    }
+    
+    .edit-action-btn svg {
+        width: 10px !important;
+        height: 10px !important;
+    }
+}
+
