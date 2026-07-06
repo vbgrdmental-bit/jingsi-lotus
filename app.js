@@ -904,17 +904,17 @@ function renderChapterList() {
         </button>
         <div id="episodeListContainer-intro" class="episode-list-container" style="max-height: 0px; overflow: hidden; transition: max-height 0.3s ease-out;">
             <div style="padding: 12px 16px; border-bottom: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 4px; align-items: flex-start; cursor: default;">
-                <span class="episode-title" style="font-weight: bold; color: var(--text-primary); font-size: 1.05rem;">開經偈</span>
-                <span class="episode-desc" style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5; white-space: pre-line;">無上甚深微妙法，
-百千萬劫難遭遇。
-我今見聞得受持，
-願解如來真實義。</span>
+                <span class="episode-title" style="font-weight: bold; color: var(--text-primary); font-size: 14px;">開經偈</span>
+                <span class="episode-desc fixed-small-intro-text" style="color: var(--text-secondary); white-space: pre-line;">無上甚深微妙法，百千萬劫難遭遇，
+我今見聞得受持，願解如來真實義。</span>
             </div>
             <div style="padding: 12px 16px; display: flex; flex-direction: column; gap: 4px; align-items: flex-start; cursor: default;">
-                <span class="episode-title" style="font-weight: bold; color: var(--text-primary); font-size: 1.05rem;">爐香讚</span>
-                <span class="episode-desc" style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5; white-space: pre-line;">爐香乍爇。法界蒙薰。諸佛海會悉遙聞。
+                <span class="episode-title" style="font-weight: bold; color: var(--text-primary); font-size: 14px;">爐香讚</span>
+                <span class="episode-desc fixed-small-intro-text" style="color: var(--text-secondary); white-space: pre-line;">爐香乍爇。法界蒙薰。諸佛海會悉遙聞。
 隨處結祥雲。誠意方殷。諸佛現全身。
-南無香雲蓋菩薩摩訶薩（三稱）</span>
+南無香雲蓋菩薩摩訶薩（三稱）
+
+南無本師釋迦牟尼佛(三稱)</span>
             </div>
         </div>
 
@@ -1164,24 +1164,24 @@ function renderChapterList() {
         </button>
         <div id="episodeListContainer-outro" class="episode-list-container" style="max-height: 0px; overflow: hidden; transition: max-height 0.3s ease-out;">
             <div style="padding: 12px 16px; border-bottom: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 4px; align-items: flex-start; cursor: default;">
-                <span class="episode-title" style="font-weight: bold; color: var(--text-primary); font-size: 1.05rem;">懺悔</span>
-                <span class="episode-desc" style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5; white-space: pre-line;">往昔所造諸惡業，皆由無始貪瞋癡，
+                <span class="episode-title" style="font-weight: bold; color: var(--text-primary); font-size: 14px;">懺悔</span>
+                <span class="episode-desc fixed-small-intro-text" style="color: var(--text-secondary); white-space: pre-line;">往昔所造諸惡業，皆由無始貪瞋癡，
 從身語意之所生，一切我今皆懺悔。</span>
             </div>
             <div style="padding: 12px 16px; border-bottom: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 4px; align-items: flex-start; cursor: default;">
-                <span class="episode-title" style="font-weight: bold; color: var(--text-primary); font-size: 1.05rem;">發願</span>
-                <span class="episode-desc" style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5; white-space: pre-line;">誠心誓願度眾生，正心誓願斷煩惱，
+                <span class="episode-title" style="font-weight: bold; color: var(--text-primary); font-size: 14px;">發願</span>
+                <span class="episode-desc fixed-small-intro-text" style="color: var(--text-secondary); white-space: pre-line;">誠心誓願度眾生，正心誓願斷煩惱，
 信心誓願學法門，實心誓願成佛道。</span>
             </div>
             <div style="padding: 12px 16px; border-bottom: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 4px; align-items: flex-start; cursor: default;">
-                <span class="episode-title" style="font-weight: bold; color: var(--text-primary); font-size: 1.05rem;">皈依</span>
-                <span class="episode-desc" style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5; white-space: pre-line;">自皈依佛，當願眾生，體解大道，發無上心。
+                <span class="episode-title" style="font-weight: bold; color: var(--text-primary); font-size: 14px;">皈依</span>
+                <span class="episode-desc fixed-small-intro-text" style="color: var(--text-secondary); white-space: pre-line;">自皈依佛，當願眾生，體解大道，發無上心。
 自皈依法，當願眾生，深入經藏，智慧如海。
 自皈依僧，當願眾生，統理大眾，一切無礙。</span>
             </div>
             <div style="padding: 12px 16px; display: flex; flex-direction: column; gap: 4px; align-items: flex-start; cursor: default;">
-                <span class="episode-title" style="font-weight: bold; color: var(--text-primary); font-size: 1.05rem;">回向</span>
-                <span class="episode-desc" style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5; white-space: pre-line;">願消三障諸煩惱，願得智慧真明了，
+                <span class="episode-title" style="font-weight: bold; color: var(--text-primary); font-size: 14px;">回向</span>
+                <span class="episode-desc fixed-small-intro-text" style="color: var(--text-secondary); white-space: pre-line;">願消三障諸煩惱，願得智慧真明了，
 普願罪障悉消除，世世常行菩薩道。</span>
             </div>
         </div>

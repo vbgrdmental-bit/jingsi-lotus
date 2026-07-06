@@ -1693,5 +1693,33 @@ body.sepia-mode .episode-global-completes {
         width: 10px !important;
         height: 10px !important;
     }
+
+    /* Fix progress stats wrapping on mobile */
+    .progress-subinfo {
+        font-size: 0.65rem !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+    }
+    
+    /* Fix resume reading button text wrapping on mobile */
+    .resume-btn {
+        font-size: 0.65rem !important;
+        padding: 4px 8px !important;
+        border-radius: 12px !important;
+        white-space: nowrap !important;
+        flex-shrink: 0 !important;
+    }
+    
+    .resume-btn svg {
+        width: 8px !important;
+        height: 8px !important;
+    }
+}
+
+/* Fixed small text for intro/outro card descriptions to prevent scaling/wrapping */
+.fixed-small-intro-text {
+    font-size: 13px !important;
+    line-height: 1.5 !important;
 }
 
