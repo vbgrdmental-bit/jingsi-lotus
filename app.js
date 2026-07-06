@@ -841,6 +841,17 @@ function fetchMetadata() {
             });
             
             fetchGlobalStats();
+            
+            // Automatically detect and show app version from stylesheet version query string
+            const cssLink = document.querySelector('link[href*="app.css"]');
+            if (cssLink) {
+                const match = cssLink.getAttribute('href').match(/v=([\d.]+)/);
+                if (match) {
+                    const version = match[1];
+                    const versionEl = document.getElementById('appVersion');
+                    if (versionEl) versionEl.textContent = `網頁版本 v${version}`;
+                }
+            }
         })
         .catch(err => {
             console.error("Error loading metadata", err);
