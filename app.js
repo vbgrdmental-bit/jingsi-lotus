@@ -971,6 +971,18 @@ function renderChapterList() {
         });
     });
 
+    // Helper: update pre-read stats bar
+    function updatePreReadProgressBar() {
+        const completedCount = window._preReadItems.filter((_, idx) => appState.progress.completed[`preread-${idx}`]).length;
+        const totalCount = window._preReadItems.length;
+        const percent = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
+        
+        const bar = document.getElementById('chapterBar-preread');
+        const text = document.getElementById('chapterStats-preread');
+        if (bar) bar.style.width = `${percent}%`;
+        if (text) text.textContent = `已讀 ${completedCount}/${totalCount}`;
+    }
+
     // Helper: build and inject the preread list HTML into the card container
     function renderPreReadList() {
         const container = document.getElementById('episodeListContainer-preread');
@@ -981,8 +993,16 @@ function renderChapterList() {
             : false;
         container.innerHTML = window._preReadItems.map((entry, idx) => {
             const seqNum = idx + 1;
-            return `<div class="episode-item" style="cursor:pointer;" onclick="openPreReadDetail(${idx})">
-                <div class="episode-info">
+            const isCompleted = appState.progress.completed[`preread-${idx}`] ? 'completed' : '';
+            return `<div class="episode-item ${isCompleted}" id="preReadItem-${idx}" style="cursor:pointer;">
+                <div class="checkbox-container">
+                    <button class="checkbox-btn" onclick="togglePreReadCompleteInline(event, ${idx})">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                    </button>
+                </div>
+                <div class="episode-info" onclick="openPreReadDetail(${idx})">
                     <div class="episode-title-row">
                         <span class="episode-number">${seqNum}</span>
                         <span class="episode-title">${entry.title}</span>
@@ -990,6 +1010,9 @@ function renderChapterList() {
                 </div>
             </div>`;
         }).join('');
+        
+        updatePreReadProgressBar();
+
         // If already expanded, refresh max-height
         if (wasExpanded) {
             const maxAllowedHeight = 315;
@@ -999,13 +1022,58 @@ function renderChapterList() {
         }
     }
 
+    // Global toggle completed inline for pre-read
+    window.togglePreReadCompleteInline = function(event, idx) {
+        if (event) event.stopPropagation();
+        
+        const key = `preread-${idx}`;
+        const isCompleted = !appState.progress.completed[key];
+        if (isCompleted) {
+            appState.progress.completed[key] = true;
+        } else {
+            delete appState.progress.completed[key];
+        }
+        
+        saveProgress();
+        
+        // Sync inline checkbox in the card list
+        const item = document.getElementById(`preReadItem-${idx}`);
+        if (item) {
+            if (isCompleted) {
+                item.classList.add('completed');
+            } else {
+                item.classList.remove('completed');
+            }
+        }
+        
+        // If the active episode is this pre-read item and is currently displayed in the panel, sync it
+        if (appState.activeEpisode && appState.activeEpisode._isPreRead && appState.activeEpisode._preReadIdx === idx) {
+            const checkbox = elements.panelCompleteBtn;
+            if (checkbox) {
+                if (isCompleted) {
+                    checkbox.classList.add('completed');
+                } else {
+                    checkbox.classList.remove('completed');
+                }
+            }
+        }
+        
+        updatePreReadProgressBar();
+    };
+
     preReadCard.innerHTML = `
         <button class="chapter-header" onclick="togglePreReadCard()">
-            <div class="chapter-header-main" style="margin-bottom: 0;">
+            <div class="chapter-header-main">
                 <span class="chapter-title" style="font-weight: bold; color: var(--accent-color);">品前導讀</span>
                 <svg class="chapter-arrow-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <polyline points="6 9 12 15 18 9"></polyline>
                 </svg>
+            </div>
+            <div class="chapter-progress-wrapper">
+                <div class="chapter-progress-bar-bg">
+                    <div id="chapterBar-preread" class="chapter-progress-bar" style="width: 0%"></div>
+                </div>
+                <span id="chapterStats-preread" class="chapter-stats-text">已讀 0/0</span>
             </div>
         </button>
         <div id="episodeListContainer-preread" class="episode-list-container" style="max-height: 0px; overflow: hidden; transition: max-height 0.4s ease-out;">
@@ -1650,6 +1718,32 @@ function closeEpisodeDetail() {
 function toggleActiveEpisodeCompleted() {
     if (!appState.activeEpisode) return;
 
+    if (appState.activeEpisode._isPreRead) {
+        const idx = appState.activeEpisode._preReadIdx;
+        const key = `preread-${idx}`;
+        const isCompleted = !appState.progress.completed[key];
+        
+        if (isCompleted) {
+            appState.progress.completed[key] = true;
+            elements.panelCompleteBtn.classList.add('completed');
+        } else {
+            delete appState.progress.completed[key];
+            elements.panelCompleteBtn.classList.remove('completed');
+        }
+
+        saveProgress();
+
+        // Sync inline checkbox in the card list
+        const item = document.getElementById(`preReadItem-${idx}`);
+        if (item) {
+            if (isCompleted) item.classList.add('completed');
+            else item.classList.remove('completed');
+        }
+
+        updatePreReadProgressBar();
+        return;
+    }
+
     const episodeId = appState.activeEpisode.episode_id;
     const isCompleted = !appState.progress.completed[episodeId];
     
@@ -2118,19 +2212,27 @@ window.openPreReadDetail = function(idx) {
 
     // --- Populate metadata ---
     if (elements.panelEpIdBadge) {
-        elements.panelEpIdBadge.style.display = 'none'; // Hide the badge since there's no episode number
+        elements.panelEpIdBadge.style.display = ''; // Restore default display
+        elements.panelEpIdBadge.textContent = idx + 1;
     }
     if (elements.panelChapterName) {
-        elements.panelChapterName.textContent = '';
+        elements.panelChapterName.textContent = '品前導讀';
     }
     if (elements.panelRelativeNum) {
-        elements.panelRelativeNum.textContent = '';
+        elements.panelRelativeNum.textContent = `(第${idx + 1}集/共${window._preReadItems.length}集)`;
     }
     if (elements.panelEpisodeTitle) elements.panelEpisodeTitle.textContent = entry.title;
     if (elements.panelDate) elements.panelDate.textContent = `大愛台 · 品前導讀影片`;
 
-    // Hide complete button (not a study episode)
-    elements.panelCompleteBtn.style.display = 'none';
+    // Show complete button
+    elements.panelCompleteBtn.style.display = '';
+    const key = `preread-${idx}`;
+    const isCompleted = appState.progress.completed[key];
+    if (isCompleted) {
+        elements.panelCompleteBtn.classList.add('completed');
+    } else {
+        elements.panelCompleteBtn.classList.remove('completed');
+    }
     if (elements.panelCompleteStats) elements.panelCompleteStats.style.display = 'none';
 
     // Show editTitleBtn only for admin (localhost); hide summary/fulltext edit buttons
