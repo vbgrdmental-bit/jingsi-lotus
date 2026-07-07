@@ -501,13 +501,12 @@ h1 .subtitle {
 .panel-header {
     background-color: var(--panel-header-bg);
     border-bottom: 1px solid var(--border-color);
-    padding: 8px 12px !important;
+    padding: 24px 16px 12px 16px !important; /* Added more top padding for distance from edge */
     display: flex !important;
     align-items: center !important;
-    gap: 8px !important;
-    height: 10vh !important;
-    min-height: 56px !important;
-    max-height: 70px !important;
+    gap: 12px !important;
+    height: auto !important;
+    min-height: 76px !important;
     flex-shrink: 0;
     transition: background-color var(--transition-speed);
 }
@@ -1543,11 +1542,10 @@ body.sepia-mode .episode-global-completes {
 @media (max-width: 600px) {
     /* 1. Panel Header compact layout (approx 10% height) */
     .panel-header {
-        padding: 8px 12px !important;
+        padding: 20px 12px 10px 12px !important; /* Added more top padding for distance from edge on mobile */
         gap: 8px !important;
-        height: 10vh !important;
-        min-height: 56px !important;
-        max-height: 70px !important;
+        height: auto !important;
+        min-height: 64px !important;
         display: flex !important;
         align-items: center !important;
         justify-content: space-between !important;
