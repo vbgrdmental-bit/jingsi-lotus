@@ -924,12 +924,8 @@ h1 .subtitle {
    Hides header badges, video player, tabs, action bars and centers reading
    ========================================================================== */
 .detail-panel.zen-mode .video-container,
-.detail-panel.zen-mode .video-navigation-bar,
 .detail-panel.zen-mode .video-fallback,
-.detail-panel.zen-mode .settings-bar,
-.detail-panel.zen-mode .chapter-badge,
-.detail-panel.zen-mode .date-badge,
-.detail-panel.zen-mode .complete-toggle-btn {
+.detail-panel.zen-mode .settings-bar {
     display: none !important;
 }
 
@@ -1784,5 +1780,10 @@ mark.search-highlight {
         height: 20px !important;
         font-size: 0.68rem !important;
     }
+}
+
+/* Temporarily hide video search button */
+#videoSearchBtn {
+    display: none !important;
 }
 
