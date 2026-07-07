@@ -1,3 +1,6 @@
+// Google Sheets Web App URL (leave empty "" to run in offline local JSON mode)
+const GOOGLE_SCRIPT_URL = "";
+
 // Global State Management
 let appState = {
     chapters: [],
@@ -401,11 +404,23 @@ function initEventListeners() {
                 elements.saveEditBtn.disabled = true;
                 elements.saveEditBtn.textContent = '儲存中...';
 
-                fetch('./api/save_preread', {
+                const requestUrl = (typeof GOOGLE_SCRIPT_URL !== 'undefined' && GOOGLE_SCRIPT_URL !== "")
+                    ? GOOGLE_SCRIPT_URL
+                    : './api/save_preread';
+                
+                if (typeof GOOGLE_SCRIPT_URL !== 'undefined' && GOOGLE_SCRIPT_URL !== "") {
+                    payload.action = "savePreRead";
+                }
+
+                const fetchOptions = {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
-                })
+                };
+                if (requestUrl.startsWith('./')) {
+                    fetchOptions.headers = { 'Content-Type': 'application/json' };
+                }
+
+                fetch(requestUrl, fetchOptions)
                 .then(res => res.json())
                 .then(data => {
                     if (data.success) {
@@ -482,11 +497,23 @@ function initEventListeners() {
             elements.saveEditBtn.disabled = true;
             elements.saveEditBtn.textContent = '儲存中...';
             
-            fetch('./api/save_edit', {
+            const requestUrl = (typeof GOOGLE_SCRIPT_URL !== 'undefined' && GOOGLE_SCRIPT_URL !== "")
+                ? GOOGLE_SCRIPT_URL
+                : './api/save_edit';
+            
+            if (typeof GOOGLE_SCRIPT_URL !== 'undefined' && GOOGLE_SCRIPT_URL !== "") {
+                payload.action = "saveEpisode";
+            }
+
+            const fetchOptions = {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
-            })
+            };
+            if (requestUrl.startsWith('./')) {
+                fetchOptions.headers = { 'Content-Type': 'application/json' };
+            }
+
+            fetch(requestUrl, fetchOptions)
             .then(res => res.json())
             .then(data => {
                 if (data.success) {
@@ -1419,18 +1446,42 @@ window.openEpisodeDetail = function(episodeId, isResume = false) {
 
     const chapterId = epHeader.chapter_id;
     
+    const proceedToShow = () => {
+        if (typeof GOOGLE_SCRIPT_URL !== 'undefined' && GOOGLE_SCRIPT_URL !== "") {
+            fetch(`${GOOGLE_SCRIPT_URL}?action=getEpisode&id=${episodeId}`)
+                .then(res => res.json())
+                .then(res => {
+                    if (res.success && res.data) {
+                        const epInCache = appState.chapterEpisodesCache[chapterId].find(e => e.episode_id === episodeId);
+                        if (epInCache) {
+                            epInCache.title = res.data.title;
+                            epInCache.summary = res.data.summary;
+                            epInCache.full_text = res.data.full_text;
+                            epInCache.edit_history = res.data.edit_history;
+                            epInCache.is_edited = res.data.edit_history && res.data.edit_history.length > 0;
+                        }
+                    }
+                    showDetailPanel(episodeId, isResume);
+                })
+                .catch(() => {
+                    showDetailPanel(episodeId, isResume);
+                });
+        } else {
+            mergeLocalEdits(chapterId);
+            showDetailPanel(episodeId, isResume);
+        }
+    };
+
     // If chapter cache isn't ready, load it first
     if (!appState.chapterEpisodesCache[chapterId]) {
         fetch(`./data/episodes/chapter_${chapterId}.json?v=` + Date.now())
             .then(res => res.json())
             .then(data => {
                 appState.chapterEpisodesCache[chapterId] = data;
-                mergeLocalEdits(chapterId);
-                showDetailPanel(episodeId, isResume);
+                proceedToShow();
             });
     } else {
-        mergeLocalEdits(chapterId);
-        showDetailPanel(episodeId, isResume);
+        proceedToShow();
     }
 };
 
@@ -2245,176 +2296,197 @@ window.openPreReadDetail = function(idx) {
     if (!items || idx < 0 || idx >= items.length) return;
     const entry = items[idx];
 
-    // Store active context so close/nav works
-    appState.activeEpisode = {
-        episode_id: null,
-        _isPreRead: true,
-        _preReadIdx: idx,
-        title: entry.title,
-        youtube_url: entry.url,
-        chapter_id: null,
-        pdf_url: null
+    const proceedToRender = () => {
+        // Store active context so close/nav works
+        appState.activeEpisode = {
+            episode_id: null,
+            _isPreRead: true,
+            _preReadIdx: idx,
+            title: entry.title,
+            youtube_url: entry.url,
+            chapter_id: null,
+            pdf_url: null
+        };
+
+        // --- Populate metadata ---
+        if (elements.panelEpIdBadge) {
+            elements.panelEpIdBadge.style.display = ''; // Restore default display
+            elements.panelEpIdBadge.textContent = idx + 1;
+        }
+        if (elements.panelChapterName) {
+            elements.panelChapterName.textContent = '品前導讀';
+        }
+        if (elements.panelRelativeNum) {
+            elements.panelRelativeNum.textContent = `(第${idx + 1}集/共${window._preReadItems.length}集)`;
+        }
+        if (elements.panelEpisodeTitle) elements.panelEpisodeTitle.textContent = entry.title;
+        if (elements.panelDate) elements.panelDate.textContent = `大愛台 · 品前導讀影片`;
+
+        // Show complete button
+        elements.panelCompleteBtn.style.display = '';
+        const key = `preread-${idx}`;
+        const isCompleted = appState.progress.completed[key];
+        if (isCompleted) {
+            elements.panelCompleteBtn.classList.add('completed');
+        } else {
+            elements.panelCompleteBtn.classList.remove('completed');
+        }
+        if (elements.panelCompleteStats) elements.panelCompleteStats.style.display = 'none';
+
+        // Show editTitleBtn only for admin (localhost); hide summary/fulltext edit buttons
+        const isLocalhost = isLocalEnvironment();
+        const canEdit = isLocalhost || (typeof GOOGLE_SCRIPT_URL !== 'undefined' && GOOGLE_SCRIPT_URL !== "");
+        if (elements.editTitleBtn) {
+            if (isLocalhost) elements.editTitleBtn.classList.remove('hidden');
+            else elements.editTitleBtn.classList.add('hidden');
+        }
+        if (elements.editSummaryBtn) {
+            if (canEdit) elements.editSummaryBtn.classList.remove('hidden');
+            else elements.editSummaryBtn.classList.add('hidden');
+        }
+        if (elements.editFullTextBtn) {
+            if (canEdit) elements.editFullTextBtn.classList.remove('hidden');
+            else elements.editFullTextBtn.classList.add('hidden');
+        }
+
+        // Hide PDF link
+        elements.pdfDownloadLink.classList.add('hidden');
+
+        // --- Embed YouTube ---
+        elements.videoContainer.innerHTML = '';
+        const fallbackDiv = document.getElementById('videoFallback');
+        // Support both ?v= and youtu.be/ formats
+        const ytIdMatch = entry.url.match(/(?:v=|youtu\.be\/)([^?&]+)/);
+        if (ytIdMatch) {
+            elements.videoContainer.classList.remove('hidden');
+            if (fallbackDiv) fallbackDiv.classList.remove('hidden');
+            if (elements.videoSearchBtn) {
+                elements.videoSearchBtn.classList.remove('hidden');
+                const searchQuery = encodeURIComponent(entry.title);
+                elements.videoSearchBtn.href = `https://www.youtube.com/results?search_query=${searchQuery}`;
+                elements.videoSearchBtn.title = `搜尋「${entry.title}」`;
+            }
+            const iframe = document.createElement('iframe');
+            iframe.src = `https://www.youtube.com/embed/${ytIdMatch[1]}?autoplay=0&rel=0`;
+            iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+            iframe.allowFullscreen = true;
+            elements.videoContainer.appendChild(iframe);
+        } else {
+            elements.videoContainer.classList.add('hidden');
+            if (fallbackDiv) fallbackDiv.classList.add('hidden');
+        }
+
+        // --- Outline tab (大綱) ---
+        elements.sutraSummary.innerHTML = '';
+        if (entry.summary && entry.summary.trim()) {
+            entry.summary.split('\n').forEach(line => {
+                if (!line.trim()) return;
+                const div = document.createElement('div');
+                div.className = 'outline-item';
+                div.innerHTML = `<p class="outline-text">${line.trim()}</p>`;
+                elements.sutraSummary.appendChild(div);
+            });
+        } else {
+            elements.sutraSummary.innerHTML += `
+                <div class="outline-item" style="display:block; text-align:center; padding: 24px 16px 8px;">
+                    <p class="outline-text" style="font-size:1.1rem; font-weight:bold; color:var(--accent-color); margin-bottom:12px;">${entry.title}</p>
+                    <p class="outline-text" style="color:var(--text-secondary); font-size:0.9rem;">本影片為大愛台製作之「品前導讀」，<br>帶領您在正式聆聽上人開示前先掌握本品要旨。<br><br>（可由管理員在此輸入大綱）</p>
+                </div>`;
+        }
+
+        // Gather Edit History for Outline
+        let summaryHistory = [];
+        if (entry.edit_history && entry.edit_history.length > 0) {
+            entry.edit_history.forEach(item => {
+                if (item.mode === 'summary') {
+                    if (item.comment) {
+                        summaryHistory.push(`※ ${item.date} ${item.author} ${item.comment}`);
+                    } else {
+                        summaryHistory.push(`※ ${item.date} 由 ${item.author} 修改`);
+                    }
+                }
+            });
+        }
+
+        // Append bottom bar at Outline tab
+        appendBottomInfoBar(elements.sutraSummary, `※ 以上內容精選自「大愛台YouTube」`, true, summaryHistory);
+
+        // --- Transcript tab (逐字稿) ---
+        elements.sutraFullText.innerHTML = '';
+        if (entry.full_text && entry.full_text.trim()) {
+            entry.full_text.split('\n').forEach(line => {
+                if (!line.trim()) return;
+                const p = document.createElement('p');
+                p.textContent = line.trim();
+                elements.sutraFullText.appendChild(p);
+            });
+        } else {
+            elements.sutraFullText.innerHTML = `
+                <div style="text-align:center; padding: 24px 16px 8px;">
+                    <p style="font-size:1.1rem; font-weight:bold; color:var(--accent-color); margin-bottom:12px;">${entry.title}</p>
+                    <p style="color:var(--text-hint); font-size:0.9rem;">尚無逐字稿，可由管理員新增。</p>
+                </div>`;
+        }
+
+        // Gather Edit History for Transcript
+        let fullTextHistory = [];
+        if (entry.edit_history && entry.edit_history.length > 0) {
+            entry.edit_history.forEach(item => {
+                if (item.mode === 'full_text') {
+                    if (item.comment) {
+                        fullTextHistory.push(`※ ${item.date} ${item.author} ${item.comment}`);
+                    } else {
+                        fullTextHistory.push(`※ ${item.date} 由 ${item.author} 修改`);
+                    }
+                }
+            });
+        }
+
+        // Append bottom bar at Transcript tab
+        appendBottomInfoBar(elements.sutraFullText, `※ 以上內容精選自「大愛台YouTube」`, false, fullTextHistory);
+
+        // --- Navigation: prev / next among pre-read items ---
+        if (idx > 0) {
+            elements.prevEpisodeBtn.disabled = false;
+            elements.prevEpisodeBtn.dataset.preReadIdx = idx - 1;
+            delete elements.prevEpisodeBtn.dataset.epId;
+        } else {
+            elements.prevEpisodeBtn.disabled = true;
+            delete elements.prevEpisodeBtn.dataset.preReadIdx;
+        }
+        if (idx < items.length - 1) {
+            elements.nextEpisodeBtn.disabled = false;
+            elements.nextEpisodeBtn.dataset.preReadIdx = idx + 1;
+            delete elements.nextEpisodeBtn.dataset.epId;
+        } else {
+            elements.nextEpisodeBtn.disabled = true;
+            delete elements.nextEpisodeBtn.dataset.preReadIdx;
+        }
+
+        // --- Open panel ---
+        setFontSize(appState.fontSize);
+        setActiveTab('tab-summary');
+        elements.detailPanel.classList.remove('hidden');
+        elements.detailPanel.classList.add('visible');
+        elements.panelBody.scrollTop = 0;
     };
 
-    // --- Populate metadata ---
-    if (elements.panelEpIdBadge) {
-        elements.panelEpIdBadge.style.display = ''; // Restore default display
-        elements.panelEpIdBadge.textContent = idx + 1;
-    }
-    if (elements.panelChapterName) {
-        elements.panelChapterName.textContent = '品前導讀';
-    }
-    if (elements.panelRelativeNum) {
-        elements.panelRelativeNum.textContent = `(第${idx + 1}集/共${window._preReadItems.length}集)`;
-    }
-    if (elements.panelEpisodeTitle) elements.panelEpisodeTitle.textContent = entry.title;
-    if (elements.panelDate) elements.panelDate.textContent = `大愛台 · 品前導讀影片`;
-
-    // Show complete button
-    elements.panelCompleteBtn.style.display = '';
-    const key = `preread-${idx}`;
-    const isCompleted = appState.progress.completed[key];
-    if (isCompleted) {
-        elements.panelCompleteBtn.classList.add('completed');
-    } else {
-        elements.panelCompleteBtn.classList.remove('completed');
-    }
-    if (elements.panelCompleteStats) elements.panelCompleteStats.style.display = 'none';
-
-    // Show editTitleBtn only for admin (localhost); hide summary/fulltext edit buttons
-    const isLocalhost = isLocalEnvironment();
-    if (elements.editTitleBtn) {
-        if (isLocalhost) elements.editTitleBtn.classList.remove('hidden');
-        else elements.editTitleBtn.classList.add('hidden');
-    }
-    if (elements.editSummaryBtn) {
-        if (isLocalhost) elements.editSummaryBtn.classList.remove('hidden');
-        else elements.editSummaryBtn.classList.add('hidden');
-    }
-    if (elements.editFullTextBtn) {
-        if (isLocalhost) elements.editFullTextBtn.classList.remove('hidden');
-        else elements.editFullTextBtn.classList.add('hidden');
-    }
-
-    // Hide PDF link
-    elements.pdfDownloadLink.classList.add('hidden');
-
-    // --- Embed YouTube ---
-    elements.videoContainer.innerHTML = '';
-    const fallbackDiv = document.getElementById('videoFallback');
-    // Support both ?v= and youtu.be/ formats
-    const ytIdMatch = entry.url.match(/(?:v=|youtu\.be\/)([^?&]+)/);
-    if (ytIdMatch) {
-        elements.videoContainer.classList.remove('hidden');
-        if (fallbackDiv) fallbackDiv.classList.remove('hidden');
-        if (elements.videoSearchBtn) {
-            elements.videoSearchBtn.classList.remove('hidden');
-            const searchQuery = encodeURIComponent(entry.title);
-            elements.videoSearchBtn.href = `https://www.youtube.com/results?search_query=${searchQuery}`;
-            elements.videoSearchBtn.title = `搜尋「${entry.title}」`;
-        }
-        const iframe = document.createElement('iframe');
-        iframe.src = `https://www.youtube.com/embed/${ytIdMatch[1]}?autoplay=0&rel=0`;
-        iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
-        iframe.allowFullscreen = true;
-        elements.videoContainer.appendChild(iframe);
-    } else {
-        elements.videoContainer.classList.add('hidden');
-        if (fallbackDiv) fallbackDiv.classList.add('hidden');
-    }
-
-    // --- Outline tab (大綱) ---
-    elements.sutraSummary.innerHTML = '';
-    if (entry.summary && entry.summary.trim()) {
-        entry.summary.split('\n').forEach(line => {
-            if (!line.trim()) return;
-            const div = document.createElement('div');
-            div.className = 'outline-item';
-            div.innerHTML = `<p class="outline-text">${line.trim()}</p>`;
-            elements.sutraSummary.appendChild(div);
-        });
-    } else {
-        elements.sutraSummary.innerHTML += `
-            <div class="outline-item" style="display:block; text-align:center; padding: 24px 16px 8px;">
-                <p class="outline-text" style="font-size:1.1rem; font-weight:bold; color:var(--accent-color); margin-bottom:12px;">${entry.title}</p>
-                <p class="outline-text" style="color:var(--text-secondary); font-size:0.9rem;">本影片為大愛台製作之「品前導讀」，<br>帶領您在正式聆聽上人開示前先掌握本品要旨。<br><br>（可由管理員在此輸入大綱）</p>
-            </div>`;
-    }
-
-    // Gather Edit History for Outline
-    let summaryHistory = [];
-    if (entry.edit_history && entry.edit_history.length > 0) {
-        entry.edit_history.forEach(item => {
-            if (item.mode === 'summary') {
-                if (item.comment) {
-                    summaryHistory.push(`※ ${item.date} ${item.author} ${item.comment}`);
-                } else {
-                    summaryHistory.push(`※ ${item.date} 由 ${item.author} 修改`);
+    if (typeof GOOGLE_SCRIPT_URL !== 'undefined' && GOOGLE_SCRIPT_URL !== "") {
+        fetch(`${GOOGLE_SCRIPT_URL}?action=getPreRead&id=${idx}`)
+            .then(res => res.json())
+            .then(res => {
+                if (res.success && res.data) {
+                    entry.title = res.data.title;
+                    entry.summary = res.data.summary;
+                    entry.full_text = res.data.full_text;
+                    entry.edit_history = res.data.edit_history;
                 }
-            }
-        });
-    }
-
-    // Append bottom bar at Outline tab
-    appendBottomInfoBar(elements.sutraSummary, `※ 以上內容精選自「大愛台YouTube」`, true, summaryHistory);
-
-    // --- Transcript tab (逐字稿) ---
-    elements.sutraFullText.innerHTML = '';
-    if (entry.full_text && entry.full_text.trim()) {
-        entry.full_text.split('\n').forEach(line => {
-            if (!line.trim()) return;
-            const p = document.createElement('p');
-            p.textContent = line.trim();
-            elements.sutraFullText.appendChild(p);
-        });
+                proceedToRender();
+            })
+            .catch(() => {
+                proceedToRender();
+            });
     } else {
-        elements.sutraFullText.innerHTML = `
-            <div style="text-align:center; padding: 24px 16px 8px;">
-                <p style="font-size:1.1rem; font-weight:bold; color:var(--accent-color); margin-bottom:12px;">${entry.title}</p>
-                <p style="color:var(--text-hint); font-size:0.9rem;">尚無逐字稿，可由管理員新增。</p>
-            </div>`;
+        proceedToRender();
     }
-
-    // Gather Edit History for Transcript
-    let fullTextHistory = [];
-    if (entry.edit_history && entry.edit_history.length > 0) {
-        entry.edit_history.forEach(item => {
-            if (item.mode === 'full_text') {
-                if (item.comment) {
-                    fullTextHistory.push(`※ ${item.date} ${item.author} ${item.comment}`);
-                } else {
-                    fullTextHistory.push(`※ ${item.date} 由 ${item.author} 修改`);
-                }
-            }
-        });
-    }
-
-    // Append bottom bar at Transcript tab
-    appendBottomInfoBar(elements.sutraFullText, `※ 以上內容精選自「大愛台YouTube」`, false, fullTextHistory);
-
-
-    // --- Navigation: prev / next among pre-read items ---
-    if (idx > 0) {
-        elements.prevEpisodeBtn.disabled = false;
-        elements.prevEpisodeBtn.dataset.preReadIdx = idx - 1;
-        delete elements.prevEpisodeBtn.dataset.epId;
-    } else {
-        elements.prevEpisodeBtn.disabled = true;
-        delete elements.prevEpisodeBtn.dataset.preReadIdx;
-    }
-    if (idx < items.length - 1) {
-        elements.nextEpisodeBtn.disabled = false;
-        elements.nextEpisodeBtn.dataset.preReadIdx = idx + 1;
-        delete elements.nextEpisodeBtn.dataset.epId;
-    } else {
-        elements.nextEpisodeBtn.disabled = true;
-        delete elements.nextEpisodeBtn.dataset.preReadIdx;
-    }
-
-    // --- Open panel ---
-    setFontSize(appState.fontSize);
-    setActiveTab('tab-summary');
-    elements.detailPanel.classList.remove('hidden');
-    elements.detailPanel.classList.add('visible');
-    elements.panelBody.scrollTop = 0;
 };
