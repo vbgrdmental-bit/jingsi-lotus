@@ -1780,17 +1780,35 @@ window.openEpisodeDetail = function(episodeId, isResume = false) {
         }
     };
 
-    // If chapter cache isn't ready, load it first
+    // Open detail panel overlay instantly using cached lightweight epHeader metadata!
+    showDetailPanel(episodeId, isResume);
+
+    // If chapter cache isn't ready, load it in the background
     if (!appState.chapterEpisodesCache[chapterId]) {
         fetch(`./data/episodes/chapter_${chapterId}.json?v=` + APP_VERSION)
             .then(res => res.json())
             .then(data => {
                 appState.chapterEpisodesCache[chapterId] = data;
-                showStaticDetail();
+                mergeLocalEdits(chapterId);
+                
+                // If the user is STILL viewing this episode, populate the texts!
+                if (appState.activeEpisode && appState.activeEpisode.episode_id === episodeId) {
+                    populateEpisodeTexts(episodeId);
+                }
+                
+                // Background Sheet fetch
                 fetchLatestFromSheets();
+            })
+            .catch(err => {
+                console.error(`Error loading chapter JSON:`, err);
+                if (appState.activeEpisode && appState.activeEpisode.episode_id === episodeId) {
+                    const errorHTML = `<p style="padding: 20px; color: red; text-align: center;">載入失敗，請確認網路連線或檔案存在。</p>`;
+                    elements.sutraSummary.innerHTML = errorHTML;
+                    elements.sutraFullText.innerHTML = errorHTML;
+                }
             });
     } else {
-        showStaticDetail();
+        // Cache is ready, sync from Sheets in background
         fetchLatestFromSheets();
     }
 };
@@ -1863,21 +1881,17 @@ function appendBottomInfoBar(container, sourceText, isSummaryTab, editHistoryLin
 // Render episode panel once data is available in cache
 function showDetailPanel(episodeId, isResume) {
     const epHeader = appState.episodesIndex.find(ep => ep.episode_id === episodeId);
+    if (!epHeader) return;
     const chapterId = epHeader.chapter_id;
-    const episodes = appState.chapterEpisodesCache[chapterId];
-    const episode = episodes.find(ep => ep.episode_id === episodeId);
+    const chapterData = appState.chapterEpisodesCache[chapterId];
+    const episode = chapterData ? chapterData.find(ep => ep.episode_id === episodeId) : null;
     
-    if (!episode) return;
-    
-    appState.activeEpisode = episode;
+    appState.activeEpisode = episode || epHeader;
     
     // Update source note text for notes-only episodes
     const notesOnlyEpisodes = [16, 17, 19, 20, 23, 29];
-    const isNotesOnly = notesOnlyEpisodes.includes(episodeId) && !episode.is_edited;
-    const sermonSourceText = isNotesOnly 
-        ? `※ 以上內容摘自「奈普敦智慧平台」 & 大愛電視 YouTube（本集僅有導讀問答與心得筆記，無逐字稿）`
-        : `※ 以上內容摘自「奈普敦智慧平台」 & 大愛電視 YouTube`;
-
+    const isNotesOnly = notesOnlyEpisodes.includes(episodeId) && (!episode || !episode.is_edited);
+    
     const isLocalhost = isLocalEnvironment();
     if (elements.editTitleBtn) {
         if (isLocalhost) elements.editTitleBtn.classList.remove('hidden');
@@ -1886,11 +1900,12 @@ function showDetailPanel(episodeId, isResume) {
     
     // 1. Populate metadata
     const chapter = appState.chapters.find(ch => ch.id === chapterId);
+    const episodes = appState.episodesIndex.filter(e => e.chapter_id === chapterId);
     const episodeIndex = episodes.findIndex(e => e.episode_id === episodeId);
 
     if (elements.panelEpIdBadge) {
         elements.panelEpIdBadge.style.display = ''; // Restore default display
-        elements.panelEpIdBadge.textContent = episode.episode_id;
+        elements.panelEpIdBadge.textContent = epHeader.episode_id;
     }
     if (elements.panelChapterName) {
         elements.panelChapterName.textContent = chapter ? chapter.name : '開示品次';
@@ -1907,10 +1922,10 @@ function showDetailPanel(episodeId, isResume) {
         }
     }
     if (elements.panelEpisodeTitle) {
-        elements.panelEpisodeTitle.textContent = episode.title;
+        elements.panelEpisodeTitle.textContent = epHeader.title;
     }
     
-    elements.panelDate.textContent = `播出日期：${episode.raw_date || '未知'}`;
+    elements.panelDate.textContent = `播出日期：${epHeader.broadcast_date || epHeader.raw_date || '未知'}`;
 
     if (elements.panelCompleteStats) {
         if (isLocalhost && appState.globalStats) {
@@ -1934,14 +1949,14 @@ function showDetailPanel(episodeId, isResume) {
     elements.videoContainer.innerHTML = '';
     const fallbackDiv = document.getElementById('videoFallback');
     
-    if (episode.youtube_url) {
-        const ytIdMatch = episode.youtube_url.match(/v=([^&]+)/);
+    if (epHeader.youtube_url) {
+        const ytIdMatch = epHeader.youtube_url.match(/v=([^&]+)/);
         if (ytIdMatch) {
             elements.videoContainer.classList.remove('hidden');
             if (fallbackDiv) fallbackDiv.classList.remove('hidden');
             if (elements.videoSearchBtn) {
                 elements.videoSearchBtn.classList.remove('hidden');
-                elements.videoSearchBtn.href = `https://www.youtube.com/results?search_query=${encodeURIComponent('靜思妙蓮華 第' + episode.episode_id + '集 ' + episode.title)}`;
+                elements.videoSearchBtn.href = `https://www.youtube.com/results?search_query=${encodeURIComponent('靜思妙蓮華 第' + epHeader.episode_id + '集 ' + epHeader.title)}`;
             }
             const iframe = document.createElement('iframe');
             iframe.src = `https://www.youtube.com/embed/${ytIdMatch[1]}?autoplay=0&rel=0`;
@@ -1959,101 +1974,23 @@ function showDetailPanel(episodeId, isResume) {
         if (elements.videoSearchBtn) elements.videoSearchBtn.classList.add('hidden');
     }
 
-    // 4. Populate Outline (summary)
-    elements.sutraSummary.innerHTML = '';
-
-    if (isNotesOnly && episode.full_text) {
-        const bullets = episode.full_text.split('\n');
-        bullets.forEach(b => {
-            if (!b.trim()) return;
-            const div = document.createElement('div');
-            div.className = 'outline-item';
-            div.innerHTML = `
-                <p class="outline-text">${b.trim()}</p>
-            `;
-            elements.sutraSummary.appendChild(div);
-        });
-    } else if (episode.summary) {
-        const bullets = episode.summary.split('\n');
-        bullets.forEach(b => {
-            if (!b.trim()) return;
-            const div = document.createElement('div');
-            div.className = 'outline-item';
-            div.innerHTML = `
-                <p class="outline-text">${b.trim()}</p>
-            `;
-            elements.sutraSummary.appendChild(div);
-        });
+    // 4. Populate Outline and Transcript with either spinner or actual text
+    if (episode) {
+        populateEpisodeTexts(episodeId);
     } else {
-        const emptyDiv = document.createElement('div');
-        emptyDiv.innerHTML = `<p style="color: var(--text-hint); text-align: center; padding: 20px;">本集尚無經文提綱</p>`;
-        elements.sutraSummary.appendChild(emptyDiv);
+        const spinnerHTML = `
+            <div class="loading-spinner-container" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px; gap: 12px; color: var(--text-hint);">
+                <div class="loading-spinner"></div>
+                <p>正在載入此集大綱與逐字稿...</p>
+            </div>
+        `;
+        elements.sutraSummary.innerHTML = spinnerHTML;
+        elements.sutraFullText.innerHTML = spinnerHTML;
     }
 
-    // Gather Edit History for Outline
-    let summaryHistory = [];
-    if (episode.edit_history && episode.edit_history.length > 0) {
-        episode.edit_history.forEach(item => {
-            if (item.mode === 'summary') {
-                if (item.comment) {
-                    summaryHistory.push(`※ ${item.date} ${item.author} ${item.comment}`);
-                } else {
-                    summaryHistory.push(`※ ${item.date} 由 ${item.author} 修改`);
-                }
-            }
-        });
-    } else if (episode.is_edited && episode.edited_by && episode.edited_date) {
-        summaryHistory.push(`※ ${episode.edited_date} 由 ${episode.edited_by} 修改`);
-    }
-
-    // Append bottom bar at Outline tab
-    appendBottomInfoBar(elements.sutraSummary, sermonSourceText, true, summaryHistory);
-
-    // 5. Populate Sermon Text (full_text)
-    elements.sutraFullText.innerHTML = '';
-
-    if (isNotesOnly) {
-        elements.sutraFullText.innerHTML += `<p style="color: var(--text-hint); text-align: center; padding: 20px;">本集僅有導讀問答與心得筆記，無逐字稿內容</p>`;
-    } else if (episode.full_text) {
-        const paragraphs = episode.full_text.split('\n');
-        paragraphs.forEach(p => {
-            if (!p.trim()) return;
-            const pNode = document.createElement('p');
-            pNode.textContent = p.trim();
-            elements.sutraFullText.appendChild(pNode);
-        });
-    } else {
-        const emptyP = document.createElement('p');
-        emptyP.style.color = "var(--text-hint)";
-        emptyP.style.textAlign = "center";
-        emptyP.style.padding = "20px";
-        emptyP.textContent = "本集尚無逐字稿內容";
-        elements.sutraFullText.appendChild(emptyP);
-    }
-
-    // Gather Edit History for Transcript
-    let fullTextHistory = [];
-    if (episode.edit_history && episode.edit_history.length > 0) {
-        episode.edit_history.forEach(item => {
-            if (item.mode === 'full_text') {
-                if (item.comment) {
-                    fullTextHistory.push(`※ ${item.date} ${item.author} ${item.comment}`);
-                } else {
-                    fullTextHistory.push(`※ ${item.date} 由 ${item.author} 修改`);
-                }
-            }
-        });
-    } else if (episode.is_edited && episode.edited_by && episode.edited_date && !isNotesOnly) {
-        fullTextHistory.push(`※ ${episode.edited_date} 由 ${episode.edited_by} 修改`);
-    }
-
-    // Append bottom bar at Transcript tab
-    appendBottomInfoBar(elements.sutraFullText, sermonSourceText, false, fullTextHistory);
-
-
-    // 6. PDF Link
-    if (episode.pdf_url) {
-        elements.pdfDownloadLink.href = episode.pdf_url;
+    // 5. PDF Link (from cached epHeader metadata)
+    if (epHeader.pdf_url) {
+        elements.pdfDownloadLink.href = epHeader.pdf_url;
         elements.pdfDownloadLink.classList.remove('hidden');
     } else {
         elements.pdfDownloadLink.classList.add('hidden');
@@ -2993,5 +2930,118 @@ function highlightTextInNode(node, regex) {
                 highlightTextInNode(children[i], regex);
             }
         }
+    }
+}
+
+// Populate Outline and Transcript tabs once JSON data is ready
+function populateEpisodeTexts(episodeId) {
+    const epHeader = appState.episodesIndex.find(ep => ep.episode_id === episodeId);
+    if (!epHeader) return;
+    const chapterId = epHeader.chapter_id;
+    const episodes = appState.chapterEpisodesCache[chapterId];
+    if (!episodes) return;
+    const episode = episodes.find(ep => ep.episode_id === episodeId);
+    if (!episode) return;
+
+    // Update activeEpisode to the full details
+    appState.activeEpisode = episode;
+
+    // Update source note text for notes-only episodes
+    const notesOnlyEpisodes = [16, 17, 19, 20, 23, 29];
+    const isNotesOnly = notesOnlyEpisodes.includes(episodeId) && !episode.is_edited;
+    const sermonSourceText = isNotesOnly 
+        ? `※ 以上內容摘自「奈普敦智慧平台」 & 大愛電視 YouTube（本集僅有導讀問答與心得筆記，無逐字稿）`
+        : `※ 以上內容摘自「奈普敦智慧平台」 & 大愛電視 YouTube`;
+
+    // 1. Populate Outline (summary)
+    elements.sutraSummary.innerHTML = '';
+
+    if (isNotesOnly && episode.full_text) {
+        const bullets = episode.full_text.split('\n');
+        bullets.forEach(b => {
+            if (!b.trim()) return;
+            const div = document.createElement('div');
+            div.className = 'outline-item';
+            div.innerHTML = `<p class="outline-text">${b.trim()}</p>`;
+            elements.sutraSummary.appendChild(div);
+        });
+    } else if (episode.summary) {
+        const bullets = episode.summary.split('\n');
+        bullets.forEach(b => {
+            if (!b.trim()) return;
+            const div = document.createElement('div');
+            div.className = 'outline-item';
+            div.innerHTML = `<p class="outline-text">${b.trim()}</p>`;
+            elements.sutraSummary.appendChild(div);
+        });
+    } else {
+        const emptyDiv = document.createElement('div');
+        emptyDiv.innerHTML = `<p style="color: var(--text-hint); text-align: center; padding: 20px;">本集尚無經文提綱</p>`;
+        elements.sutraSummary.appendChild(emptyDiv);
+    }
+
+    // Gather Edit History for Outline
+    let summaryHistory = [];
+    if (episode.edit_history && episode.edit_history.length > 0) {
+        episode.edit_history.forEach(item => {
+            if (item.mode === 'summary') {
+                if (item.comment) {
+                    summaryHistory.push(`※ ${item.date} ${item.author} ${item.comment}`);
+                } else {
+                    summaryHistory.push(`※ ${item.date} 由 ${item.author} 修改`);
+                }
+            }
+        });
+    } else if (episode.is_edited && episode.edited_by && episode.edited_date) {
+        summaryHistory.push(`※ ${episode.edited_date} 由 ${episode.edited_by} 修改`);
+    }
+
+    // Append bottom bar at Outline tab
+    appendBottomInfoBar(elements.sutraSummary, sermonSourceText, true, summaryHistory);
+
+    // 2. Populate Sermon Text (full_text)
+    elements.sutraFullText.innerHTML = '';
+
+    if (isNotesOnly) {
+        elements.sutraFullText.innerHTML += `<p style="color: var(--text-hint); text-align: center; padding: 20px;">本集僅有導讀問答與心得筆記，無逐字稿內容</p>`;
+    } else if (episode.full_text) {
+        const paragraphs = episode.full_text.split('\n');
+        paragraphs.forEach(p => {
+            if (!p.trim()) return;
+            const pNode = document.createElement('p');
+            pNode.textContent = p.trim();
+            elements.sutraFullText.appendChild(pNode);
+        });
+    } else {
+        const emptyP = document.createElement('p');
+        emptyP.style.color = "var(--text-hint)";
+        emptyP.style.textAlign = "center";
+        emptyP.style.padding = "20px";
+        emptyP.textContent = "本集尚無逐字稿內容";
+        elements.sutraFullText.appendChild(emptyP);
+    }
+
+    // Gather Edit History for Transcript
+    let fullTextHistory = [];
+    if (episode.edit_history && episode.edit_history.length > 0) {
+        episode.edit_history.forEach(item => {
+            if (item.mode === 'full_text') {
+                if (item.comment) {
+                    fullTextHistory.push(`※ ${item.date} ${item.author} ${item.comment}`);
+                } else {
+                    fullTextHistory.push(`※ ${item.date} 由 ${item.author} 修改`);
+                }
+            }
+        });
+    } else if (episode.is_edited && episode.edited_by && episode.edited_date && !isNotesOnly) {
+        fullTextHistory.push(`※ ${episode.edited_date} 由 ${episode.edited_by} 修改`);
+    }
+
+    // Append bottom bar at Transcript tab
+    appendBottomInfoBar(elements.sutraFullText, sermonSourceText, false, fullTextHistory);
+
+    // 3. Save original HTML for inline search
+    if (typeof saveOriginalPanelHTML === 'function') {
+        saveOriginalPanelHTML();
     }
 }
