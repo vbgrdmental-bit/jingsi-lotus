@@ -102,9 +102,13 @@ document.addEventListener('DOMContentLoaded', () => {
             })
             .then(res => res.json())
             .then(res => {
-                if (res.success && res.synced) {
-                    console.log("Successfully synced localStorage edits to local disk JSON files!");
-                    alert("偵測到您瀏覽器快取中的標題/大綱修改！已自動寫入您硬碟中的 JSON 檔案。現在請開啟 GitHub Desktop 上傳變更。");
+                if (res.success) {
+                    localStorage.removeItem('jingsi_preread_edits');
+                    localStorage.removeItem('jingsi_local_edits');
+                    if (res.synced) {
+                        console.log("Successfully synced localStorage edits to local disk JSON files!");
+                        alert("偵測到您瀏覽器快取中的標題/大綱修改！已自動寫入您硬碟中的 JSON 檔案。現在請開啟 GitHub Desktop 上傳變更。");
+                    }
                 }
             })
             .catch(err => console.warn("Failed to sync local edits to disk:", err));
