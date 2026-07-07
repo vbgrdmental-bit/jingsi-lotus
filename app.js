@@ -73,6 +73,10 @@ const elements = {
     understandPreloadBtn: document.getElementById('understandPreloadBtn'),
     settingsToggleBtn: document.getElementById('settingsToggleBtn'),
     settingsDropdown: document.getElementById('settingsDropdown'),
+    settingsVersionInfo: document.getElementById('settingsVersionInfo'),
+    versionHistoryModal: document.getElementById('versionHistoryModal'),
+    closeVersionBtn: document.getElementById('closeVersionBtn'),
+    understandVersionBtn: document.getElementById('understandVersionBtn'),
     aboutWebsiteBtn: document.getElementById('aboutWebsiteBtn'),
     aboutWebsiteModal: document.getElementById('aboutWebsiteModal'),
     closeAboutBtn: document.getElementById('closeAboutBtn'),
@@ -566,6 +570,18 @@ function initEventListeners() {
     if (elements.aboutWebsiteBtn) elements.aboutWebsiteBtn.addEventListener('click', showAboutModal);
     if (elements.closeAboutBtn) elements.closeAboutBtn.addEventListener('click', closeAboutModal);
     if (elements.understandAboutBtn) elements.understandAboutBtn.addEventListener('click', closeAboutModal);
+
+    // ----------------- Version History Modal Event Bindings -----------------
+    const showVersionModal = () => {
+        if (elements.versionHistoryModal) elements.versionHistoryModal.classList.remove('hidden');
+        if (elements.settingsDropdown) elements.settingsDropdown.classList.add('hidden');
+    };
+    const closeVersionModal = () => {
+        if (elements.versionHistoryModal) elements.versionHistoryModal.classList.add('hidden');
+    };
+    if (elements.settingsVersionInfo) elements.settingsVersionInfo.addEventListener('click', showVersionModal);
+    if (elements.closeVersionBtn) elements.closeVersionBtn.addEventListener('click', closeVersionModal);
+    if (elements.understandVersionBtn) elements.understandVersionBtn.addEventListener('click', closeVersionModal);
 
     // ----------------- Preload Database Switch Binding -----------------
     if (elements.preloadToggle) {
