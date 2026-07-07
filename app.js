@@ -2,6 +2,7 @@
 const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzBixT1lzyqQY5JqsjOfXeHwd3FD0msKQnpCwBrfpA-YfpFHuboBFABLeUXzr1KJx1-2Q/exec";
 
 // Global State Management
+let APP_VERSION = "2.7"; // Fallback version, dynamically updated from stylesheet version
 let appState = {
     chapters: [],
     episodesIndex: [],
@@ -85,6 +86,15 @@ const elements = {
 
 // Initialize Application
 document.addEventListener('DOMContentLoaded', () => {
+    // Dynamically extract version string from app.css stylesheet link to use for query cache-busting
+    const cssLink = document.querySelector('link[href*="app.css"]');
+    if (cssLink) {
+        const match = cssLink.getAttribute('href').match(/v=([\d.]+)/);
+        if (match) {
+            APP_VERSION = match[1];
+        }
+    }
+
     loadSettingsFromStorage();
     initTheme();
     initEventListeners();
@@ -1396,7 +1406,7 @@ function renderChapterList() {
                     proceedWithSavedPrereads(res.data);
                 } else {
                     // Fallback to static JSON
-                    fetch('./data/preread.json?v=' + Date.now())
+                    fetch('./data/preread.json?v=' + APP_VERSION)
                         .then(r => r.json())
                         .then(proceedWithSavedPrereads)
                         .catch(() => {
@@ -1407,7 +1417,7 @@ function renderChapterList() {
             })
             .catch(() => {
                 // Fallback to static JSON
-                fetch('./data/preread.json?v=' + Date.now())
+                fetch('./data/preread.json?v=' + APP_VERSION)
                     .then(r => r.json())
                     .then(proceedWithSavedPrereads)
                     .catch(() => {
@@ -1416,7 +1426,7 @@ function renderChapterList() {
                     });
             });
     } else {
-        fetch('./data/preread.json?v=' + Date.now())
+        fetch('./data/preread.json?v=' + APP_VERSION)
             .then(res => res.json())
             .then(proceedWithSavedPrereads)
             .catch(() => {
@@ -1571,7 +1581,7 @@ window.toggleChapter = function(chapterId) {
 
 // Async Lazy Loading of Chapter Text file
 function loadChapterEpisodes(chapterId) {
-    fetch(`./data/episodes/chapter_${chapterId}.json?v=` + Date.now())
+    fetch(`./data/episodes/chapter_${chapterId}.json?v=` + APP_VERSION)
         .then(res => res.json())
         .then(data => {
             // Sort episodes in ascending order
@@ -1790,7 +1800,7 @@ window.openEpisodeDetail = function(episodeId, isResume = false) {
 
     // If chapter cache isn't ready, load it first
     if (!appState.chapterEpisodesCache[chapterId]) {
-        fetch(`./data/episodes/chapter_${chapterId}.json?v=` + Date.now())
+        fetch(`./data/episodes/chapter_${chapterId}.json?v=` + APP_VERSION)
             .then(res => res.json())
             .then(data => {
                 appState.chapterEpisodesCache[chapterId] = data;

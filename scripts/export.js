@@ -107,7 +107,7 @@ function run() {
 
         // Write complete chapter JSON file
         const chFileName = path.join(OUTPUT_DIR, `chapter_${ch.id}.json`);
-        fs.writeFileSync(chFileName, JSON.stringify(eps, null, 2), 'utf-8');
+        fs.writeFileSync(chFileName, JSON.stringify(eps), 'utf-8');
 
         return {
             id: ch.id,
@@ -139,7 +139,7 @@ function run() {
         last_updated: new Date().toISOString()
     };
 
-    fs.writeFileSync(METADATA_FILE, JSON.stringify(metadata, null, 2), 'utf-8');
+    fs.writeFileSync(METADATA_FILE, JSON.stringify(metadata), 'utf-8');
 
     console.log(`Compilation complete:`);
     console.log(`  - Exported 28 chapter files to ${OUTPUT_DIR}`);
