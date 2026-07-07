@@ -1382,10 +1382,13 @@ function fetchMetadata() {
                 const match = cssLink.getAttribute('href').match(/v=([\d.]+)/);
                 if (match) {
                     const version = match[1];
-                    const versionEl = document.getElementById('appVersion');
+                    const versionEl = document.getElementById('settingsVersionInfo') || document.getElementById('appVersion');
                     if (versionEl) versionEl.textContent = `網頁版本 v${version}`;
                 }
             }
+
+            // Handle URL Query Parameter routing for SEO
+            handleUrlRouting();
         })
         .catch(err => {
             console.error("Error loading metadata", err);
@@ -1957,6 +1960,14 @@ window.openEpisodeDetail = function(episodeId, isResume = false) {
 
     const chapterId = epHeader.chapter_id;
     
+    // Update browser URL query parameter for SEO routing
+    if (typeof episodeId === 'string' && episodeId.startsWith('preread-')) {
+        const idx = episodeId.replace('preread-', '');
+        history.replaceState(null, '', `?preread=${idx}`);
+    } else {
+        history.replaceState(null, '', `?ep=${episodeId}`);
+    }
+    
     // Check if raw preloaded database contains this episode, extract if not cached
     if (appState.rawEpisodesCache && !appState.episodeDetailsCache[episodeId]) {
         const epFromRaw = appState.rawEpisodesCache.find(e => e.episode_id === episodeId);
@@ -2335,6 +2346,9 @@ function closeEpisodeDetail() {
     
     // 3. Clear Video frame to stop audio playback in background!
     elements.videoContainer.innerHTML = '';
+    
+    // Update browser URL to remove query parameters for SEO routing
+    history.replaceState(null, '', window.location.pathname);
     
     // 4. Reset state variables
     appState.activeEpisode = null;
@@ -3423,5 +3437,28 @@ function stopPreloadingDatabase() {
     if (elements.preloadLabel) {
         elements.preloadLabel.textContent = "雲端模式";
         elements.preloadLabel.style.color = "var(--text-secondary)";
+    }
+}
+
+// Handle URL routing based on query parameters (e.g. ?ep=96 or ?preread=0)
+function handleUrlRouting() {
+    const params = new URLSearchParams(window.location.search);
+    const epVal = params.get('ep');
+    const prereadVal = params.get('preread');
+    
+    if (epVal) {
+        const epId = parseInt(epVal, 10);
+        if (!isNaN(epId)) {
+            setTimeout(() => {
+                window.openEpisodeDetail(epId);
+            }, 250);
+        }
+    } else if (prereadVal) {
+        const idx = parseInt(prereadVal, 10);
+        if (!isNaN(idx)) {
+            setTimeout(() => {
+                window.openEpisodeDetail(`preread-${idx}`);
+            }, 250);
+        }
     }
 }

@@ -147,6 +147,9 @@ function run() {
 
     fs.writeFileSync(METADATA_FILE, JSON.stringify(metadata), 'utf-8');
 
+    // 3. Generate sitemap.xml automatically for SEO
+    generateSitemap(rawEpisodes);
+
     console.log(`Compilation complete:`);
     console.log(`  - Exported 28 chapter files to ${OUTPUT_DIR}`);
     console.log(`  - Exported metadata index to ${METADATA_FILE}`);
@@ -157,6 +160,42 @@ function run() {
             console.log(`  - ${ch.name}: ${ch.total_episodes} episodes`);
         }
     });
+}
+
+function generateSitemap(rawEpisodes) {
+    const sitemapFile = path.join(__dirname, '../sitemap.xml');
+    const BASE_URL = 'https://vbgrdmental-bit.github.io/jingsi-lotus/';
+    
+    let xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>${BASE_URL}</loc>
+    <priority>1.00</priority>
+  </url>
+`;
+
+    // Add 品前導讀 (if preread.json exists)
+    const prereadFile = path.join(__dirname, '../data/preread.json');
+    if (fs.existsSync(prereadFile)) {
+        try {
+            const prereads = JSON.parse(fs.readFileSync(prereadFile, 'utf-8'));
+            prereads.forEach((pr, idx) => {
+                xml += `  <url>\n    <loc>${BASE_URL}?preread=${idx}</loc>\n    <priority>0.80</priority>\n  </url>\n`;
+            });
+        } catch (e) {
+            console.warn("Failed to parse preread.json for sitemap:", e.message);
+        }
+    }
+
+    // Add all episodes
+    rawEpisodes.forEach(ep => {
+        xml += `  <url>\n    <loc>${BASE_URL}?ep=${ep.episode_id}</loc>\n    <priority>0.80</priority>\n  </url>\n`;
+    });
+
+    xml += `</urlset>`;
+    
+    fs.writeFileSync(sitemapFile, xml, 'utf-8');
+    console.log(`  - Generated sitemap.xml at ${sitemapFile} with ${rawEpisodes.length} urls`);
 }
 
 if (require.main === module) {
