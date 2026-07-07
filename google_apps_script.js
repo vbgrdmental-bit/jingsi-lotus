@@ -111,6 +111,11 @@ function doGet(e) {
       if (!query) {
         throw new Error("搜尋關鍵字不可為空");
       }
+      var keywords = query.split(/[\s　]+/).filter(function(k) { return k.length > 0; });
+      if (keywords.length === 0) {
+        throw new Error("搜尋關鍵字不可為空");
+      }
+      
       var sheet = ss.getSheetByName("episodes");
       if (!sheet) {
         throw new Error("找不到 episodes 工作表");
@@ -123,12 +128,16 @@ function doGet(e) {
         var summary = data[i][2] || "";
         var fullText = data[i][3] || "";
         
-        var matches = false;
-        if (String(episodeId) === query || 
-            title.toLowerCase().indexOf(query) !== -1 ||
-            summary.toLowerCase().indexOf(query) !== -1 ||
-            fullText.toLowerCase().indexOf(query) !== -1) {
-          matches = true;
+        var matches = true;
+        for (var k = 0; k < keywords.length; k++) {
+          var kw = keywords[k];
+          if (!(String(episodeId) === kw || 
+                title.toLowerCase().indexOf(kw) !== -1 ||
+                summary.toLowerCase().indexOf(kw) !== -1 ||
+                fullText.toLowerCase().indexOf(kw) !== -1)) {
+            matches = false;
+            break;
+          }
         }
         
         if (matches) {

@@ -885,7 +885,7 @@ function performSearch(query) {
             return res.json();
         })
         .then(results => {
-            renderSearchResults(results, query);
+            renderSearchResults(results, query, true);
         })
         .catch(err => {
             // 2. If local server search fails (online), check if GOOGLE_SCRIPT_URL is available
@@ -895,7 +895,7 @@ function performSearch(query) {
                     .then(res => res.json())
                     .then(res => {
                         if (res.success && res.data) {
-                            renderSearchResults(res.data, query);
+                            renderSearchResults(res.data, query, true);
                         } else {
                             throw new Error(res.error || "Cloud search failed");
                         }
@@ -904,12 +904,12 @@ function performSearch(query) {
                         console.warn("Cloud search failed, falling back to client search:", cloudErr.message);
                         // 3. Fallback to client-side fast-title search
                         const results = await localFallbackSearch(query, false);
-                        renderSearchResults(results, query);
+                        renderSearchResults(results, query, false);
                     });
             } else {
                 // 3. Fallback to client-side fast-title search
                 localFallbackSearch(query, false).then(results => {
-                    renderSearchResults(results, query);
+                    renderSearchResults(results, query, false);
                 });
             }
         });
@@ -967,12 +967,12 @@ async function localFallbackSearch(query, forceFullText = false) {
     return results;
 }
 
-function renderSearchResults(results, query) {
+function renderSearchResults(results, query, isCloudOrFullText = false) {
     elements.searchResults.innerHTML = '';
 
     if (results.length === 0) {
         elements.searchResults.innerHTML = `<div class="search-results-empty">找不到與「${query}」有關的集數</div>`;
-        if (!appState.rawEpisodesCache) {
+        if (!isCloudOrFullText && !appState.rawEpisodesCache) {
             appendFullTextSearchBanner(query);
         }
         return;
@@ -1072,7 +1072,7 @@ function renderSearchResults(results, query) {
         elements.searchResults.appendChild(item);
     });
 
-    if (!appState.rawEpisodesCache) {
+    if (!isCloudOrFullText && !appState.rawEpisodesCache) {
         appendFullTextSearchBanner(query);
     }
 }
@@ -1123,7 +1123,7 @@ function appendFullTextSearchBanner(query) {
         `;
         localFallbackSearch(query, true)
             .then(newResults => {
-                renderSearchResults(newResults, query);
+                renderSearchResults(newResults, query, true);
             })
             .catch(err => {
                 console.error("Failed full text search:", err);
