@@ -781,7 +781,9 @@ async function localFallbackSearch(query) {
             results.push({
                 episode_id: ep.episode_id,
                 title: ep.title,
-                raw_date: ep.raw_date || ep.broadcast_date || ''
+                raw_date: ep.raw_date || ep.broadcast_date || '',
+                summary: ep.summary || '',
+                full_text: ep.full_text || ''
             });
             if (results.length >= 100) break;
         }
@@ -797,7 +799,44 @@ function renderSearchResults(results, query) {
         return;
     }
 
+    const cleanQuery = query.toLowerCase().trim();
+    const keywords = cleanQuery.split(/[\s　]+/).filter(k => k.length > 0);
+
     results.forEach(res => {
+        // Extract matching snippet
+        const fullContent = ((res.summary || '') + ' ' + (res.full_text || '')).replace(/\s+/g, ' ');
+        const lowerContent = fullContent.toLowerCase();
+        
+        let matchIdx = -1;
+        for (const kw of keywords) {
+            const idx = lowerContent.indexOf(kw);
+            if (idx !== -1 && (matchIdx === -1 || idx < matchIdx)) {
+                matchIdx = idx;
+            }
+        }
+        
+        let snippet = '';
+        if (matchIdx !== -1) {
+            const start = Math.max(0, matchIdx - 40);
+            const end = Math.min(fullContent.length, matchIdx + 60);
+            snippet = fullContent.substring(start, end);
+            if (start > 0) snippet = '…' + snippet;
+            if (end < fullContent.length) snippet = snippet + '…';
+            snippet = '「' + snippet + '」';
+        } else {
+            snippet = res.summary ? '「' + res.summary.substring(0, 100) + '…」' : '';
+        }
+        
+        // Highlight keywords in the snippet
+        let highlightedSnippet = snippet;
+        if (keywords.length > 0) {
+            keywords.forEach(kw => {
+                const escaped = kw.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+                const regex = new RegExp(escaped, 'gi');
+                highlightedSnippet = highlightedSnippet.replace(regex, `<mark class="search-highlight">$&</mark>`);
+            });
+        }
+
         const item = document.createElement('div');
         item.className = 'search-result-item';
         item.innerHTML = `
@@ -806,6 +845,7 @@ function renderSearchResults(results, query) {
                     <span class="search-result-number">第 ${res.episode_id} 集</span>
                     <span class="search-result-title">${res.title}</span>
                 </div>
+                <div class="search-result-snippet">${highlightedSnippet}</div>
                 <div class="search-result-date">播出日期：${res.raw_date || '未知'}</div>
             </div>
         `;

@@ -278,7 +278,9 @@ const server = http.createServer((req, res) => {
                     results.push({
                         episode_id: ep.episode_id,
                         title: ep.title,
-                        raw_date: ep.raw_date || ep.broadcast_date || ''
+                        raw_date: ep.raw_date || ep.broadcast_date || '',
+                        summary: ep.summary || '',
+                        full_text: ep.full_text || ''
                     });
                     
                     if (results.length >= 100) break;

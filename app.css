@@ -1163,7 +1163,7 @@ h1 .subtitle {
 
 .search-result-item {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     padding: 12px 16px;
     border-bottom: 1px solid var(--border-color);
     cursor: pointer;
@@ -1737,5 +1737,22 @@ body.sepia-mode .episode-global-completes {
 /* Active tab button background styling */
 .tab-btn.active {
     background-color: var(--accent-light) !important;
+}
+
+/* Search Snippet and Highlight */
+.search-result-snippet {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-top: 6px;
+    line-height: 1.5;
+    word-break: break-all;
+}
+
+mark.search-highlight {
+    background-color: rgba(212, 175, 55, 0.25);
+    color: var(--gold-color);
+    border-radius: 2px;
+    padding: 0 2px;
+    font-weight: 600;
 }
 
