@@ -61,6 +61,7 @@ const elements = {
     sutraFullText: document.getElementById('sutraFullText'),
     panelBody: document.querySelector('#detailPanel .panel-body'),
     searchInput: document.getElementById('searchInput'),
+    searchIcon: document.getElementById('searchIcon'),
     clearSearchBtn: document.getElementById('clearSearchBtn'),
     searchResults: document.getElementById('searchResults'),
     editModal: document.getElementById('editModal'),
@@ -297,14 +298,28 @@ function initEventListeners() {
     if (elements.searchInput) {
         elements.searchInput.addEventListener('input', (e) => {
             const query = e.target.value;
-            handleSearchInput(query);
+            handleSearchTyping(query);
+        });
+
+        // Trigger search on Enter keypress
+        elements.searchInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                triggerSearchSubmit();
+            }
+        });
+    }
+
+    // Trigger search on search icon click
+    if (elements.searchIcon) {
+        elements.searchIcon.addEventListener('click', () => {
+            triggerSearchSubmit();
         });
     }
 
     if (elements.clearSearchBtn) {
         elements.clearSearchBtn.addEventListener('click', () => {
             elements.searchInput.value = '';
-            handleSearchInput('');
+            handleSearchTyping('');
         });
     }
 
@@ -850,9 +865,7 @@ function mergeLocalPrereadEdits() {
 }
 
 
-let searchDebounceTimeout = null;
-
-function handleSearchInput(query) {
+function handleSearchTyping(query) {
     const cleanQuery = query.trim();
     
     if (cleanQuery) {
@@ -866,7 +879,6 @@ function handleSearchInput(query) {
         elements.searchResults.innerHTML = '';
         elements.chapterList.classList.remove('hidden');
         
-        // Show progress card and evaluate resume card when search is cleared
         elements.progressCard.classList.remove('hidden');
         if (typeof updateResumeBookmark === 'function') {
             updateResumeBookmark();
@@ -874,18 +886,46 @@ function handleSearchInput(query) {
         return;
     }
 
-    // Hide progress and resume cards when searching
+    // Hide progress and resume cards
     elements.progressCard.classList.add('hidden');
     elements.resumeCard.classList.add('hidden');
-
     elements.chapterList.classList.add('hidden');
     elements.searchResults.classList.remove('hidden');
-    elements.searchResults.innerHTML = `<div style="text-align: center; padding: 24px; color: var(--text-hint); font-size: 0.9rem;">正在搜尋中...</div>`;
+    
+    // Show prompt to submit search
+    elements.searchResults.innerHTML = `
+        <div style="text-align: center; padding: 32px 20px; color: var(--text-hint); display: flex; flex-direction: column; align-items: center; gap: 12px;">
+            <svg style="width: 32px; height: 32px; color: var(--text-hint); opacity: 0.7;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <div style="font-size: 0.95rem; font-weight: 500; color: var(--text-color);">已輸入關鍵字</div>
+            <div style="font-size: 0.85rem; color: var(--text-secondary);">請按鍵盤上的「搜尋」、「Enter」或點擊左側放大鏡開始搜尋</div>
+        </div>
+    `;
+}
 
-    clearTimeout(searchDebounceTimeout);
-    searchDebounceTimeout = setTimeout(() => {
-        performSearch(cleanQuery);
-    }, 250);
+function triggerSearchSubmit() {
+    if (!elements.searchInput) return;
+    const query = elements.searchInput.value;
+    const cleanQuery = query.trim();
+    if (!cleanQuery) return;
+
+    elements.progressCard.classList.add('hidden');
+    elements.resumeCard.classList.add('hidden');
+    elements.chapterList.classList.add('hidden');
+    elements.searchResults.classList.remove('hidden');
+    elements.searchResults.innerHTML = `
+        <div style="display: flex; align-items: center; justify-content: center; gap: 8px; padding: 32px; color: var(--text-hint);">
+            <div class="loading-spinner" style="width: 20px; height: 20px; border-width: 2px;"></div>
+            <span>正在搜尋中...</span>
+        </div>
+    `;
+
+    // Blur input to dismiss mobile keyboard
+    elements.searchInput.blur();
+
+    performSearch(cleanQuery);
 }
 
 function performSearch(query) {
