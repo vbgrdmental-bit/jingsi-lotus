@@ -36,6 +36,7 @@ const elements = {
     globalPercent: document.getElementById('globalPercent'),
     globalProgressBar: document.getElementById('globalProgressBar'),
     globalStats: document.getElementById('globalStats'),
+    progressCard: document.getElementById('progressCard'),
     resumeCard: document.getElementById('resumeCard'),
     resumeTitle: document.getElementById('resumeTitle'),
     resumeBtn: document.getElementById('resumeBtn'),
@@ -864,8 +865,18 @@ function handleSearchInput(query) {
         elements.searchResults.classList.add('hidden');
         elements.searchResults.innerHTML = '';
         elements.chapterList.classList.remove('hidden');
+        
+        // Show progress card and evaluate resume card when search is cleared
+        elements.progressCard.classList.remove('hidden');
+        if (typeof updateResumeBookmark === 'function') {
+            updateResumeBookmark();
+        }
         return;
     }
+
+    // Hide progress and resume cards when searching
+    elements.progressCard.classList.add('hidden');
+    elements.resumeCard.classList.add('hidden');
 
     elements.chapterList.classList.add('hidden');
     elements.searchResults.classList.remove('hidden');
