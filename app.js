@@ -64,6 +64,12 @@ const elements = {
     searchIcon: document.getElementById('searchIcon'),
     clearSearchBtn: document.getElementById('clearSearchBtn'),
     searchResults: document.getElementById('searchResults'),
+    preloadToggle: document.getElementById('preloadToggle'),
+    preloadLabel: document.getElementById('preloadLabel'),
+    preloadInfoBtn: document.getElementById('preloadInfoBtn'),
+    preloadInfoModal: document.getElementById('preloadInfoModal'),
+    closePreloadInfoBtn: document.getElementById('closePreloadInfoBtn'),
+    understandPreloadBtn: document.getElementById('understandPreloadBtn'),
     editModal: document.getElementById('editModal'),
     closeEditModalBtn: document.getElementById('closeEditModalBtn'),
     cancelEditBtn: document.getElementById('cancelEditBtn'),
@@ -486,6 +492,39 @@ function initEventListeners() {
 
     if (elements.closeEditModalBtn) elements.closeEditModalBtn.addEventListener('click', closeEdit);
     if (elements.cancelEditBtn) elements.cancelEditBtn.addEventListener('click', closeEdit);
+
+    // ----------------- Preload Info Modal Event Bindings -----------------
+    const showPreloadInfoModal = () => {
+        if (elements.preloadInfoModal) elements.preloadInfoModal.classList.remove('hidden');
+    };
+    const closePreloadInfoModal = () => {
+        if (elements.preloadInfoModal) elements.preloadInfoModal.classList.add('hidden');
+    };
+    if (elements.preloadInfoBtn) elements.preloadInfoBtn.addEventListener('click', showPreloadInfoModal);
+    if (elements.closePreloadInfoBtn) elements.closePreloadInfoBtn.addEventListener('click', closePreloadInfoModal);
+    if (elements.understandPreloadBtn) elements.understandPreloadBtn.addEventListener('click', closePreloadInfoModal);
+
+    // ----------------- Preload Database Switch Binding -----------------
+    if (elements.preloadToggle) {
+        elements.preloadToggle.addEventListener('change', (e) => {
+            if (e.target.checked) {
+                localStorage.setItem('jingsi_preload_all', 'true');
+                startPreloadingDatabase();
+            } else {
+                localStorage.setItem('jingsi_preload_all', 'false');
+                stopPreloadingDatabase();
+            }
+        });
+
+        // Initialize state from localStorage
+        const shouldPreload = localStorage.getItem('jingsi_preload_all') === 'true';
+        if (shouldPreload) {
+            elements.preloadToggle.checked = true;
+            setTimeout(() => {
+                startPreloadingDatabase();
+            }, 100);
+        }
+    }
 
     if (elements.saveEditBtn) {
         elements.saveEditBtn.addEventListener('click', () => {
@@ -929,6 +968,15 @@ function triggerSearchSubmit() {
 }
 
 function performSearch(query) {
+    // If the database is preloaded locally, perform high-speed offline search immediately
+    if (appState.rawEpisodesCache) {
+        console.log("Performing instant offline search on preloaded database...");
+        localFallbackSearch(query, true).then(results => {
+            renderSearchResults(results, query, true);
+        });
+        return;
+    }
+
     // 1. Try local server search first (for local development)
     fetch(`./api/search?q=${encodeURIComponent(query)}`)
         .then(res => {
@@ -1845,6 +1893,15 @@ window.openEpisodeDetail = function(episodeId, isResume = false) {
     if (!epHeader) return;
 
     const chapterId = epHeader.chapter_id;
+    
+    // Check if raw preloaded database contains this episode, extract if not cached
+    if (appState.rawEpisodesCache && !appState.episodeDetailsCache[episodeId]) {
+        const epFromRaw = appState.rawEpisodesCache.find(e => e.episode_id === episodeId);
+        if (epFromRaw) {
+            appState.episodeDetailsCache[episodeId] = epFromRaw;
+            mergeLocalEditsForEpisode(episodeId, epFromRaw);
+        }
+    }
     
     // Function to fetch latest from Google Sheets in the background
     const fetchLatestFromSheets = () => {
@@ -3192,5 +3249,63 @@ function populateEpisodeTexts(episodeId) {
     // 3. Save original HTML for inline search
     if (typeof saveOriginalPanelHTML === 'function') {
         saveOriginalPanelHTML();
+    }
+}
+
+// Start preloading the entire database raw_episodes.json in the background
+function startPreloadingDatabase() {
+    if (!elements.preloadLabel) return;
+    
+    // If it's already cached in memory, just update the label and skip fetch
+    if (appState.rawEpisodesCache) {
+        elements.preloadLabel.textContent = "✅ 已開啟全文預載 (離線高速模式)";
+        elements.preloadLabel.style.color = "var(--accent-color)";
+        return;
+    }
+    
+    elements.preloadLabel.textContent = "⏳ 正在載入全文資料庫 (33.6MB)...";
+    elements.preloadLabel.style.color = "var(--text-hint)";
+    
+    fetch('./data/raw_episodes.json')
+        .then(res => {
+            if (!res.ok) throw new Error("Failed to fetch raw_episodes.json");
+            return res.json();
+        })
+        .then(data => {
+            appState.rawEpisodesCache = data;
+            
+            // If the toggle checkbox was unchecked during the download, abort keeping it active
+            if (elements.preloadToggle && !elements.preloadToggle.checked) {
+                appState.rawEpisodesCache = null;
+                elements.preloadLabel.textContent = "預載全文資料庫 (離線高速模式)";
+                elements.preloadLabel.style.color = "var(--text-secondary)";
+                return;
+            }
+            
+            elements.preloadLabel.textContent = "✅ 已開啟全文預載 (離線高速模式)";
+            elements.preloadLabel.style.color = "var(--accent-color)";
+            
+            // If the user has a search input typed, refresh the search immediately using the newly loaded cache
+            if (elements.searchInput && elements.searchInput.value.trim().length > 0) {
+                triggerSearchSubmit();
+            }
+        })
+        .catch(err => {
+            console.error("Failed to preload full database:", err);
+            elements.preloadLabel.textContent = "❌ 載入失敗，請確認網路連線";
+            elements.preloadLabel.style.color = "red";
+            if (elements.preloadToggle) {
+                elements.preloadToggle.checked = false;
+            }
+            localStorage.setItem('jingsi_preload_all', 'false');
+        });
+}
+
+// Stop preloading, clean up cached raw database
+function stopPreloadingDatabase() {
+    appState.rawEpisodesCache = null;
+    if (elements.preloadLabel) {
+        elements.preloadLabel.textContent = "預載全文資料庫 (離線高速模式)";
+        elements.preloadLabel.style.color = "var(--text-secondary)";
     }
 }

@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="app.css?v=3.6">
+    <link rel="stylesheet" href="app.css?v=3.7">
 </head>
 <body class="dark-mode">
     <div class="app-container">
@@ -51,6 +51,17 @@
                             <line x1="6" y1="6" x2="18" y2="18"></line>
                         </svg>
                     </button>
+                </div>
+                <!-- Preload Database Control Row -->
+                <div class="preload-control-row">
+                    <div class="preload-toggle-container">
+                        <label class="switch">
+                            <input type="checkbox" id="preloadToggle">
+                            <span class="slider round"></span>
+                        </label>
+                        <span id="preloadLabel" class="toggle-label">預載全文資料庫 (離線高速模式)</span>
+                    </div>
+                    <button id="preloadInfoBtn" class="preload-info-btn" aria-label="說明">i</button>
                 </div>
             </div>
 
@@ -308,7 +319,48 @@
         </div>
     </div>
 
+    <!-- Preload Info Modal -->
+    <div id="preloadInfoModal" class="modal hidden">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3>預載全文資料庫 (離線高速模式)</h3>
+                <button id="closePreloadInfoBtn" class="close-modal-btn">&times;</button>
+            </div>
+            <div class="modal-body" style="line-height: 1.6; font-size: 0.92rem; color: var(--text-color);">
+                <p style="margin-bottom: 12px; font-weight: 500;">這是什麼功能？</p>
+                <p style="margin-bottom: 16px; color: var(--text-secondary);">
+                    預設情況下，系統採用「雲端智慧模式」，僅在您點選某一集時才下載該集的文字，以節省您的流量。
+                    開啟此功能後，系統會一次性將全站所有 1,885 集的大綱、逐字稿與資料全部預載到瀏覽器中。
+                </p>
+                
+                <div style="background-color: rgba(76, 175, 80, 0.1); border-left: 4px solid #4CAF50; padding: 10px 12px; margin-bottom: 16px; border-radius: 0 8px 8px 0;">
+                    <strong style="color: #4CAF50; display: block; margin-bottom: 4px;">👍 優點：</strong>
+                    <ul style="margin: 0; padding-left: 20px; list-style-type: disc;">
+                        <li><strong>極致流暢</strong>：所有集數的開示大綱、全文逐字稿皆能 <strong>0秒秒開</strong>，點擊無任何載入延遲。</li>
+                        <li><strong>離線搜尋</strong>：即使在完全沒有網路、訊號微弱的環境中，也能進行全文檢索。</li>
+                    </ul>
+                </div>
+                
+                <div style="background-color: rgba(244, 67, 54, 0.1); border-left: 4px solid #F44336; padding: 10px 12px; margin-bottom: 16px; border-radius: 0 8px 8px 0;">
+                    <strong style="color: #F44336; display: block; margin-bottom: 4px;">⚠️ 缺點 / 注意事項：</strong>
+                    <ul style="margin: 0; padding-left: 20px; list-style-type: disc;">
+                        <li><strong>首次下載耗流量</strong>：開啟後會立即下載約 <strong>33.6 MB</strong> 的資料庫。若您未使用手機上網吃到飽，請留意流量消耗。</li>
+                        <li><strong>首次開啟需等待</strong>：依您的網速，首次開啟約需等待 10~30 秒進行下載。</li>
+                        <li><strong>暫存記憶體佔用</strong>：需要約 33MB 的瀏覽器暫存空間，對極少數極低階的手機性能可能微有影響。</li>
+                    </ul>
+                </div>
+                
+                <p style="font-size: 0.85rem; color: var(--text-hint); text-align: center; margin-top: 12px;">
+                    💡 建議：如果您常在 Wi-Fi 環境使用，或使用行動數據吃到飽，強烈建議開啟！
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button id="understandPreloadBtn" class="btn btn-primary" style="width: 100%;">我知道了</button>
+            </div>
+        </div>
+    </div>
+
     <!-- App Logic Scripts -->
-    <script src="app.js?v=3.6"></script>
+    <script src="app.js?v=3.7"></script>
 </body>
 </html>
