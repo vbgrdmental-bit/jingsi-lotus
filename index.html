@@ -186,17 +186,59 @@
                 <button class="tab-btn" data-tab="tab-text">全文逐字稿</button>
             </div>
             <div class="tabs-right">
-                <button id="zenModeBtn" class="zen-toggle-btn" title="滿版閱讀/純文字模式">文</button>
-                <button id="fontDecBtn" class="font-adjust-btn" title="縮小字體">A-</button>
-                <button id="fontIncBtn" class="font-adjust-btn" title="放大字體">A+</button>
-                <a id="pdfDownloadLink" href="#" target="_blank" class="pdf-btn hidden">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                        <polyline points="7 10 12 15 17 10"></polyline>
-                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                <button id="menuToggleBtn" class="menu-toggle-btn" aria-label="選單">
+                    <svg class="hamburger-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="3" y1="12" x2="21" y2="12"></line>
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <line x1="3" y1="18" x2="21" y2="18"></line>
                     </svg>
-                    <span>PDF下載</span>
-                </a>
+                </button>
+                <div id="actionMenuDropdown" class="menu-dropdown hidden">
+                    <button id="panelSearchToggleBtn" class="menu-item-btn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="menu-icon">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                        <span>搜尋</span>
+                    </button>
+                    <button id="zenModeBtn" class="menu-item-btn">
+                        <span class="menu-text-icon">文</span>
+                        <span>滿版閱讀</span>
+                    </button>
+                    <button id="fontIncBtn" class="menu-item-btn">
+                        <span class="menu-text-icon">A+</span>
+                        <span>放大字體</span>
+                    </button>
+                    <button id="fontDecBtn" class="menu-item-btn">
+                        <span class="menu-text-icon">A-</span>
+                        <span>縮小字體</span>
+                    </button>
+                    <a id="pdfDownloadLink" href="#" target="_blank" class="menu-item-btn hidden">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="menu-icon">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7 10 12 15 17 10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                        <span>下載PDF</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel Search Bar (Slide down/up) -->
+        <div id="panelSearchBar" class="panel-search-bar hidden">
+            <div class="panel-search-input-wrapper">
+                <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+                <input type="text" id="panelSearchInput" placeholder="搜尋此集大綱與逐字稿..." autocomplete="off">
+                <button id="clearPanelSearchBtn" class="clear-search-btn hidden" aria-label="清除搜尋">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
             </div>
         </div>
 

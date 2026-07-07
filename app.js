@@ -296,6 +296,83 @@ function initEventListeners() {
         });
     }
 
+    // -------------------------------------------------------------
+    // Detail Panel Hamburger Menu & In-Page Search Event Listeners
+    // -------------------------------------------------------------
+    const menuToggleBtn = document.getElementById('menuToggleBtn');
+    const actionMenuDropdown = document.getElementById('actionMenuDropdown');
+    const panelSearchToggleBtn = document.getElementById('panelSearchToggleBtn');
+    const panelSearchBar = document.getElementById('panelSearchBar');
+    const panelSearchInput = document.getElementById('panelSearchInput');
+    const clearPanelSearchBtn = document.getElementById('clearPanelSearchBtn');
+
+    if (menuToggleBtn && actionMenuDropdown) {
+        menuToggleBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            actionMenuDropdown.classList.toggle('hidden');
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!menuToggleBtn.contains(e.target) && !actionMenuDropdown.contains(e.target)) {
+                actionMenuDropdown.classList.add('hidden');
+            }
+        });
+    }
+
+    // Toggle inline search bar from hamburger menu
+    if (panelSearchToggleBtn && panelSearchBar && panelSearchInput) {
+        panelSearchToggleBtn.addEventListener('click', () => {
+            actionMenuDropdown.classList.add('hidden'); // Close menu
+            const isHidden = panelSearchBar.classList.contains('hidden');
+            if (isHidden) {
+                panelSearchBar.classList.remove('hidden');
+                panelSearchInput.focus();
+            } else {
+                panelSearchBar.classList.add('hidden');
+                panelSearchInput.value = '';
+                if (clearPanelSearchBtn) clearPanelSearchBtn.classList.add('hidden');
+                performPanelSearch(''); // Clear highlights
+            }
+        });
+    }
+
+    // Live search inside panel
+    if (panelSearchInput) {
+        panelSearchInput.addEventListener('input', (e) => {
+            const query = e.target.value;
+            if (clearPanelSearchBtn) {
+                if (query.length > 0) {
+                    clearPanelSearchBtn.classList.remove('hidden');
+                } else {
+                    clearPanelSearchBtn.classList.add('hidden');
+                }
+            }
+            performPanelSearch(query);
+        });
+    }
+
+    // Clear search
+    if (clearPanelSearchBtn && panelSearchInput) {
+        clearPanelSearchBtn.addEventListener('click', () => {
+            panelSearchInput.value = '';
+            clearPanelSearchBtn.classList.add('hidden');
+            performPanelSearch('');
+            panelSearchInput.focus();
+        });
+    }
+
+    // Close action dropdown when clicking items inside it
+    if (actionMenuDropdown) {
+        actionMenuDropdown.querySelectorAll('.menu-item-btn').forEach(btn => {
+            if (btn.id !== 'panelSearchToggleBtn') {
+                btn.addEventListener('click', () => {
+                    actionMenuDropdown.classList.add('hidden');
+                });
+            }
+        });
+    }
+
     // Helper to setup edit modal sections
     window.showModalSection = (mode) => {
         appState.editMode = mode;
@@ -2031,6 +2108,17 @@ function showDetailPanel(episodeId, isResume) {
     appState.progress.lastRead = episodeId;
     saveProgress();
     updateResumeBookmark();
+
+    // 11. Save original HTML for inline search and clear previous search input
+    if (typeof saveOriginalPanelHTML === 'function') {
+        saveOriginalPanelHTML();
+    }
+    const searchBar = document.getElementById('panelSearchBar');
+    if (searchBar) searchBar.classList.add('hidden');
+    const searchInput = document.getElementById('panelSearchInput');
+    if (searchInput) searchInput.value = '';
+    const clearSearchBtn = document.getElementById('clearPanelSearchBtn');
+    if (clearSearchBtn) clearSearchBtn.classList.add('hidden');
 }
 
 // Close Episode Reader Panel
@@ -2732,6 +2820,17 @@ window.openPreReadDetail = function(idx) {
         elements.detailPanel.classList.remove('hidden');
         elements.detailPanel.classList.add('visible');
         elements.panelBody.scrollTop = 0;
+
+        // Save original HTML for inline search and clear previous search input
+        if (typeof saveOriginalPanelHTML === 'function') {
+            saveOriginalPanelHTML();
+        }
+        const searchBar = document.getElementById('panelSearchBar');
+        if (searchBar) searchBar.classList.add('hidden');
+        const searchInput = document.getElementById('panelSearchInput');
+        if (searchInput) searchInput.value = '';
+        const clearSearchBtn = document.getElementById('clearPanelSearchBtn');
+        if (clearSearchBtn) clearSearchBtn.classList.add('hidden');
     };
 
     // Render instantly using cached memory
@@ -2809,6 +2908,9 @@ window.openPreReadDetail = function(idx) {
                                 });
                             }
                             appendBottomInfoBar(elements.sutraFullText, `※ 以上內容精選自「大愛台YouTube」`, false, fullTextHistory);
+                            if (typeof saveOriginalPanelHTML === 'function') {
+                                saveOriginalPanelHTML();
+                            }
                         }
                     }
                 }
@@ -2816,3 +2918,88 @@ window.openPreReadDetail = function(idx) {
             .catch(err => console.warn('Background Sheets fetch failed:', err));
     }
 };
+
+// -------------------------------------------------------------
+// In-Page Search & Highlight Helper Functions
+// -------------------------------------------------------------
+function saveOriginalPanelHTML() {
+    appState.originalOutlineHTML = elements.sutraSummary.innerHTML;
+    appState.originalTranscriptHTML = elements.sutraFullText.innerHTML;
+    
+    // If there is currently a search query in the search bar, re-apply it!
+    const panelSearchInput = document.getElementById('panelSearchInput');
+    if (panelSearchInput && panelSearchInput.value.trim()) {
+        performPanelSearch(panelSearchInput.value);
+    }
+}
+
+function performPanelSearch(query) {
+    const summaryContainer = elements.sutraSummary;
+    const textContainer = elements.sutraFullText;
+    if (!summaryContainer || !textContainer) return;
+
+    // 1. Restore original HTML (clear old highlights)
+    if (appState.originalOutlineHTML !== undefined) {
+        summaryContainer.innerHTML = appState.originalOutlineHTML;
+    }
+    if (appState.originalTranscriptHTML !== undefined) {
+        textContainer.innerHTML = appState.originalTranscriptHTML;
+    }
+
+    const clean = query.trim();
+    if (!clean) return;
+
+    // 2. Escape special characters for regex
+    const escaped = clean.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+    const regex = new RegExp(escaped, 'gi');
+
+    // 3. Highlight matches in text nodes recursively
+    highlightTextInNode(summaryContainer, regex);
+    highlightTextInNode(textContainer, regex);
+}
+
+function highlightTextInNode(node, regex) {
+    if (node.nodeType === Node.TEXT_NODE) {
+        const text = node.nodeValue;
+        if (regex.test(text)) {
+            const parent = node.parentNode;
+            
+            // Create a document fragment to hold the new structure
+            const fragment = document.createDocumentFragment();
+            let lastIdx = 0;
+            
+            // Replace matching terms
+            text.replace(regex, (match, offset) => {
+                // Add preceding text
+                if (offset > lastIdx) {
+                    fragment.appendChild(document.createTextNode(text.substring(lastIdx, offset)));
+                }
+                
+                // Add highlighted span
+                const span = document.createElement('span');
+                span.className = 'highlight-term';
+                span.textContent = match;
+                fragment.appendChild(span);
+                
+                lastIdx = offset + match.length;
+            });
+            
+            // Add trailing text
+            if (lastIdx < text.length) {
+                fragment.appendChild(document.createTextNode(text.substring(lastIdx)));
+            }
+            
+            // Replace original node with fragment
+            parent.replaceChild(fragment, node);
+        }
+    } else if (node.nodeType === Node.ELEMENT_NODE && node.childNodes) {
+        // Skip tags that we shouldn't modify
+        if (node.tagName !== 'SCRIPT' && node.tagName !== 'STYLE' && !node.classList.contains('highlight-term')) {
+            // Walk child nodes
+            const children = Array.from(node.childNodes);
+            for (let i = 0; i < children.length; i++) {
+                highlightTextInNode(children[i], regex);
+            }
+        }
+    }
+}

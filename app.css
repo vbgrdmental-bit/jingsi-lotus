@@ -16,6 +16,8 @@
     --gold-light: rgba(212, 175, 55, 0.1);
     --shadow-color: rgba(0, 0, 0, 0.5);
     --panel-header-bg: #242424;
+    --search-highlight-bg: #ffd000;
+    --search-highlight-color: #000000;
 }
 
 /* Sepia Mode Theme */
@@ -33,6 +35,8 @@ body.sepia-mode {
     --gold-light: rgba(184, 134, 11, 0.08);
     --shadow-color: rgba(101, 94, 83, 0.15);
     --panel-header-bg: #ebdcb9;
+    --search-highlight-bg: #ffc83b;
+    --search-highlight-color: #1a1005;
 }
 
 * {
@@ -1785,5 +1789,180 @@ mark.search-highlight {
 /* Temporarily hide video search button */
 #videoSearchBtn {
     display: none !important;
+}
+
+/* Detail Panel Hamburger Menu & Action Dropdown */
+.tabs-right {
+    position: relative !important;
+    display: flex !important;
+    align-items: center !important;
+}
+
+.menu-toggle-btn {
+    background: none !important;
+    border: none !important;
+    cursor: pointer !important;
+    color: var(--text-secondary) !important;
+    padding: 8px !important;
+    border-radius: 50% !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: color 0.2s, background-color 0.2s !important;
+}
+
+.menu-toggle-btn:hover {
+    color: var(--text-primary) !important;
+    background-color: var(--accent-light) !important;
+}
+
+.menu-toggle-btn svg {
+    width: 20px !important;
+    height: 20px !important;
+}
+
+.menu-dropdown {
+    position: absolute !important;
+    top: calc(100% + 5px) !important;
+    right: 0 !important;
+    background-color: var(--card-bg) !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: 8px !important;
+    box-shadow: 0 4px 12px var(--shadow-color) !important;
+    padding: 6px 0 !important;
+    min-width: 150px !important;
+    z-index: 1000 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 2px !important;
+}
+
+.menu-dropdown.hidden {
+    display: none !important;
+}
+
+.menu-item-btn {
+    background: none !important;
+    border: none !important;
+    cursor: pointer !important;
+    padding: 10px 16px !important;
+    width: 100% !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    color: var(--text-primary) !important;
+    font-size: 0.88rem !important;
+    font-family: inherit !important;
+    text-align: left !important;
+    text-decoration: none !important;
+    transition: background-color 0.2s, color 0.2s !important;
+    border-radius: 0 !important;
+}
+
+.menu-item-btn:hover {
+    background-color: var(--accent-light) !important;
+    color: var(--accent-color) !important;
+}
+
+.menu-item-btn.hidden {
+    display: none !important;
+}
+
+.menu-item-btn svg.menu-icon {
+    width: 16px !important;
+    height: 16px !important;
+    stroke: currentColor !important;
+    fill: none !important;
+    flex-shrink: 0 !important;
+}
+
+.menu-text-icon {
+    width: 16px !important;
+    height: 16px !important;
+    font-size: 0.72rem !important;
+    font-weight: bold !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 3px !important;
+    background-color: var(--gold-light) !important;
+    color: var(--gold-color) !important;
+    flex-shrink: 0 !important;
+}
+
+.menu-item-btn:hover .menu-text-icon {
+    background-color: var(--gold-color) !important;
+    color: #fff !important;
+}
+
+/* Panel Inline Search Bar */
+.panel-search-bar {
+    padding: 8px 16px !important;
+    background-color: var(--card-bg) !important;
+    border-bottom: 1px solid var(--border-color) !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    animation: panelSearchSlideDown 0.2s ease-out !important;
+    flex-shrink: 0 !important;
+}
+
+.panel-search-bar.hidden {
+    display: none !important;
+}
+
+@keyframes panelSearchSlideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.panel-search-input-wrapper {
+    position: relative !important;
+    display: flex !important;
+    align-items: center !important;
+    flex-grow: 1 !important;
+    background-color: var(--bg-color) !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: 6px !important;
+    padding: 4px 8px !important;
+}
+
+.panel-search-input-wrapper svg.search-icon {
+    width: 16px !important;
+    height: 16px !important;
+    color: var(--text-secondary) !important;
+    margin-right: 8px !important;
+    stroke: currentColor !important;
+    fill: none !important;
+}
+
+#panelSearchInput {
+    background: none !important;
+    border: none !important;
+    color: var(--text-primary) !important;
+    font-size: 0.88rem !important;
+    font-family: inherit !important;
+    width: 100% !important;
+    outline: none !important;
+}
+
+#panelSearchInput::placeholder {
+    color: var(--text-hint) !important;
+}
+
+/* In-Page Text Highlight Style */
+.highlight-term {
+    font-weight: bold !important;
+    background-color: var(--search-highlight-bg, #ffd000) !important;
+    color: var(--search-highlight-color, #000000) !important;
+    padding: 0 2px !important;
+    border-radius: 2px !important;
+    box-shadow: 0 0 2px rgba(255, 208, 0, 0.4) !important;
 }
 

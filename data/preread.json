@@ -30,7 +30,7 @@
   },
   {
     "id": 2,
-    "title": "釋法華經序（上）",
+    "title": "釋法華經序（上）一心頂禮",
     "summary": "測試",
     "full_text": "測試",
     "edit_history": [
@@ -48,9 +48,17 @@
   },
   {
     "id": 3,
-    "title": "釋法華經序（下）",
+    "title": "釋法華經序（下）志心懺悔",
     "summary": "",
-    "full_text": ""
+    "full_text": "",
+    "edit_history": [
+      {
+        "date": "2026/07/07",
+        "author": "Mental Kuo",
+        "mode": "summary",
+        "comment": "新增內容"
+      }
+    ]
   },
   {
     "id": 4,
@@ -93,31 +101,33 @@
     "id": 9,
     "title": "信解品第四（上）深受信解",
     "summary": "",
-    "full_text": ""
+    "full_text": "",
+    "edit_history": []
   },
   {
     "id": 10,
     "title": "信解品第四（下）喜受大法",
     "summary": "",
-    "full_text": ""
+    "full_text": "",
+    "edit_history": []
   },
   {
     "id": 11,
-    "title": "藥草喻品第五 - 恩澤普潤",
+    "title": "藥草喻品第五 恩澤普潤",
     "summary": "",
     "full_text": "",
     "edit_history": []
   },
   {
     "id": 12,
-    "title": "授記品第六 - 悉當作佛",
+    "title": "授記品第六 悉當作佛",
     "summary": "",
     "full_text": "",
     "edit_history": []
   },
   {
     "id": 13,
-    "title": "化城喻品第七（上）三周說法",
+    "title": "化城喻品第七（一）三周說法",
     "summary": "",
     "full_text": "",
     "edit_history": []
@@ -126,83 +136,96 @@
     "id": 14,
     "title": "化城喻品第七（中）優遊法海",
     "summary": "",
-    "full_text": ""
+    "full_text": "",
+    "edit_history": []
   },
   {
     "id": 15,
     "title": "化城喻品第七（下）方便權化",
     "summary": "",
-    "full_text": ""
+    "full_text": "",
+    "edit_history": []
   },
   {
     "id": 16,
     "title": "五百弟子受記品第八（上）次序授記",
     "summary": "",
-    "full_text": ""
+    "full_text": "",
+    "edit_history": []
   },
   {
     "id": 17,
     "title": "五百弟子受記品第八（下）身懷寶珠",
     "summary": "",
-    "full_text": ""
+    "full_text": "",
+    "edit_history": []
   },
   {
     "id": 18,
     "title": "授學無學人記品第九（上）普皆成佛",
     "summary": "",
-    "full_text": ""
+    "full_text": "",
+    "edit_history": []
   },
   {
     "id": 19,
     "title": "授學無學人記品第九（下）護持法藏",
     "summary": "",
-    "full_text": ""
+    "full_text": "",
+    "edit_history": []
   },
   {
     "id": 20,
     "title": "法師品第十（上）契合佛心",
     "summary": "",
-    "full_text": ""
+    "full_text": "",
+    "edit_history": []
   },
   {
     "id": 21,
     "title": "法師品第十（下）妙法之師",
     "summary": "",
-    "full_text": ""
+    "full_text": "",
+    "edit_history": []
   },
   {
     "id": 22,
     "title": "見寶塔品第十一（上）心塔湧現 除惑修福慧",
     "summary": "",
-    "full_text": ""
+    "full_text": "",
+    "edit_history": []
   },
   {
     "id": 23,
     "title": "見寶塔品第十一（中）心塔湧現 除惑修福慧",
     "summary": "",
-    "full_text": ""
+    "full_text": "",
+    "edit_history": []
   },
   {
     "id": 24,
     "title": "見寶塔品第十一（下）心塔湧現 除惑修福慧",
     "summary": "",
-    "full_text": ""
+    "full_text": "",
+    "edit_history": []
   },
   {
     "id": 25,
     "title": "提婆達多品第十二（上）大權顯示",
     "summary": "",
-    "full_text": ""
+    "full_text": "",
+    "edit_history": []
   },
   {
     "id": 26,
     "title": "提婆達多品第十二（下）因圓果滿頓成佛",
     "summary": "",
-    "full_text": ""
+    "full_text": "",
+    "edit_history": []
   },
   {
     "id": 27,
-    "title": "勸持品第十三 - 承擔如來家業",
+    "title": "勸持品第十三 承擔如來家業",
     "summary": "",
     "full_text": "",
     "edit_history": []
@@ -211,13 +234,15 @@
     "id": 28,
     "title": "安樂行品第十四（上）護心之法",
     "summary": "",
-    "full_text": ""
+    "full_text": "",
+    "edit_history": []
   },
   {
     "id": 29,
     "title": "安樂行品第十四（下）頂髻明珠",
     "summary": "",
-    "full_text": ""
+    "full_text": "",
+    "edit_history": []
   },
   {
     "id": 30,
