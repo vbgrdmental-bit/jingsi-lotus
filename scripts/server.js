@@ -238,6 +238,103 @@ const server = http.createServer((req, res) => {
         return;
     }
 
+    if (req.method === 'POST' && req.url === '/api/sync_local_edits') {
+        let body = '';
+        req.on('data', chunk => { body += chunk; });
+        req.on('end', () => {
+            try {
+                const payload = JSON.parse(body);
+                const prereadEdits = payload.prereadEdits ? JSON.parse(payload.prereadEdits) : null;
+                const localEdits = payload.localEdits ? JSON.parse(payload.localEdits) : null;
+                
+                let diskChanged = false;
+                
+                // 1. Sync preread edits
+                if (prereadEdits && Object.keys(prereadEdits).length > 0) {
+                    const prPath = path.join(__dirname, '..', 'data', 'preread.json');
+                    let prereadData = [];
+                    if (fs.existsSync(prPath)) {
+                        prereadData = JSON.parse(fs.readFileSync(prPath, 'utf-8'));
+                    }
+                    
+                    let prChanged = false;
+                    Object.keys(prereadEdits).forEach(idxKey => {
+                        const idx = parseInt(idxKey, 10);
+                        const edit = prereadEdits[idxKey];
+                        let entry = prereadData.find(x => x.id === idx);
+                        if (!entry) {
+                            entry = { id: idx, title: '', summary: '', full_text: '', edit_history: [] };
+                            prereadData.push(entry);
+                        }
+                        
+                        // Merge fields if changed
+                        if (edit.title && edit.title !== entry.title) { entry.title = edit.title; prChanged = true; }
+                        if (edit.summary && edit.summary !== entry.summary) { entry.summary = edit.summary; prChanged = true; }
+                        if (edit.full_text && edit.full_text !== entry.full_text) { entry.full_text = edit.full_text; prChanged = true; }
+                        if (edit.edit_history && JSON.stringify(edit.edit_history) !== JSON.stringify(entry.edit_history)) {
+                            entry.edit_history = edit.edit_history;
+                            prChanged = true;
+                        }
+                    });
+                    
+                    if (prChanged) {
+                        prereadData.sort((a, b) => a.id - b.id);
+                        fs.writeFileSync(prPath, JSON.stringify(prereadData, null, 2), 'utf-8');
+                        diskChanged = true;
+                    }
+                }
+                
+                // 2. Sync standard episodes local edits
+                if (localEdits && Object.keys(localEdits).length > 0) {
+                    const dbPath = path.join(__dirname, '..', 'data', 'raw_episodes.json');
+                    if (fs.existsSync(dbPath)) {
+                        const rawData = JSON.parse(fs.readFileSync(dbPath, 'utf-8'));
+                        let rawChanged = false;
+                        
+                        Object.keys(localEdits).forEach(epIdKey => {
+                            const epId = parseInt(epIdKey, 10);
+                            const edit = localEdits[epIdKey];
+                            const entry = rawData.find(x => x.episode_id === epId);
+                            if (entry) {
+                                if (edit.title && edit.title !== entry.title) { entry.title = edit.title; rawChanged = true; }
+                                if (edit.summary && edit.summary !== entry.summary) { entry.summary = edit.summary; rawChanged = true; }
+                                if (edit.full_text && edit.full_text !== entry.full_text) { entry.full_text = edit.full_text; rawChanged = true; }
+                                if (edit.edit_history && JSON.stringify(edit.edit_history) !== JSON.stringify(entry.edit_history)) {
+                                    entry.edit_history = edit.edit_history;
+                                    rawChanged = true;
+                                }
+                            }
+                        });
+                        
+                        if (rawChanged) {
+                            fs.writeFileSync(dbPath, JSON.stringify(rawData, null, 2), 'utf-8');
+                            global.rawEpisodesCache = rawData;
+                            diskChanged = true;
+                            
+                            // Rebuild metadata.json and splits inside episodes/ chapter files
+                            try {
+                                const exportModulePath = path.join(__dirname, 'export.js');
+                                const { execSync } = require('child_process');
+                                execSync(`node "${exportModulePath}"`, { cwd: path.join(__dirname, '..') });
+                                console.log("Database compiled successfully after local edits sync.");
+                            } catch (compileErr) {
+                                console.error("Recompiling database failed:", compileErr.message);
+                            }
+                        }
+                    }
+                }
+                
+                res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+                res.end(JSON.stringify({ success: true, synced: diskChanged }));
+            } catch (err) {
+                console.error('Sync local edits failed:', err.message);
+                res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
+                res.end(JSON.stringify({ success: false, error: err.message }));
+            }
+        });
+        return;
+    }
+
     if (req.url.startsWith('/api/search')) {
         const urlParams = new URL(req.url, `http://localhost:${PORT}`);
         const query = urlParams.searchParams.get('q') || '';
