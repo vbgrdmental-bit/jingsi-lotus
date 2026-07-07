@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="app.css?v=3.7">
+    <link rel="stylesheet" href="app.css?v=3.8">
 </head>
 <body class="dark-mode">
     <div class="app-container">
@@ -16,21 +16,31 @@
         <header class="app-header">
             <div class="header-main">
                 <h1>靜思法髓妙蓮華 <span class="subtitle">靜思法脈勤行道，慈濟宗門人間路</span></h1>
-                <div class="theme-toggle-container">
-                    <button id="themeToggleBtn" aria-label="切換主題">
-                        <!-- Sun Icon (default dark mode, show sun to switch to sepia) -->
-                        <svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <circle cx="12" cy="12" r="5"></circle>
-                            <line x1="12" y1="1" x2="12" y2="3"></line>
-                            <line x1="12" y1="21" x2="12" y2="23"></line>
-                            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                            <line x1="1" y1="12" x2="3" y2="12"></line>
-                            <line x1="21" y1="12" x2="23" y2="12"></line>
-                            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                <div class="settings-container" style="position: relative;">
+                    <button id="settingsToggleBtn" aria-label="設定" class="settings-toggle-btn" style="background: none; border: none; color: var(--text-color); cursor: pointer; padding: 8px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: background-color 0.2s;">
+                        <!-- Gear Icon -->
+                        <svg class="gear-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 20px; height: 20px;">
+                            <circle cx="12" cy="12" r="3"></circle>
+                            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
                         </svg>
                     </button>
+                    <!-- Settings Dropdown -->
+                    <div id="settingsDropdown" class="settings-dropdown hidden">
+                        <div class="settings-item">
+                            <span class="settings-item-label">日夜主題模式</span>
+                            <button id="themeToggleBtn" class="theme-toggle-option-btn">切換明/暗</button>
+                        </div>
+                        <div class="settings-item">
+                            <div class="preload-toggle-container">
+                                <label class="switch">
+                                    <input type="checkbox" id="preloadToggle">
+                                    <span class="slider round"></span>
+                                </label>
+                                <span id="preloadLabel" class="toggle-label">預載全文資料庫</span>
+                            </div>
+                            <button id="preloadInfoBtn" class="preload-info-btn" aria-label="說明">i</button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </header>
@@ -51,17 +61,6 @@
                             <line x1="6" y1="6" x2="18" y2="18"></line>
                         </svg>
                     </button>
-                </div>
-                <!-- Preload Database Control Row -->
-                <div class="preload-control-row">
-                    <div class="preload-toggle-container">
-                        <label class="switch">
-                            <input type="checkbox" id="preloadToggle">
-                            <span class="slider round"></span>
-                        </label>
-                        <span id="preloadLabel" class="toggle-label">預載全文資料庫 (離線高速模式)</span>
-                    </div>
-                    <button id="preloadInfoBtn" class="preload-info-btn" aria-label="說明">i</button>
                 </div>
             </div>
 
@@ -320,47 +319,44 @@
     </div>
 
     <!-- Preload Info Modal -->
-    <div id="preloadInfoModal" class="modal hidden">
-        <div class="modal-content" style="max-width: 500px;">
-            <div class="modal-header">
-                <h3>預載全文資料庫 (離線高速模式)</h3>
-                <button id="closePreloadInfoBtn" class="close-modal-btn">&times;</button>
+    <div id="preloadInfoModal" class="modal-overlay hidden" style="background-color: rgba(0, 0, 0, 0.5); backdrop-filter: blur(8px);">
+        <div class="modal-card glass-modal-card" style="max-width: 380px; padding: 20px; box-sizing: border-box; background-color: var(--card-bg); opacity: 0.95; border: 1px solid var(--border-color);">
+            <div class="modal-header" style="padding-bottom: 12px; margin-bottom: 12px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between;">
+                <h3 style="font-size: 1.05rem;">預載全文資料庫 (離線高速模式)</h3>
+                <button id="closePreloadInfoBtn" class="close-modal-btn" style="font-size: 1.4rem;">&times;</button>
             </div>
-            <div class="modal-body" style="line-height: 1.6; font-size: 0.92rem; color: var(--text-color);">
-                <p style="margin-bottom: 12px; font-weight: 500;">這是什麼功能？</p>
-                <p style="margin-bottom: 16px; color: var(--text-secondary);">
-                    預設情況下，系統採用「雲端智慧模式」，僅在您點選某一集時才下載該集的文字，以節省您的流量。
-                    開啟此功能後，系統會一次性將全站所有 1,885 集的大綱、逐字稿與資料全部預載到瀏覽器中。
+            <div class="modal-body" style="line-height: 1.5; font-size: 0.8rem; color: var(--text-color);">
+                <p style="margin-bottom: 12px; color: var(--text-secondary);">
+                    預設為「雲端智慧模式」（僅在點選時加載單集）。開啟後，系統會一次性預載全站 1,885 集的所有文字。
                 </p>
                 
-                <div style="background-color: rgba(76, 175, 80, 0.1); border-left: 4px solid #4CAF50; padding: 10px 12px; margin-bottom: 16px; border-radius: 0 8px 8px 0;">
-                    <strong style="color: #4CAF50; display: block; margin-bottom: 4px;">👍 優點：</strong>
-                    <ul style="margin: 0; padding-left: 20px; list-style-type: disc;">
-                        <li><strong>極致流暢</strong>：所有集數的開示大綱、全文逐字稿皆能 <strong>0秒秒開</strong>，點擊無任何載入延遲。</li>
-                        <li><strong>離線搜尋</strong>：即使在完全沒有網路、訊號微弱的環境中，也能進行全文檢索。</li>
+                <div style="background-color: rgba(76, 175, 80, 0.08); border-left: 3px solid #4CAF50; padding: 8px 10px; margin-bottom: 12px; border-radius: 0 6px 6px 0;">
+                    <strong style="color: #4CAF50; display: block; margin-bottom: 3px; font-size: 0.82rem;">👍 優點：</strong>
+                    <ul style="margin: 0; padding-left: 16px; list-style-type: disc; color: var(--text-color);">
+                        <li>經文與大綱 <strong>0 秒秒開</strong>，絕無讀取延遲。</li>
+                        <li>支援完全<strong>離線全文檢索</strong>。</li>
                     </ul>
                 </div>
                 
-                <div style="background-color: rgba(244, 67, 54, 0.1); border-left: 4px solid #F44336; padding: 10px 12px; margin-bottom: 16px; border-radius: 0 8px 8px 0;">
-                    <strong style="color: #F44336; display: block; margin-bottom: 4px;">⚠️ 缺點 / 注意事項：</strong>
-                    <ul style="margin: 0; padding-left: 20px; list-style-type: disc;">
-                        <li><strong>首次下載耗流量</strong>：開啟後會立即下載約 <strong>33.6 MB</strong> 的資料庫。若您未使用手機上網吃到飽，請留意流量消耗。</li>
-                        <li><strong>首次開啟需等待</strong>：依您的網速，首次開啟約需等待 10~30 秒進行下載。</li>
-                        <li><strong>暫存記憶體佔用</strong>：需要約 33MB 的瀏覽器暫存空間，對極少數極低階的手機性能可能微有影響。</li>
+                <div style="background-color: rgba(244, 67, 54, 0.08); border-left: 3px solid #F44336; padding: 8px 10px; margin-bottom: 12px; border-radius: 0 6px 6px 0;">
+                    <strong style="color: #F44336; display: block; margin-bottom: 3px; font-size: 0.82rem;">⚠️ 缺點與注意：</strong>
+                    <ul style="margin: 0; padding-left: 16px; list-style-type: disc; color: var(--text-color);">
+                        <li>首次下載需消耗約 <strong>33.6 MB</strong> 流量。</li>
+                        <li>依網速需等待約 10~30 秒進行下載。</li>
                     </ul>
                 </div>
                 
-                <p style="font-size: 0.85rem; color: var(--text-hint); text-align: center; margin-top: 12px;">
-                    💡 建議：如果您常在 Wi-Fi 環境使用，或使用行動數據吃到飽，強烈建議開啟！
+                <p style="font-size: 0.78rem; color: var(--text-hint); text-align: center; margin-top: 8px;">
+                    💡 建議：使用 Wi-Fi 或上網吃到飽者強烈建議開啟！
                 </p>
             </div>
-            <div class="modal-footer">
-                <button id="understandPreloadBtn" class="btn btn-primary" style="width: 100%;">我知道了</button>
+            <div class="modal-footer" style="padding-top: 10px; margin-top: 12px;">
+                <button id="understandPreloadBtn" class="btn btn-primary" style="width: 100%; padding: 8px; font-size: 0.82rem; border-radius: 6px;">我知道了</button>
             </div>
         </div>
     </div>
 
     <!-- App Logic Scripts -->
-    <script src="app.js?v=3.7"></script>
+    <script src="app.js?v=3.8"></script>
 </body>
 </html>

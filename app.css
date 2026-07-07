@@ -1964,41 +1964,101 @@ mark.search-highlight {
     box-shadow: 0 0 2px rgba(255, 208, 0, 0.4) !important;
 }
 
-/* Preload Control Row Styles */
-.preload-control-row {
+/* Settings Toggle Button and Dropdown */
+.settings-toggle-btn:hover {
+    background-color: var(--border-color);
+}
+.settings-dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 8px;
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+    z-index: 1000;
+    min-width: 260px;
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    box-sizing: border-box;
+    animation: dropdownFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes dropdownFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+.settings-dropdown.hidden {
+    display: none !important;
+}
+.settings-item {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-top: 10px;
-    padding: 0 4px;
+    gap: 14px;
+    padding: 4px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
+.settings-item:last-child {
+    border-bottom: none;
+}
+.settings-item-label {
+    font-size: 0.8rem;
+    color: var(--text-color);
+    font-weight: 500;
+}
+.theme-toggle-option-btn {
+    background-color: var(--bg-color);
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+    font-size: 0.76rem;
+    padding: 5px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: 500;
+}
+.theme-toggle-option-btn:hover {
+    background-color: var(--border-color);
+    border-color: var(--accent-color);
+    color: var(--accent-color);
+}
+
+/* Preload Switch & Info Layout in Dropdown */
 .preload-toggle-container {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
 }
 .toggle-label {
-    font-size: 0.82rem;
+    font-size: 0.78rem;
     color: var(--text-secondary);
     font-weight: 500;
+    white-space: nowrap;
+    transition: color 0.2s;
 }
 
-/* The switch - the box around the slider */
+/* Compact Switch Style */
 .switch {
   position: relative;
   display: inline-block;
-  width: 38px;
-  height: 22px;
+  width: 32px;
+  height: 18px;
+  flex-shrink: 0;
 }
-
-/* Hide default HTML checkbox */
 .switch input {
   opacity: 0;
   width: 0;
   height: 0;
 }
-
-/* The slider */
 .slider {
   position: absolute;
   cursor: pointer;
@@ -2007,55 +2067,50 @@ mark.search-highlight {
   right: 0;
   bottom: 0;
   background-color: var(--border-color);
-  transition: .3s;
+  transition: .25s;
 }
-
 .slider:before {
   position: absolute;
   content: "";
-  height: 16px;
-  width: 16px;
+  height: 12px;
+  width: 12px;
   left: 3px;
   bottom: 3px;
   background-color: white;
-  transition: .3s;
+  transition: .25s;
 }
-
 input:checked + .slider {
   background-color: var(--accent-color);
 }
-
 input:checked + .slider:before {
-  transform: translateX(16px);
+  transform: translateX(14px);
 }
-
-/* Rounded sliders */
 .slider.round {
-  border-radius: 22px;
+  border-radius: 18px;
 }
-
 .slider.round:before {
   border-radius: 50%;
 }
 
-/* Info Button */
+/* Compact Info Button */
 .preload-info-btn {
     background: none;
     border: 1px solid var(--text-hint);
     color: var(--text-hint);
-    width: 20px;
-    height: 20px;
+    width: 16px;
+    height: 16px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.78rem;
+    font-size: 0.7rem;
     font-weight: bold;
     cursor: pointer;
     transition: all 0.2s;
-    font-family: serif; /* Stylized i */
+    font-family: serif;
     padding: 0;
     line-height: 1;
+    flex-shrink: 0;
 }
 .preload-info-btn:hover {
     color: var(--accent-color);

@@ -70,6 +70,8 @@ const elements = {
     preloadInfoModal: document.getElementById('preloadInfoModal'),
     closePreloadInfoBtn: document.getElementById('closePreloadInfoBtn'),
     understandPreloadBtn: document.getElementById('understandPreloadBtn'),
+    settingsToggleBtn: document.getElementById('settingsToggleBtn'),
+    settingsDropdown: document.getElementById('settingsDropdown'),
     editModal: document.getElementById('editModal'),
     closeEditModalBtn: document.getElementById('closeEditModalBtn'),
     cancelEditBtn: document.getElementById('cancelEditBtn'),
@@ -158,6 +160,24 @@ function loadSettingsFromStorage() {
     const savedTheme = localStorage.getItem('jingsi_theme');
     if (savedTheme) {
         appState.theme = savedTheme;
+    } else {
+        // Auto-detect: first check system preference
+        const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const prefersLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
+        
+        if (prefersDark) {
+            appState.theme = 'dark-mode';
+        } else if (prefersLight) {
+            appState.theme = 'sepia-mode';
+        } else {
+            // No system preference found, check local time: 06:00 to 18:00 is light/sepia, else dark
+            const currentHour = new Date().getHours();
+            if (currentHour >= 6 && currentHour < 18) {
+                appState.theme = 'sepia-mode';
+            } else {
+                appState.theme = 'dark-mode';
+            }
+        }
     }
 }
 
@@ -493,9 +513,29 @@ function initEventListeners() {
     if (elements.closeEditModalBtn) elements.closeEditModalBtn.addEventListener('click', closeEdit);
     if (elements.cancelEditBtn) elements.cancelEditBtn.addEventListener('click', closeEdit);
 
+    // ----------------- Settings Dropdown Event Bindings -----------------
+    if (elements.settingsToggleBtn && elements.settingsDropdown) {
+        elements.settingsToggleBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            elements.settingsDropdown.classList.toggle('hidden');
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!elements.settingsDropdown.classList.contains('hidden') && 
+                !elements.settingsDropdown.contains(e.target) && 
+                e.target !== elements.settingsToggleBtn && 
+                !elements.settingsToggleBtn.contains(e.target)) {
+                elements.settingsDropdown.classList.add('hidden');
+            }
+        });
+    }
+
     // ----------------- Preload Info Modal Event Bindings -----------------
     const showPreloadInfoModal = () => {
         if (elements.preloadInfoModal) elements.preloadInfoModal.classList.remove('hidden');
+        // Auto hide settings dropdown when showing modal
+        if (elements.settingsDropdown) elements.settingsDropdown.classList.add('hidden');
     };
     const closePreloadInfoModal = () => {
         if (elements.preloadInfoModal) elements.preloadInfoModal.classList.add('hidden');
@@ -3258,34 +3298,87 @@ function startPreloadingDatabase() {
     
     // If it's already cached in memory, just update the label and skip fetch
     if (appState.rawEpisodesCache) {
-        elements.preloadLabel.textContent = "✅ 已開啟全文預載 (離線高速模式)";
+        elements.preloadLabel.textContent = "✅ 已預載全文 (離線高速模式)";
         elements.preloadLabel.style.color = "var(--accent-color)";
         return;
     }
     
-    elements.preloadLabel.textContent = "⏳ 正在載入全文資料庫 (33.6MB)...";
+    elements.preloadLabel.textContent = "⏳ 下載中 (0%)...";
     elements.preloadLabel.style.color = "var(--text-hint)";
     
     fetch('./data/raw_episodes.json')
-        .then(res => {
-            if (!res.ok) throw new Error("Failed to fetch raw_episodes.json");
-            return res.json();
+        .then(response => {
+            if (!response.ok) throw new Error("Network response was not ok");
+            
+            // Get content length
+            const contentLength = response.headers.get('content-length');
+            const totalBytes = contentLength ? parseInt(contentLength, 10) : 0;
+            
+            if (!response.body) {
+                // Fallback if ReadableStream is not supported
+                return response.json();
+            }
+            
+            const reader = response.body.getReader();
+            let loadedBytes = 0;
+            const chunks = [];
+            
+            return new ReadableStream({
+                start(controller) {
+                    function read() {
+                        reader.read().then(({ done, value }) => {
+                            if (done) {
+                                controller.close();
+                                return;
+                            }
+                            
+                            loadedBytes += value.byteLength;
+                            chunks.push(value);
+                            
+                            // Calculate percentage progress
+                            if (totalBytes > 0) {
+                                const percent = Math.round((loadedBytes / totalBytes) * 100);
+                                // Update UI label
+                                elements.preloadLabel.textContent = `⏳ 下載中 (${percent}%)...`;
+                            } else {
+                                // If Content-Length header is missing, show loaded MB progress
+                                const loadedMB = (loadedBytes / (1024 * 1024)).toFixed(1);
+                                elements.preloadLabel.textContent = `⏳ 下載中 (${loadedMB}MB)...`;
+                            }
+                            
+                            controller.enqueue(value);
+                            read();
+                        }).catch(error => {
+                            controller.error(error);
+                        });
+                    }
+                    read();
+                }
+            });
+        })
+        .then(stream => {
+            // If stream is a ReadableStream, we must convert it back to JSON
+            if (stream instanceof ReadableStream) {
+                return new Response(stream).json();
+            }
+            // Fallback case where stream is already the parsed JSON
+            return stream;
         })
         .then(data => {
             appState.rawEpisodesCache = data;
             
-            // If the toggle checkbox was unchecked during the download, abort keeping it active
+            // If the toggle checkbox was unchecked during download, abort keeping it active
             if (elements.preloadToggle && !elements.preloadToggle.checked) {
                 appState.rawEpisodesCache = null;
-                elements.preloadLabel.textContent = "預載全文資料庫 (離線高速模式)";
+                elements.preloadLabel.textContent = "預載全文資料庫";
                 elements.preloadLabel.style.color = "var(--text-secondary)";
                 return;
             }
             
-            elements.preloadLabel.textContent = "✅ 已開啟全文預載 (離線高速模式)";
+            elements.preloadLabel.textContent = "✅ 已預載全文 (離線高速模式)";
             elements.preloadLabel.style.color = "var(--accent-color)";
             
-            // If the user has a search input typed, refresh the search immediately using the newly loaded cache
+            // If search is active, trigger search immediately using local cache
             if (elements.searchInput && elements.searchInput.value.trim().length > 0) {
                 triggerSearchSubmit();
             }
@@ -3305,7 +3398,7 @@ function startPreloadingDatabase() {
 function stopPreloadingDatabase() {
     appState.rawEpisodesCache = null;
     if (elements.preloadLabel) {
-        elements.preloadLabel.textContent = "預載全文資料庫 (離線高速模式)";
+        elements.preloadLabel.textContent = "預載全文資料庫";
         elements.preloadLabel.style.color = "var(--text-secondary)";
     }
 }
