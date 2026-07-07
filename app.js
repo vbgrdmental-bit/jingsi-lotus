@@ -8,6 +8,7 @@ let appState = {
     episodesIndex: [],
     rawEpisodesCache: null,
     chapterEpisodesCache: {}, // Maps chapterId -> full episode lists
+    episodeDetailsCache: {},  // Maps episodeId -> full episode object
     progress: {
         completed: {}, // Map of episodeId -> true
         lastRead: null, // Last read episodeId
@@ -814,6 +815,21 @@ function mergeLocalEdits(chapterId) {
             ep.edit_history = edit.edit_history || ep.edit_history;
         }
     });
+}
+
+function mergeLocalEditsForEpisode(episodeId, ep) {
+    if (!ep) return;
+    const localEdits = JSON.parse(localStorage.getItem('jingsi_local_edits') || '{}');
+    const edit = localEdits[episodeId];
+    if (edit) {
+        ep.title = edit.title || ep.title;
+        ep.summary = edit.summary;
+        ep.full_text = edit.full_text;
+        ep.is_edited = true;
+        ep.edited_by = edit.author;
+        ep.edited_date = edit.date;
+        ep.edit_history = edit.edit_history || ep.edit_history;
+    }
 }
 
 function mergeLocalPrereadEdits() {
@@ -1693,12 +1709,6 @@ window.openEpisodeDetail = function(episodeId, isResume = false) {
 
     const chapterId = epHeader.chapter_id;
     
-    // Function to render detail panel immediately using local static JSON data
-    const showStaticDetail = () => {
-        mergeLocalEdits(chapterId);
-        showDetailPanel(episodeId, isResume);
-    };
-
     // Function to fetch latest from Google Sheets in the background
     const fetchLatestFromSheets = () => {
         if (typeof GOOGLE_SCRIPT_URL !== 'undefined' && GOOGLE_SCRIPT_URL !== "") {
@@ -1706,7 +1716,7 @@ window.openEpisodeDetail = function(episodeId, isResume = false) {
                 .then(res => res.json())
                 .then(res => {
                     if (res.success && res.data) {
-                        const epInCache = appState.chapterEpisodesCache[chapterId].find(e => e.episode_id === episodeId);
+                        const epInCache = appState.episodeDetailsCache[episodeId];
                         if (epInCache) {
                             // Check if anything actually changed
                             const changed = epInCache.title !== res.data.title ||
@@ -1783,13 +1793,13 @@ window.openEpisodeDetail = function(episodeId, isResume = false) {
     // Open detail panel overlay instantly using cached lightweight epHeader metadata!
     showDetailPanel(episodeId, isResume);
 
-    // If chapter cache isn't ready, load it in the background
-    if (!appState.chapterEpisodesCache[chapterId]) {
-        fetch(`./data/episodes/chapter_${chapterId}.json?v=` + APP_VERSION)
+    // If cache isn't ready, load it in the background
+    if (!appState.episodeDetailsCache[episodeId]) {
+        fetch(`./data/episodes/episode_${episodeId}.json?v=` + APP_VERSION)
             .then(res => res.json())
             .then(data => {
-                appState.chapterEpisodesCache[chapterId] = data;
-                mergeLocalEdits(chapterId);
+                appState.episodeDetailsCache[episodeId] = data;
+                mergeLocalEditsForEpisode(episodeId, data);
                 
                 // If the user is STILL viewing this episode, populate the texts!
                 if (appState.activeEpisode && appState.activeEpisode.episode_id === episodeId) {
@@ -1800,7 +1810,7 @@ window.openEpisodeDetail = function(episodeId, isResume = false) {
                 fetchLatestFromSheets();
             })
             .catch(err => {
-                console.error(`Error loading chapter JSON:`, err);
+                console.error(`Error loading episode JSON:`, err);
                 if (appState.activeEpisode && appState.activeEpisode.episode_id === episodeId) {
                     const errorHTML = `<p style="padding: 20px; color: red; text-align: center;">載入失敗，請確認網路連線或檔案存在。</p>`;
                     elements.sutraSummary.innerHTML = errorHTML;
@@ -1883,8 +1893,7 @@ function showDetailPanel(episodeId, isResume) {
     const epHeader = appState.episodesIndex.find(ep => ep.episode_id === episodeId);
     if (!epHeader) return;
     const chapterId = epHeader.chapter_id;
-    const chapterData = appState.chapterEpisodesCache[chapterId];
-    const episode = chapterData ? chapterData.find(ep => ep.episode_id === episodeId) : null;
+    const episode = appState.episodeDetailsCache[episodeId];
     
     appState.activeEpisode = episode || epHeader;
     
@@ -2937,10 +2946,7 @@ function highlightTextInNode(node, regex) {
 function populateEpisodeTexts(episodeId) {
     const epHeader = appState.episodesIndex.find(ep => ep.episode_id === episodeId);
     if (!epHeader) return;
-    const chapterId = epHeader.chapter_id;
-    const episodes = appState.chapterEpisodesCache[chapterId];
-    if (!episodes) return;
-    const episode = episodes.find(ep => ep.episode_id === episodeId);
+    const episode = appState.episodeDetailsCache[episodeId];
     if (!episode) return;
 
     // Update activeEpisode to the full details

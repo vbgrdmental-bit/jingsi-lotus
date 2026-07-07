@@ -109,6 +109,12 @@ function run() {
         const chFileName = path.join(OUTPUT_DIR, `chapter_${ch.id}.json`);
         fs.writeFileSync(chFileName, JSON.stringify(eps), 'utf-8');
 
+        // Write individual episode JSON files for instant lazy-loading
+        eps.forEach(ep => {
+            const epFileName = path.join(OUTPUT_DIR, `episode_${ep.episode_id}.json`);
+            fs.writeFileSync(epFileName, JSON.stringify(ep), 'utf-8');
+        });
+
         return {
             id: ch.id,
             name: ch.name,
