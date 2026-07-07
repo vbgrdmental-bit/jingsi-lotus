@@ -803,26 +803,64 @@ function renderSearchResults(results, query) {
     const keywords = cleanQuery.split(/[\s　]+/).filter(k => k.length > 0);
 
     results.forEach(res => {
-        // Extract matching snippet
+        // Extract matching snippet containing ALL matching keywords
         const fullContent = ((res.summary || '') + ' ' + (res.full_text || '')).replace(/\s+/g, ' ');
         const lowerContent = fullContent.toLowerCase();
         
-        let matchIdx = -1;
-        for (const kw of keywords) {
+        // Find positions of all matched keywords in the text
+        const keywordPositions = [];
+        keywords.forEach(kw => {
             const idx = lowerContent.indexOf(kw);
-            if (idx !== -1 && (matchIdx === -1 || idx < matchIdx)) {
-                matchIdx = idx;
+            if (idx !== -1) {
+                keywordPositions.push({ kw, idx });
             }
-        }
+        });
         
         let snippet = '';
-        if (matchIdx !== -1) {
-            const start = Math.max(0, matchIdx - 40);
-            const end = Math.min(fullContent.length, matchIdx + 60);
-            snippet = fullContent.substring(start, end);
-            if (start > 0) snippet = '…' + snippet;
-            if (end < fullContent.length) snippet = snippet + '…';
-            snippet = '「' + snippet + '」';
+        if (keywordPositions.length > 0) {
+            // Sort by index ascending
+            keywordPositions.sort((a, b) => a.idx - b.idx);
+            
+            // Build ranges: window size is 12 characters before and after
+            const ranges = keywordPositions.map(pos => {
+                const idx = pos.idx;
+                const len = pos.kw.length;
+                return {
+                    start: Math.max(0, idx - 12),
+                    end: Math.min(fullContent.length, idx + len + 12)
+                };
+            });
+            
+            // Merge overlapping/close ranges (if gap <= 8 characters)
+            const mergedRanges = [];
+            let current = ranges[0];
+            for (let i = 1; i < ranges.length; i++) {
+                let next = ranges[i];
+                if (next.start <= current.end + 8) {
+                    current.end = Math.max(current.end, next.end);
+                } else {
+                    mergedRanges.push(current);
+                    current = next;
+                }
+            }
+            mergedRanges.push(current);
+            
+            // Generate snippet parts
+            let snippetParts = [];
+            mergedRanges.forEach((r, index) => {
+                let part = fullContent.substring(r.start, r.end).trim();
+                if (index === 0 && r.start > 0) {
+                    part = '…' + part;
+                }
+                if (index > 0) {
+                    part = '…' + part;
+                }
+                if (index === mergedRanges.length - 1 && r.end < fullContent.length) {
+                    part = part + '…';
+                }
+                snippetParts.push(part);
+            });
+            snippet = '「' + snippetParts.join('') + '」';
         } else {
             snippet = res.summary ? '「' + res.summary.substring(0, 100) + '…」' : '';
         }
