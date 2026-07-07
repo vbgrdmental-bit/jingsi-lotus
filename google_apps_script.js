@@ -117,17 +117,17 @@ function doPost(e) {
       if (foundRow !== -1) {
         // Update content fields
         if (mode === "title") {
-          sheet.getCell(foundRow, 2).setValue(payload.title);
+          sheet.getRange(foundRow, 2).setValue(payload.title);
         } else if (mode === "summary") {
-          sheet.getCell(foundRow, 3).setValue(payload.summary);
+          sheet.getRange(foundRow, 3).setValue(payload.summary);
           // If notes-only episode, sync full text
           var notesOnly = [16, 17, 19, 20, 23, 29];
           var isEdited = data[foundRow-1][5] === true || data[foundRow-1][5] === "TRUE";
           if (notesOnly.indexOf(episodeId) !== -1 && !isEdited) {
-            sheet.getCell(foundRow, 4).setValue(payload.summary);
+            sheet.getRange(foundRow, 4).setValue(payload.summary);
           }
         } else if (mode === "full_text") {
-          sheet.getCell(foundRow, 4).setValue(payload.full_text);
+          sheet.getRange(foundRow, 4).setValue(payload.full_text);
         }
         
         // Write edit history
@@ -149,7 +149,7 @@ function doPost(e) {
               mode: mode,
               comment: comment
             });
-            sheet.getCell(foundRow, 5).setValue(JSON.stringify(history));
+            sheet.getRange(foundRow, 5).setValue(JSON.stringify(history));
           }
         }
         response = { success: true };
@@ -178,11 +178,11 @@ function doPost(e) {
       
       if (foundRow !== -1) {
         if (mode === "title") {
-          sheet.getCell(foundRow, 2).setValue(payload.title);
+          sheet.getRange(foundRow, 2).setValue(payload.title);
         } else if (mode === "summary") {
-          sheet.getCell(foundRow, 3).setValue(payload.summary);
+          sheet.getRange(foundRow, 3).setValue(payload.summary);
         } else if (mode === "full_text") {
-          sheet.getCell(foundRow, 4).setValue(payload.full_text);
+          sheet.getRange(foundRow, 4).setValue(payload.full_text);
         }
         
         if (mode !== "title") {
@@ -202,7 +202,7 @@ function doPost(e) {
               mode: mode,
               comment: comment
             });
-            sheet.getCell(foundRow, 5).setValue(JSON.stringify(history));
+            sheet.getRange(foundRow, 5).setValue(JSON.stringify(history));
           }
         }
         response = { success: true };
