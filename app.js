@@ -893,15 +893,15 @@ function performSearch(query) {
         });
 }
 
-async function localFallbackSearch(query) {
+async function localFallbackSearch(query, forceFullText = false) {
     const clean = query.toLowerCase();
     const keywords = clean.split(/[\s　]+/).filter(k => k.length > 0);
     const results = [];
     
     if (keywords.length === 0) return results;
 
-    // Load raw_episodes.json if not cached yet for full text search online
-    if (!appState.rawEpisodesCache) {
+    // Load raw_episodes.json if forceFullText is enabled and not cached yet
+    if (forceFullText && !appState.rawEpisodesCache) {
         try {
             const res = await fetch('./data/raw_episodes.json');
             if (res.ok) {
@@ -913,6 +913,7 @@ async function localFallbackSearch(query) {
     }
 
     const dataSource = appState.rawEpisodesCache || appState.episodesIndex;
+    const isFullText = !!appState.rawEpisodesCache;
 
     for (const ep of dataSource) {
         const epIdStr = String(ep.episode_id);
@@ -924,8 +925,7 @@ async function localFallbackSearch(query) {
         for (const kw of keywords) {
             if (!(epIdStr === kw || 
                   titleStr.includes(kw) || 
-                  summaryStr.includes(kw) || 
-                  textStr.includes(kw))) {
+                  (isFullText && (summaryStr.includes(kw) || textStr.includes(kw))))) {
                 matchesAll = false;
                 break;
             }
@@ -950,6 +950,9 @@ function renderSearchResults(results, query) {
 
     if (results.length === 0) {
         elements.searchResults.innerHTML = `<div class="search-results-empty">找不到與「${query}」有關的集數</div>`;
+        if (!appState.rawEpisodesCache) {
+            appendFullTextSearchBanner(query);
+        }
         return;
     }
 
@@ -1046,6 +1049,67 @@ function renderSearchResults(results, query) {
         });
         elements.searchResults.appendChild(item);
     });
+
+    if (!appState.rawEpisodesCache) {
+        appendFullTextSearchBanner(query);
+    }
+}
+
+function appendFullTextSearchBanner(query) {
+    const banner = document.createElement('div');
+    banner.className = 'full-text-search-banner';
+    banner.style.margin = '20px auto 10px auto';
+    banner.style.padding = '16px';
+    banner.style.backgroundColor = 'var(--accent-light)';
+    banner.style.borderRadius = '12px';
+    banner.style.textAlign = 'center';
+    banner.style.maxWidth = '560px';
+    banner.style.border = '1px dashed var(--accent-color)';
+    banner.style.color = 'var(--text-color)';
+    banner.style.fontSize = '0.9rem';
+    banner.style.display = 'flex';
+    banner.style.flexDirection = 'column';
+    banner.style.alignItems = 'center';
+    banner.style.gap = '10px';
+
+    banner.innerHTML = `
+        <div style="font-weight: 500;">💡 目前僅搜尋「集數與標題」。找不到想要的內容？</div>
+        <div style="font-size: 0.78rem; color: var(--text-secondary); line-height: 1.4; max-width: 480px;">
+            您可以啟用「全文逐字稿搜尋」，這將會搜尋大綱與逐字稿中的所有文字。<br>
+            ⚠️ 此動作需要下載約 33MB 的資料庫檔案，建議在 Wi-Fi 連線下啟用。
+        </div>
+        <button id="enableFullTextSearchBtn" style="
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            font-weight: 500;
+            transition: opacity 0.2s;
+        ">啟用「全文逐字稿搜尋」</button>
+    `;
+
+    const btn = banner.querySelector('#enableFullTextSearchBtn');
+    btn.addEventListener('click', () => {
+        banner.innerHTML = `
+            <div style="display: flex; align-items: center; justify-content: center; gap: 8px; color: var(--text-color); padding: 4px 0;">
+                <div class="loading-spinner" style="width: 16px; height: 16px; border-width: 2px;"></div>
+                <span>正在載入全文資料庫（33MB），請稍候...</span>
+            </div>
+        `;
+        localFallbackSearch(query, true)
+            .then(newResults => {
+                renderSearchResults(newResults, query);
+            })
+            .catch(err => {
+                console.error("Failed full text search:", err);
+                banner.innerHTML = `<span style="color: red;">載入失敗，請確認網路連線。</span>`;
+            });
+    });
+
+    elements.searchResults.appendChild(banner);
 }
 
 // Set Active Font Size
