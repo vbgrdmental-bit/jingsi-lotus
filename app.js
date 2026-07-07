@@ -1446,7 +1446,14 @@ window.openEpisodeDetail = function(episodeId, isResume = false) {
 
     const chapterId = epHeader.chapter_id;
     
-    const proceedToShow = () => {
+    // Function to render detail panel immediately using local static JSON data
+    const showStaticDetail = () => {
+        mergeLocalEdits(chapterId);
+        showDetailPanel(episodeId, isResume);
+    };
+
+    // Function to fetch latest from Google Sheets in the background
+    const fetchLatestFromSheets = () => {
         if (typeof GOOGLE_SCRIPT_URL !== 'undefined' && GOOGLE_SCRIPT_URL !== "") {
             fetch(`${GOOGLE_SCRIPT_URL}?action=getEpisode&id=${episodeId}`)
                 .then(res => res.json())
@@ -1454,21 +1461,75 @@ window.openEpisodeDetail = function(episodeId, isResume = false) {
                     if (res.success && res.data) {
                         const epInCache = appState.chapterEpisodesCache[chapterId].find(e => e.episode_id === episodeId);
                         if (epInCache) {
-                            epInCache.title = res.data.title;
-                            epInCache.summary = res.data.summary;
-                            epInCache.full_text = res.data.full_text;
-                            epInCache.edit_history = res.data.edit_history;
-                            epInCache.is_edited = res.data.edit_history && res.data.edit_history.length > 0;
+                            // Check if anything actually changed
+                            const changed = epInCache.title !== res.data.title ||
+                                            epInCache.summary !== res.data.summary ||
+                                            epInCache.full_text !== res.data.full_text ||
+                                            JSON.stringify(epInCache.edit_history) !== JSON.stringify(res.data.edit_history);
+                                            
+                            if (changed) {
+                                epInCache.title = res.data.title;
+                                epInCache.summary = res.data.summary;
+                                epInCache.full_text = res.data.full_text;
+                                epInCache.edit_history = res.data.edit_history;
+                                epInCache.is_edited = res.data.edit_history && res.data.edit_history.length > 0;
+                                
+                                // If the panel is STILL showing this episode, refresh the panel content!
+                                if (appState.activeEpisode && appState.activeEpisode.episode_id === episodeId && !appState.activeEpisode._isPreRead) {
+                                    // Refresh title
+                                    if (elements.panelEpisodeTitle) elements.panelEpisodeTitle.textContent = res.data.title;
+                                    
+                                    // Re-render summary tab content
+                                    elements.sutraSummary.innerHTML = '';
+                                    if (res.data.summary && res.data.summary.trim()) {
+                                        res.data.summary.split('\n').forEach(line => {
+                                            if (!line.trim()) return;
+                                            const div = document.createElement('div');
+                                            div.className = 'outline-item';
+                                            div.innerHTML = `<p class="outline-text">${line.trim()}</p>`;
+                                            elements.sutraSummary.appendChild(div);
+                                        });
+                                    }
+                                    let summaryHistory = [];
+                                    if (res.data.edit_history && res.data.edit_history.length > 0) {
+                                        res.data.edit_history.forEach(item => {
+                                            if (item.mode === 'summary') {
+                                                summaryHistory.push(item.comment ? `※ ${item.date} ${item.author} ${item.comment}` : `※ ${item.date} 由 ${item.author} 修改`);
+                                            }
+                                        });
+                                    }
+                                    const notesOnlyEpisodes = [16, 17, 19, 20, 23, 29];
+                                    const isNotesOnly = notesOnlyEpisodes.includes(episodeId) && !res.data.edit_history.length;
+                                    const sermonSourceText = isNotesOnly 
+                                        ? `※ 以上內容摘自「奈普敦智慧平台」 & 大愛電視 YouTube（本集僅有導讀問答與心得筆記，無逐字稿）`
+                                        : `※ 以上內容摘自「奈普敦智慧平台」 & 大愛電視 YouTube`;
+                                    appendBottomInfoBar(elements.sutraSummary, sermonSourceText, true, summaryHistory);
+
+                                    // Re-render full text tab content
+                                    elements.sutraFullText.innerHTML = '';
+                                    if (res.data.full_text && res.data.full_text.trim()) {
+                                        res.data.full_text.split('\n').forEach(line => {
+                                            if (!line.trim()) return;
+                                            const p = document.createElement('p');
+                                            p.textContent = line.trim();
+                                            elements.sutraFullText.appendChild(p);
+                                        });
+                                    }
+                                    let fullTextHistory = [];
+                                    if (res.data.edit_history && res.data.edit_history.length > 0) {
+                                        res.data.edit_history.forEach(item => {
+                                            if (item.mode === 'full_text') {
+                                                fullTextHistory.push(item.comment ? `※ ${item.date} ${item.author} ${item.comment}` : `※ ${item.date} 由 ${item.author} 修改`);
+                                            }
+                                        });
+                                    }
+                                    appendBottomInfoBar(elements.sutraFullText, sermonSourceText, false, fullTextHistory);
+                                }
+                            }
                         }
                     }
-                    showDetailPanel(episodeId, isResume);
                 })
-                .catch(() => {
-                    showDetailPanel(episodeId, isResume);
-                });
-        } else {
-            mergeLocalEdits(chapterId);
-            showDetailPanel(episodeId, isResume);
+                .catch(err => console.warn('Background Sheets fetch failed:', err));
         }
     };
 
@@ -1478,10 +1539,12 @@ window.openEpisodeDetail = function(episodeId, isResume = false) {
             .then(res => res.json())
             .then(data => {
                 appState.chapterEpisodesCache[chapterId] = data;
-                proceedToShow();
+                showStaticDetail();
+                fetchLatestFromSheets();
             });
     } else {
-        proceedToShow();
+        showStaticDetail();
+        fetchLatestFromSheets();
     }
 };
 
@@ -2471,22 +2534,85 @@ window.openPreReadDetail = function(idx) {
         elements.panelBody.scrollTop = 0;
     };
 
+    // Render instantly using cached memory
+    proceedToRender();
+
+    // Fetch latest in the background
     if (typeof GOOGLE_SCRIPT_URL !== 'undefined' && GOOGLE_SCRIPT_URL !== "") {
         fetch(`${GOOGLE_SCRIPT_URL}?action=getPreRead&id=${idx}`)
             .then(res => res.json())
             .then(res => {
                 if (res.success && res.data) {
-                    entry.title = res.data.title;
-                    entry.summary = res.data.summary;
-                    entry.full_text = res.data.full_text;
-                    entry.edit_history = res.data.edit_history;
+                    const changed = entry.title !== res.data.title ||
+                                    entry.summary !== res.data.summary ||
+                                    entry.full_text !== res.data.full_text ||
+                                    JSON.stringify(entry.edit_history) !== JSON.stringify(res.data.edit_history);
+                    if (changed) {
+                        entry.title = res.data.title;
+                        entry.summary = res.data.summary;
+                        entry.full_text = res.data.full_text;
+                        entry.edit_history = res.data.edit_history;
+
+                        // If the panel is STILL showing this pre-read item, refresh it!
+                        if (appState.activeEpisode && appState.activeEpisode._isPreRead && appState.activeEpisode._preReadIdx === idx) {
+                            if (elements.panelEpisodeTitle) elements.panelEpisodeTitle.textContent = res.data.title;
+                            
+                            // Re-render summary
+                            elements.sutraSummary.innerHTML = '';
+                            if (res.data.summary && res.data.summary.trim()) {
+                                res.data.summary.split('\n').forEach(line => {
+                                    if (!line.trim()) return;
+                                    const div = document.createElement('div');
+                                    div.className = 'outline-item';
+                                    div.innerHTML = `<p class="outline-text">${line.trim()}</p>`;
+                                    elements.sutraSummary.appendChild(div);
+                                });
+                            } else {
+                                elements.sutraSummary.innerHTML += `
+                                    <div class="outline-item" style="display:block; text-align:center; padding: 24px 16px 8px;">
+                                        <p class="outline-text" style="font-size:1.1rem; font-weight:bold; color:var(--accent-color); margin-bottom:12px;">${res.data.title}</p>
+                                        <p class="outline-text" style="color:var(--text-secondary); font-size:0.9rem;">本影片為大愛台製作之「品前導讀」，<br>帶領您在正式聆聽上人開示前先掌握本品要旨。<br><br>（可由管理員在此輸入大綱）</p>
+                                    </div>`;
+                            }
+                            let summaryHistory = [];
+                            if (res.data.edit_history && res.data.edit_history.length > 0) {
+                                res.data.edit_history.forEach(item => {
+                                    if (item.mode === 'summary') {
+                                        summaryHistory.push(item.comment ? `※ ${item.date} ${item.author} ${item.comment}` : `※ ${item.date} 由 ${item.author} 修改`);
+                                    }
+                                });
+                            }
+                            appendBottomInfoBar(elements.sutraSummary, `※ 以上內容精選自「大愛台YouTube」`, true, summaryHistory);
+
+                            // Re-render full text
+                            elements.sutraFullText.innerHTML = '';
+                            if (res.data.full_text && res.data.full_text.trim()) {
+                                res.data.full_text.split('\n').forEach(line => {
+                                    if (!line.trim()) return;
+                                    const p = document.createElement('p');
+                                    p.textContent = line.trim();
+                                    elements.sutraFullText.appendChild(p);
+                                });
+                            } else {
+                                elements.sutraFullText.innerHTML = `
+                                    <div style="text-align:center; padding: 24px 16px 8px;">
+                                        <p style="font-size:1.1rem; font-weight:bold; color:var(--accent-color); margin-bottom:12px;">${res.data.title}</p>
+                                        <p style="color:var(--text-hint); font-size:0.9rem;">尚無逐字稿，可由管理員新增。</p>
+                                    </div>`;
+                            }
+                            let fullTextHistory = [];
+                            if (res.data.edit_history && res.data.edit_history.length > 0) {
+                                res.data.edit_history.forEach(item => {
+                                    if (item.mode === 'full_text') {
+                                        fullTextHistory.push(item.comment ? `※ ${item.date} ${item.author} ${item.comment}` : `※ ${item.date} 由 ${item.author} 修改`);
+                                    }
+                                });
+                            }
+                            appendBottomInfoBar(elements.sutraFullText, `※ 以上內容精選自「大愛台YouTube」`, false, fullTextHistory);
+                        }
+                    }
                 }
-                proceedToRender();
             })
-            .catch(() => {
-                proceedToRender();
-            });
-    } else {
-        proceedToRender();
+            .catch(err => console.warn('Background Sheets fetch failed:', err));
     }
 };
