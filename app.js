@@ -1,5 +1,5 @@
 // Google Sheets Web App URL (leave empty "" to run in offline local JSON mode)
-const GOOGLE_SCRIPT_URL = "";
+const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzBixT1lzyqQY5JqsjOfXeHwd3FD0msKQnpCwBrfpA-YfpFHuboBFABLeUXzr1KJx1-2Q/exec";
 
 // Global State Management
 let appState = {
