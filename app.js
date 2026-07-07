@@ -32,7 +32,8 @@ function isLocalEnvironment() {
 
 // DOM Elements
 const elements = {
-    themeToggleBtn: document.getElementById('themeToggleBtn'),
+    themeToggle: document.getElementById('themeToggle'),
+    themeLabel: document.getElementById('themeLabel'),
     globalPercent: document.getElementById('globalPercent'),
     globalProgressBar: document.getElementById('globalProgressBar'),
     globalStats: document.getElementById('globalStats'),
@@ -72,6 +73,10 @@ const elements = {
     understandPreloadBtn: document.getElementById('understandPreloadBtn'),
     settingsToggleBtn: document.getElementById('settingsToggleBtn'),
     settingsDropdown: document.getElementById('settingsDropdown'),
+    aboutWebsiteBtn: document.getElementById('aboutWebsiteBtn'),
+    aboutWebsiteModal: document.getElementById('aboutWebsiteModal'),
+    closeAboutBtn: document.getElementById('closeAboutBtn'),
+    understandAboutBtn: document.getElementById('understandAboutBtn'),
     editModal: document.getElementById('editModal'),
     closeEditModalBtn: document.getElementById('closeEditModalBtn'),
     cancelEditBtn: document.getElementById('cancelEditBtn'),
@@ -192,15 +197,17 @@ function initTheme() {
     if (appState.theme === 'sepia-mode') {
         document.body.classList.remove('dark-mode');
         document.body.classList.add('sepia-mode');
+        if (elements.themeToggle) elements.themeToggle.checked = true;
     } else {
         document.body.classList.remove('sepia-mode');
         document.body.classList.add('dark-mode');
+        if (elements.themeToggle) elements.themeToggle.checked = false;
     }
 }
 
-// Toggle Theme (Dark / Sepia)
-function toggleTheme() {
-    if (document.body.classList.contains('dark-mode')) {
+// Set Theme Mode (Light/Sepia = true, Dark = false)
+function setThemeMode(isLight) {
+    if (isLight) {
         document.body.classList.remove('dark-mode');
         document.body.classList.add('sepia-mode');
         appState.theme = 'sepia-mode';
@@ -214,7 +221,11 @@ function toggleTheme() {
 
 // Bind UI Listeners
 function initEventListeners() {
-    elements.themeToggleBtn.addEventListener('click', toggleTheme);
+    if (elements.themeToggle) {
+        elements.themeToggle.addEventListener('change', (e) => {
+            setThemeMode(e.target.checked);
+        });
+    }
     elements.closePanelBtn.addEventListener('click', closeEpisodeDetail);
     elements.panelCompleteBtn.addEventListener('click', toggleActiveEpisodeCompleted);
     
@@ -543,6 +554,18 @@ function initEventListeners() {
     if (elements.preloadInfoBtn) elements.preloadInfoBtn.addEventListener('click', showPreloadInfoModal);
     if (elements.closePreloadInfoBtn) elements.closePreloadInfoBtn.addEventListener('click', closePreloadInfoModal);
     if (elements.understandPreloadBtn) elements.understandPreloadBtn.addEventListener('click', closePreloadInfoModal);
+
+    // ----------------- About Website Modal Event Bindings -----------------
+    const showAboutModal = () => {
+        if (elements.aboutWebsiteModal) elements.aboutWebsiteModal.classList.remove('hidden');
+        if (elements.settingsDropdown) elements.settingsDropdown.classList.add('hidden');
+    };
+    const closeAboutModal = () => {
+        if (elements.aboutWebsiteModal) elements.aboutWebsiteModal.classList.add('hidden');
+    };
+    if (elements.aboutWebsiteBtn) elements.aboutWebsiteBtn.addEventListener('click', showAboutModal);
+    if (elements.closeAboutBtn) elements.closeAboutBtn.addEventListener('click', closeAboutModal);
+    if (elements.understandAboutBtn) elements.understandAboutBtn.addEventListener('click', closeAboutModal);
 
     // ----------------- Preload Database Switch Binding -----------------
     if (elements.preloadToggle) {
@@ -3298,7 +3321,7 @@ function startPreloadingDatabase() {
     
     // If it's already cached in memory, just update the label and skip fetch
     if (appState.rawEpisodesCache) {
-        elements.preloadLabel.textContent = "✅ 已預載全文 (離線高速模式)";
+        elements.preloadLabel.textContent = "✅ 全文預載模式";
         elements.preloadLabel.style.color = "var(--accent-color)";
         return;
     }
@@ -3370,12 +3393,12 @@ function startPreloadingDatabase() {
             // If the toggle checkbox was unchecked during download, abort keeping it active
             if (elements.preloadToggle && !elements.preloadToggle.checked) {
                 appState.rawEpisodesCache = null;
-                elements.preloadLabel.textContent = "預載全文資料庫";
+                elements.preloadLabel.textContent = "雲端模式";
                 elements.preloadLabel.style.color = "var(--text-secondary)";
                 return;
             }
             
-            elements.preloadLabel.textContent = "✅ 已預載全文 (離線高速模式)";
+            elements.preloadLabel.textContent = "✅ 全文預載模式";
             elements.preloadLabel.style.color = "var(--accent-color)";
             
             // If search is active, trigger search immediately using local cache
@@ -3398,7 +3421,7 @@ function startPreloadingDatabase() {
 function stopPreloadingDatabase() {
     appState.rawEpisodesCache = null;
     if (elements.preloadLabel) {
-        elements.preloadLabel.textContent = "預載全文資料庫";
+        elements.preloadLabel.textContent = "雲端模式";
         elements.preloadLabel.style.color = "var(--text-secondary)";
     }
 }

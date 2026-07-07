@@ -2117,4 +2117,14 @@ input:checked + .slider:before {
     border-color: var(--accent-color);
     background-color: rgba(141, 110, 99, 0.1);
 }
+.theme-toggle-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.about-website-btn:hover {
+    border-color: var(--accent-color) !important;
+    color: var(--accent-color) !important;
+    background-color: rgba(141, 110, 99, 0.05) !important;
+}
 

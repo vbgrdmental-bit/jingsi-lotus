@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="app.css?v=3.8">
+    <link rel="stylesheet" href="app.css?v=3.9">
 </head>
 <body class="dark-mode">
     <div class="app-container">
@@ -27,8 +27,13 @@
                     <!-- Settings Dropdown -->
                     <div id="settingsDropdown" class="settings-dropdown hidden">
                         <div class="settings-item">
-                            <span class="settings-item-label">日夜主題模式</span>
-                            <button id="themeToggleBtn" class="theme-toggle-option-btn">切換明/暗</button>
+                            <div class="theme-toggle-container">
+                                <label class="switch">
+                                    <input type="checkbox" id="themeToggle">
+                                    <span class="slider round"></span>
+                                </label>
+                                <span id="themeLabel" class="toggle-label">切換明/暗</span>
+                            </div>
                         </div>
                         <div class="settings-item">
                             <div class="preload-toggle-container">
@@ -36,9 +41,15 @@
                                     <input type="checkbox" id="preloadToggle">
                                     <span class="slider round"></span>
                                 </label>
-                                <span id="preloadLabel" class="toggle-label">預載全文資料庫</span>
+                                <span id="preloadLabel" class="toggle-label">雲端模式</span>
                             </div>
                             <button id="preloadInfoBtn" class="preload-info-btn" aria-label="說明">i</button>
+                        </div>
+                        <div class="settings-item settings-action-item" style="border-bottom: none; padding-top: 8px; justify-content: center;">
+                            <button id="aboutWebsiteBtn" class="about-website-btn" style="background: none; border: 1px solid var(--border-color); color: var(--text-secondary); font-size: 0.75rem; padding: 6px 16px; border-radius: 20px; cursor: pointer; transition: all 0.2s; font-weight: 500; width: 100%; text-align: center;">關於本網站</button>
+                        </div>
+                        <div id="settingsVersionInfo" style="font-size: 0.65rem; color: var(--text-hint); text-align: center; margin-top: 4px; font-weight: normal;">
+                            網頁版本 v3.9
                         </div>
                     </div>
                 </div>
@@ -117,7 +128,6 @@
             <div class="footer-verse">
                 <div>南無妙法蓮華經</div>
                 <div style="margin-top: 8px;">南無法華會上佛菩薩</div>
-                <div id="appVersion" style="margin-top: 16px; font-size: 0.6rem; letter-spacing: normal; font-weight: normal; opacity: 0.5;">網頁版本 v2.7</div>
             </div>
         </main>
     </div>
@@ -322,33 +332,33 @@
     <div id="preloadInfoModal" class="modal-overlay hidden" style="background-color: rgba(0, 0, 0, 0.5); backdrop-filter: blur(8px);">
         <div class="modal-card glass-modal-card" style="max-width: 380px; padding: 20px; box-sizing: border-box; background-color: var(--card-bg); opacity: 0.95; border: 1px solid var(--border-color);">
             <div class="modal-header" style="padding-bottom: 12px; margin-bottom: 12px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between;">
-                <h3 style="font-size: 1.05rem;">預載全文資料庫 (離線高速模式)</h3>
+                <h3 style="font-size: 1.05rem;">全文預載模式</h3>
                 <button id="closePreloadInfoBtn" class="close-modal-btn" style="font-size: 1.4rem;">&times;</button>
             </div>
             <div class="modal-body" style="line-height: 1.5; font-size: 0.8rem; color: var(--text-color);">
+                <p style="margin-bottom: 8px; color: var(--text-secondary);">
+                    目前預設為「雲端模式」，在開啟單集、大綱、逐字稿和搜尋關鍵字時會有時間延遲等現象。
+                </p>
                 <p style="margin-bottom: 12px; color: var(--text-secondary);">
-                    預設為「雲端智慧模式」（僅在點選時加載單集）。開啟後，系統會一次性預載全站 1,885 集的所有文字。
+                    開啟「全文預載模式」後，系統會預載站內所有文字檔，能大大改善時間延遲，增加瀏覽效率。
                 </p>
                 
                 <div style="background-color: rgba(76, 175, 80, 0.08); border-left: 3px solid #4CAF50; padding: 8px 10px; margin-bottom: 12px; border-radius: 0 6px 6px 0;">
                     <strong style="color: #4CAF50; display: block; margin-bottom: 3px; font-size: 0.82rem;">👍 優點：</strong>
-                    <ul style="margin: 0; padding-left: 16px; list-style-type: disc; color: var(--text-color);">
-                        <li>經文與大綱 <strong>0 秒秒開</strong>，絕無讀取延遲。</li>
-                        <li>支援完全<strong>離線全文檢索</strong>。</li>
+                    <ul style="margin: 0; padding-left: 16px; list-style-type: disc; color: var(--text-color); font-size: 0.78rem; line-height: 1.4;">
+                        <li>經文與大綱 0 秒秒開，無讀取延遲。</li>
+                        <li>支援離線全文檢索。</li>
+                        <li>僅一次性下載，日後不再消耗流量。</li>
                     </ul>
                 </div>
                 
                 <div style="background-color: rgba(244, 67, 54, 0.08); border-left: 3px solid #F44336; padding: 8px 10px; margin-bottom: 12px; border-radius: 0 6px 6px 0;">
                     <strong style="color: #F44336; display: block; margin-bottom: 3px; font-size: 0.82rem;">⚠️ 缺點與注意：</strong>
-                    <ul style="margin: 0; padding-left: 16px; list-style-type: disc; color: var(--text-color);">
-                        <li>首次下載需消耗約 <strong>33.6 MB</strong> 流量。</li>
-                        <li>依網速需等待約 10~30 秒進行下載。</li>
+                    <ul style="margin: 0; padding-left: 16px; list-style-type: disc; color: var(--text-color); font-size: 0.78rem; line-height: 1.4;">
+                        <li>首次下載需消耗約 33.6 MB 流量。</li>
+                        <li>依網速需等待約 1~2分進行下載。</li>
                     </ul>
                 </div>
-                
-                <p style="font-size: 0.78rem; color: var(--text-hint); text-align: center; margin-top: 8px;">
-                    💡 建議：使用 Wi-Fi 或上網吃到飽者強烈建議開啟！
-                </p>
             </div>
             <div class="modal-footer" style="padding-top: 10px; margin-top: 12px;">
                 <button id="understandPreloadBtn" class="btn btn-primary" style="width: 100%; padding: 8px; font-size: 0.82rem; border-radius: 6px;">我知道了</button>
@@ -356,7 +366,56 @@
         </div>
     </div>
 
+    <!-- About Website Modal -->
+    <div id="aboutWebsiteModal" class="modal-overlay hidden" style="background-color: rgba(0, 0, 0, 0.5); backdrop-filter: blur(8px);">
+        <div class="modal-card glass-modal-card" style="max-width: 420px; padding: 20px; box-sizing: border-box; background-color: var(--card-bg); opacity: 0.95; border: 1px solid var(--border-color);">
+            <div class="modal-header" style="padding-bottom: 12px; margin-bottom: 12px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between;">
+                <h3 style="font-size: 1.05rem;">關於 靜思妙蓮華 聞法平台</h3>
+                <button id="closeAboutBtn" class="close-modal-btn" style="font-size: 1.4rem;">&times;</button>
+            </div>
+            <div class="modal-body" style="line-height: 1.55; font-size: 0.8rem; color: var(--text-color); max-height: 60vh; overflow-y: auto; padding-right: 4px;">
+                <p style="margin-bottom: 12px; font-weight: bold; color: var(--accent-color); font-size: 0.85rem; display: flex; align-items: center; gap: 6px; margin-top: 0;">
+                    <span style="font-size: 1.1rem;">📘</span> 經典全集收錄與數位法典
+                </p>
+                <p style="margin-bottom: 16px; color: var(--text-secondary); text-indent: 1.5rem;">
+                    本平台完整收錄上人晨語開示《靜思妙蓮華》全集共 <strong>1,885 集</strong>。將繁複的經文大綱、全文逐字稿與影音連結高度整合，旨在為大眾提供一部隨手可得、便於修持的行動隨身法典。
+                </p>
+
+                <p style="margin-bottom: 12px; font-weight: bold; color: var(--accent-color); font-size: 0.85rem; display: flex; align-items: center; gap: 6px;">
+                    <span style="font-size: 1.1rem;">⚡</span> 0 秒極速加載與無痕瀏覽器優化
+                </p>
+                <p style="margin-bottom: 16px; color: var(--text-secondary); text-indent: 1.5rem;">
+                    針對手持行動裝置及 Safari 「私密/無痕瀏覽模式」進行深度效能優化。透過資料庫微型分離技術，在不消耗手機暫存記憶體的前提下，實現點選單集 0 秒滑出面版、影音與文字瞬間呈顯的極致體驗。
+                </p>
+
+                <p style="margin-bottom: 12px; font-weight: bold; color: var(--accent-color); font-size: 0.85rem; display: flex; align-items: center; gap: 6px;">
+                    <span style="font-size: 1.1rem;">🔍</span> 高效多關鍵字全文檢索
+                </p>
+                <p style="margin-bottom: 16px; color: var(--text-secondary); text-indent: 1.5rem;">
+                    配備強大的全文檢索功能，支援以空格拆分的多個關鍵字並行查詢。搜尋結果會直接定位大綱與逐字稿中的匹配段落，並給予黃色亮麗高亮，方便您快速比對、尋找法意。
+                </p>
+
+                <p style="margin-bottom: 12px; font-weight: bold; color: var(--accent-color); font-size: 0.85rem; display: flex; align-items: center; gap: 6px;">
+                    <span style="font-size: 1.1rem;">🔄</span> 雲端同步與自主修正
+                </p>
+                <p style="margin-bottom: 16px; color: var(--text-secondary); text-indent: 1.5rem;">
+                    內容直連 Google 試算表後台。當管理員在雲端進行字句勘誤或更新時，使用者加載該集時會自動拉取最新內容，確保法髓的準確性與即時同步。
+                </p>
+
+                <p style="margin-bottom: 12px; font-weight: bold; color: var(--accent-color); font-size: 0.85rem; display: flex; align-items: center; gap: 6px;">
+                    <span style="font-size: 1.1rem;">📈</span> 薰法香進度與書籤隨身
+                </p>
+                <p style="margin-bottom: 8px; color: var(--text-secondary); text-indent: 1.5rem;">
+                    自動統計您的「薰法香閱讀進度百分比」，並貼心設置「上次閱讀」捷徑。每次開啟網頁都能一鍵回到上次修習的位置，讓您的聞法功課不因中斷而遺忘。
+                </p>
+            </div>
+            <div class="modal-footer" style="padding-top: 10px; margin-top: 12px; border-top: 1px solid var(--border-color);">
+                <button id="understandAboutBtn" class="btn btn-primary" style="width: 100%; padding: 8px; font-size: 0.82rem; border-radius: 6px;">我知道了</button>
+            </div>
+        </div>
+    </div>
+
     <!-- App Logic Scripts -->
-    <script src="app.js?v=3.8"></script>
+    <script src="app.js?v=3.9"></script>
 </body>
 </html>
