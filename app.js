@@ -878,6 +878,7 @@ function handleSearchInput(query) {
 }
 
 function performSearch(query) {
+    // 1. Try local server search first (for local development)
     fetch(`./api/search?q=${encodeURIComponent(query)}`)
         .then(res => {
             if (!res.ok) throw new Error("Search API error");
@@ -886,10 +887,31 @@ function performSearch(query) {
         .then(results => {
             renderSearchResults(results, query);
         })
-        .catch(async err => {
-            console.warn("Falling back to local client-side search:", err.message);
-            const results = await localFallbackSearch(query);
-            renderSearchResults(results, query);
+        .catch(err => {
+            // 2. If local server search fails (online), check if GOOGLE_SCRIPT_URL is available
+            if (typeof GOOGLE_SCRIPT_URL !== 'undefined' && GOOGLE_SCRIPT_URL !== "") {
+                console.log("Using high-speed cloud search...");
+                fetch(`${GOOGLE_SCRIPT_URL}?action=search&q=${encodeURIComponent(query)}`)
+                    .then(res => res.json())
+                    .then(res => {
+                        if (res.success && res.data) {
+                            renderSearchResults(res.data, query);
+                        } else {
+                            throw new Error(res.error || "Cloud search failed");
+                        }
+                    })
+                    .catch(async cloudErr => {
+                        console.warn("Cloud search failed, falling back to client search:", cloudErr.message);
+                        // 3. Fallback to client-side fast-title search
+                        const results = await localFallbackSearch(query, false);
+                        renderSearchResults(results, query);
+                    });
+            } else {
+                // 3. Fallback to client-side fast-title search
+                localFallbackSearch(query, false).then(results => {
+                    renderSearchResults(results, query);
+                });
+            }
         });
 }
 

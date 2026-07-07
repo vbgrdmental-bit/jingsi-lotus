@@ -106,6 +106,42 @@ function doGet(e) {
         });
       }
       response = { success: true, data: list };
+    } else if (action === "search") {
+      var query = (e.parameter.q || "").toLowerCase().trim();
+      if (!query) {
+        throw new Error("搜尋關鍵字不可為空");
+      }
+      var sheet = ss.getSheetByName("episodes");
+      if (!sheet) {
+        throw new Error("找不到 episodes 工作表");
+      }
+      var data = sheet.getDataRange().getValues();
+      var list = [];
+      for (var i = 1; i < data.length; i++) {
+        var episodeId = Number(data[i][0]);
+        var title = data[i][1] || "";
+        var summary = data[i][2] || "";
+        var fullText = data[i][3] || "";
+        
+        var matches = false;
+        if (String(episodeId) === query || 
+            title.toLowerCase().indexOf(query) !== -1 ||
+            summary.toLowerCase().indexOf(query) !== -1 ||
+            fullText.toLowerCase().indexOf(query) !== -1) {
+          matches = true;
+        }
+        
+        if (matches) {
+          list.push({
+            episode_id: episodeId,
+            title: title,
+            summary: summary,
+            full_text: fullText
+          });
+        }
+        if (list.length >= 100) break;
+      }
+      response = { success: true, data: list };
     } else {
       response = { success: false, error: "無效的操作" };
     }
