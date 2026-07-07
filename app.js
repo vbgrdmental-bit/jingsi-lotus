@@ -1570,36 +1570,18 @@ window.toggleChapter = function(chapterId) {
             return;
         }
         
-        // Load details dynamically if not in cache
-        if (!appState.chapterEpisodesCache[chapterId]) {
-            loadChapterEpisodes(chapterId);
-        } else {
-            renderEpisodeList(chapterId);
-        }
+        // Render episode list instantly using preloaded metadata index
+        renderEpisodeList(chapterId);
     }
 };
 
-// Async Lazy Loading of Chapter Text file
-function loadChapterEpisodes(chapterId) {
-    fetch(`./data/episodes/chapter_${chapterId}.json?v=` + APP_VERSION)
-        .then(res => res.json())
-        .then(data => {
-            // Sort episodes in ascending order
-            data.sort((a, b) => a.episode_id - b.episode_id);
-            appState.chapterEpisodesCache[chapterId] = data;
-            renderEpisodeList(chapterId);
-        })
-        .catch(err => {
-            console.error(`Error loading chapter ${chapterId}`, err);
-            const container = document.getElementById(`episodeListContainer-${chapterId}`);
-            container.innerHTML = `<p style="padding: 16px; color: red;">載入失敗，請確認網路連線或檔案存在。</p>`;
-        });
-}
+
 
 // Render Episode rows inside Chapter card
 function renderEpisodeList(chapterId) {
     const container = document.getElementById(`episodeListContainer-${chapterId}`);
-    const episodes = appState.chapterEpisodesCache[chapterId];
+    // Filter episodes from the main index instead of waiting for chapter JSON!
+    const episodes = appState.episodesIndex.filter(ep => ep.chapter_id === chapterId);
     
     container.innerHTML = '';
     
