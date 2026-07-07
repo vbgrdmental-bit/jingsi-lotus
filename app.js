@@ -415,7 +415,11 @@ function initEventListeners() {
                     }
                 })
                 .catch(() => {
-                    alert('已儲存至本地瀏覽器備份（伺服器未運行）');
+                    if (isLocalEnvironment()) {
+                        alert('本地伺服器未運行，修改已儲存至您本地的瀏覽器暫存，無法直接寫入硬碟 JSON 檔。');
+                    } else {
+                        alert('本網頁為線上預覽版，您的修改已儲存至瀏覽器本地暫存，無法直接同步到公開網站。如需永久變更，請於管理端進行儲存。');
+                    }
                 })
                 .finally(() => {
                     elements.saveEditBtn.disabled = false;
@@ -603,7 +607,11 @@ function initEventListeners() {
                 payload.edit_history = ep.edit_history;
                 saveLocalEditBackup(payload);
                 
-                alert('已儲存至本地瀏覽器（伺服器未運行，無法寫入硬碟 JSON 檔）');
+                if (isLocalEnvironment()) {
+                    alert('本地伺服器未運行，修改已儲存至您本地的瀏覽器暫存，無法直接寫入硬碟 JSON 檔。');
+                } else {
+                    alert('本網頁為線上預覽版，您的修改已儲存至瀏覽器本地暫存，無法直接同步到公開網站。如需永久變更，請於管理端進行儲存。');
+                }
                 closeEdit();
                 showDetailPanel(ep.episode_id);
                 
@@ -979,7 +987,7 @@ function renderChapterList() {
         { name: '常不輕菩薩品第二十', links: ['https://youtu.be/fxBKuKi1yXM?si=3DIGpfkWh0R9QegQ'] },
         { name: '如來神力品第二十一', links: ['https://youtu.be/b6KoJlze8qU?si=y5PlbyasFtQ4OB03'] },
         { name: '囑累品第二十二', links: ['https://youtu.be/_nZBILBsH5A?si=D2YvEPPEXpNqK-vc'] },
-        { name: '藥王菩薩本事品第二十三', links: ['https://youtu.be/qkm3CbEkInk?si=6lyMPMf5YFl6IN-N', 'https://youtu.be/7fqBM65iIR4?si=2Y-RymQ0KZWd4Uxe'] }
+        { name: '藥王菩薩本事品第二十三', links: ['https://youtu.be/7fqBM65iIR4?si=2Y-RymQ0KZWd4Uxe', 'https://youtu.be/qkm3CbEkInk?si=6lyMPMf5YFl6IN-N'] }
     ];
     // Build flat list for detail panel navigation
     window._preReadItems = [];
@@ -1027,7 +1035,8 @@ function renderChapterList() {
                 <div class="checkbox-container">
                     <button class="checkbox-btn" onclick="togglePreReadCompleteInline(event, ${idx})">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <polyline points="20 6 9 17 4 12"></polyline>
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                            <polyline points="9 11 12 14 22 4" class="checkmark"></polyline>
                         </svg>
                     </button>
                 </div>
@@ -1093,7 +1102,7 @@ function renderChapterList() {
     preReadCard.innerHTML = `
         <button class="chapter-header" onclick="togglePreReadCard()">
             <div class="chapter-header-main">
-                <span class="chapter-title" style="font-weight: bold; color: var(--accent-color);">品前導讀</span>
+                <span class="chapter-title" style="font-weight: bold; color: var(--gold-color);">品前導讀(菩提心要)</span>
                 <svg class="chapter-arrow-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <polyline points="6 9 12 15 18 9"></polyline>
                 </svg>

@@ -1725,3 +1725,17 @@ body.sepia-mode .episode-global-completes {
     line-height: 1.5 !important;
 }
 
+/* Pre-read card styles matching resume card yellow */
+.special-intro-card {
+    border: 1px dashed var(--gold-color) !important;
+}
+
+.special-intro-card .chapter-progress-bar {
+    background-color: var(--gold-color) !important;
+}
+
+/* Active tab button background styling */
+.tab-btn.active {
+    background-color: var(--accent-light) !important;
+}
+
