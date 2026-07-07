@@ -51,6 +51,7 @@ const elements = {
     nextEpisodeBtn: document.getElementById('nextEpisodeBtn'),
     videoSearchBtn: document.getElementById('videoSearchBtn'),
     pdfDownloadLink: document.getElementById('pdfDownloadLink'),
+    zenModeBtn: document.getElementById('zenModeBtn'),
     fontDecBtn: document.getElementById('fontDecBtn'),
     fontIncBtn: document.getElementById('fontIncBtn'),
     sutraSummary: document.getElementById('sutraSummary'),
@@ -187,10 +188,35 @@ function initEventListeners() {
     
     // Resume Reading Button
     elements.resumeBtn.addEventListener('click', () => {
-        if (appState.progress.lastRead) {
-            openEpisodeDetail(appState.progress.lastRead, true);
+        const lastRead = appState.progress.lastRead;
+        if (lastRead) {
+            if (typeof lastRead === 'string' && lastRead.startsWith('preread-')) {
+                const idx = parseInt(lastRead.replace('preread-', ''), 10);
+                if (typeof window.openPreReadDetail === 'function') {
+                    window.openPreReadDetail(idx);
+                }
+            } else {
+                openEpisodeDetail(parseInt(lastRead, 10), true);
+            }
         }
     });
+
+    // Zen Mode (Full-screen Reading Mode) Toggle
+    if (elements.zenModeBtn) {
+        elements.zenModeBtn.addEventListener('click', () => {
+            appState.zenMode = !appState.zenMode;
+            const panel = document.getElementById('detailPanel');
+            if (panel) {
+                if (appState.zenMode) {
+                    panel.classList.add('zen-mode');
+                    elements.zenModeBtn.classList.add('active');
+                } else {
+                    panel.classList.remove('zen-mode');
+                    elements.zenModeBtn.classList.remove('active');
+                }
+            }
+        });
+    }
 
     // Font size controls (A- / A+ dynamic adjustment)
     let currentFontSize = parseFloat(localStorage.getItem('jingsi_reading_fontsize') || '1.05');
@@ -1941,6 +1967,11 @@ function closeEpisodeDetail() {
         saveProgress();
     }
 
+    // Exit Zen Mode
+    appState.zenMode = false;
+    elements.detailPanel.classList.remove('zen-mode');
+    if (elements.zenModeBtn) elements.zenModeBtn.classList.remove('active');
+
     // 2. Hide Panel
     elements.detailPanel.classList.remove('visible');
     elements.detailPanel.classList.add('hidden');
@@ -2060,11 +2091,23 @@ function updateGlobalProgressBar() {
 function updateResumeBookmark() {
     const lastId = appState.progress.lastRead;
     if (lastId) {
-        const ep = appState.episodesIndex.find(e => e.episode_id === lastId);
-        if (ep) {
-            elements.resumeTitle.textContent = `第 ${ep.episode_id} 集 - ${ep.title}`;
-            elements.resumeCard.classList.remove('hidden');
-            return;
+        if (typeof lastId === 'string' && lastId.startsWith('preread-')) {
+            const idx = parseInt(lastId.replace('preread-', ''), 10);
+            const items = window._preReadItems;
+            if (items && items[idx]) {
+                const entry = items[idx];
+                elements.resumeTitle.textContent = `品前導讀(第${idx + 1}集) - ${entry.title}`;
+                elements.resumeCard.classList.remove('hidden');
+                return;
+            }
+        } else {
+            const epId = parseInt(lastId, 10);
+            const ep = appState.episodesIndex.find(e => e.episode_id === epId);
+            if (ep) {
+                elements.resumeTitle.textContent = `第 ${ep.episode_id} 集 - ${ep.title}`;
+                elements.resumeCard.classList.remove('hidden');
+                return;
+            }
         }
     }
     elements.resumeCard.classList.add('hidden');
@@ -2448,6 +2491,11 @@ window.openPreReadDetail = function(idx) {
             chapter_id: null,
             pdf_url: null
         };
+
+        // Update last read bookmark for pre-read
+        appState.progress.lastRead = `preread-${idx}`;
+        saveProgress();
+        updateResumeBookmark();
 
         // --- Populate metadata ---
         if (elements.panelEpIdBadge) {
