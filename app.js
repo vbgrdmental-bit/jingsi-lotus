@@ -2326,6 +2326,12 @@ function updateGlobalProgressBar() {
 
 // Update Resume Card Shortcut on Header
 function updateResumeBookmark() {
+    // If the user is currently searching, always keep resumeCard hidden
+    if (elements.searchInput && elements.searchInput.value.trim().length > 0) {
+        elements.resumeCard.classList.add('hidden');
+        return;
+    }
+
     const lastId = appState.progress.lastRead;
     if (lastId) {
         if (typeof lastId === 'string' && lastId.startsWith('preread-')) {
