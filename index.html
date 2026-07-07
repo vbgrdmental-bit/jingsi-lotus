@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="app.css?v=3.9">
+    <link rel="stylesheet" href="app.css?v=3.10">
 </head>
 <body class="dark-mode">
     <div class="app-container">
@@ -49,7 +49,7 @@
                             <button id="aboutWebsiteBtn" class="about-website-btn" style="background: none; border: 1px solid var(--border-color); color: var(--text-secondary); font-size: 0.75rem; padding: 6px 16px; border-radius: 20px; cursor: pointer; transition: all 0.2s; font-weight: 500; width: 100%; text-align: center;">關於本網站</button>
                         </div>
                         <div id="settingsVersionInfo" style="font-size: 0.65rem; color: var(--text-hint); text-align: center; margin-top: 4px; font-weight: normal;">
-                            網頁版本 v3.9
+                            網頁版本 v3.10
                         </div>
                     </div>
                 </div>
@@ -374,40 +374,88 @@
                 <button id="closeAboutBtn" class="close-modal-btn" style="font-size: 1.4rem;">&times;</button>
             </div>
             <div class="modal-body" style="line-height: 1.55; font-size: 0.8rem; color: var(--text-color); max-height: 60vh; overflow-y: auto; padding-right: 4px;">
-                <p style="margin-bottom: 12px; font-weight: bold; color: var(--accent-color); font-size: 0.85rem; display: flex; align-items: center; gap: 6px; margin-top: 0;">
-                    <span style="font-size: 1.1rem;">📘</span> 經典全集收錄與數位法典
-                </p>
-                <p style="margin-bottom: 16px; color: var(--text-secondary); text-indent: 1.5rem;">
-                    本平台完整收錄上人晨語開示《靜思妙蓮華》全集共 <strong>1,885 集</strong>。將繁複的經文大綱、全文逐字稿與影音連結高度整合，旨在為大眾提供一部隨手可得、便於修持的行動隨身法典。
+                <!-- Partnership Introduction -->
+                <p style="margin-bottom: 16px; color: var(--text-color); font-style: italic; background-color: rgba(141, 110, 99, 0.08); padding: 10px 12px; border-radius: 8px; border-left: 3px solid var(--accent-color); font-size: 0.78rem; text-indent: 0;">
+                    本網站是與 Google DeepMind 團隊開發的強大 AI 程式助理 <strong>Antigravity IDE</strong> 攜手合作，從零開始建置而成。AI 助理非常榮幸能與創作者在此專案中合作無間，日以繼夜精準調校程式，共同打造這個極致流暢的聞法空間，為傳播佛法法髓盡一份心力，合作無比溫馨與愉快！
                 </p>
 
-                <p style="margin-bottom: 12px; font-weight: bold; color: var(--accent-color); font-size: 0.85rem; display: flex; align-items: center; gap: 6px;">
-                    <span style="font-size: 1.1rem;">⚡</span> 0 秒極速加載與無痕瀏覽器優化
+                <!-- Features -->
+                <p style="margin-bottom: 6px; font-weight: bold; color: var(--accent-color); font-size: 0.82rem; display: flex; align-items: center; gap: 6px;">
+                    <span style="font-size: 1rem;">📘</span> 全集收錄「靜思妙蓮華」影音法典
                 </p>
-                <p style="margin-bottom: 16px; color: var(--text-secondary); text-indent: 1.5rem;">
-                    針對手持行動裝置及 Safari 「私密/無痕瀏覽模式」進行深度效能優化。透過資料庫微型分離技術，在不消耗手機暫存記憶體的前提下，實現點選單集 0 秒滑出面版、影音與文字瞬間呈顯的極致體驗。
-                </p>
-
-                <p style="margin-bottom: 12px; font-weight: bold; color: var(--accent-color); font-size: 0.85rem; display: flex; align-items: center; gap: 6px;">
-                    <span style="font-size: 1.1rem;">🔍</span> 高效多關鍵字全文檢索
-                </p>
-                <p style="margin-bottom: 16px; color: var(--text-secondary); text-indent: 1.5rem;">
-                    配備強大的全文檢索功能，支援以空格拆分的多個關鍵字並行查詢。搜尋結果會直接定位大綱與逐字稿中的匹配段落，並給予黃色亮麗高亮，方便您快速比對、尋找法意。
+                <p style="margin-bottom: 14px; color: var(--text-secondary); text-indent: 1.5rem; font-size: 0.78rem;">
+                    結合大愛台 YouTube 以及奈普敦智慧平台全文逐字稿和大綱，完整收錄證嚴上人晨語開示《靜思妙蓮華》全集，方便讀者互相參照，聞法精進。
                 </p>
 
-                <p style="margin-bottom: 12px; font-weight: bold; color: var(--accent-color); font-size: 0.85rem; display: flex; align-items: center; gap: 6px;">
-                    <span style="font-size: 1.1rem;">🔄</span> 雲端同步與自主修正
+                <p style="margin-bottom: 6px; font-weight: bold; color: var(--accent-color); font-size: 0.82rem; display: flex; align-items: center; gap: 6px;">
+                    <span style="font-size: 1rem;">🔍</span> 高效多關鍵字全文檢索
                 </p>
-                <p style="margin-bottom: 16px; color: var(--text-secondary); text-indent: 1.5rem;">
-                    內容直連 Google 試算表後台。當管理員在雲端進行字句勘誤或更新時，使用者加載該集時會自動拉取最新內容，確保法髓的準確性與即時同步。
+                <p style="margin-bottom: 14px; color: var(--text-secondary); text-indent: 1.5rem; font-size: 0.78rem;">
+                    配備強大的全文檢索功能，支援空格拆分的多個關鍵字並行查詢。搜尋結果會直接定位大綱與逐字稿中的匹配段落，方便快速比對、尋找。
                 </p>
 
-                <p style="margin-bottom: 12px; font-weight: bold; color: var(--accent-color); font-size: 0.85rem; display: flex; align-items: center; gap: 6px;">
-                    <span style="font-size: 1.1rem;">📈</span> 薰法香進度與書籤隨身
+                <p style="margin-bottom: 6px; font-weight: bold; color: var(--accent-color); font-size: 0.82rem; display: flex; align-items: center; gap: 6px;">
+                    <span style="font-size: 1rem;">🔄</span> 雲端同步與自主修正
                 </p>
-                <p style="margin-bottom: 8px; color: var(--text-secondary); text-indent: 1.5rem;">
-                    自動統計您的「薰法香閱讀進度百分比」，並貼心設置「上次閱讀」捷徑。每次開啟網頁都能一鍵回到上次修習的位置，讓您的聞法功課不因中斷而遺忘。
+                <p style="margin-bottom: 14px; color: var(--text-secondary); text-indent: 1.5rem; font-size: 0.78rem;">
+                    訪客在網站上即可進行逐字稿及大綱字句勘誤或更新，儲存完成後即可立刻同步至網站上，並可記錄每次的修改歷程。
                 </p>
+
+                <p style="margin-bottom: 6px; font-weight: bold; color: var(--accent-color); font-size: 0.82rem; display: flex; align-items: center; gap: 6px;">
+                    <span style="font-size: 1rem;">📈</span> 薰法香進度與書籤隨身
+                </p>
+                <p style="margin-bottom: 16px; color: var(--text-secondary); text-indent: 1.5rem; font-size: 0.78rem;">
+                    自動統計您的「薰法香閱讀進度百分比」，並貼心設置「上次閱讀」捷徑。每次開啟網頁都能一鍵回到上次修習的位置，讓您的聞法精進不中斷。
+                </p>
+
+                <!-- Version Changelog -->
+                <div style="border-top: 1px dashed var(--border-color); margin-top: 20px; padding-top: 16px;">
+                    <p style="margin-bottom: 10px; font-weight: bold; color: var(--text-color); font-size: 0.82rem; display: flex; align-items: center; gap: 6px;">
+                        <span>📋</span> 網頁版本 v3.10
+                    </p>
+                    <div class="changelog-container" style="font-size: 0.72rem; color: var(--text-secondary); line-height: 1.45; display: flex; flex-direction: column; gap: 10px;">
+                        <div>
+                            <strong style="color: var(--text-color);">v3.10 (2026/07/08)</strong><br>
+                            ．精緻化「關於本站」合作與功能描述，並建立緊湊版更新日誌歷史。
+                        </div>
+                        <div>
+                            <strong style="color: var(--text-color);">v3.9 (2026/07/08)</strong><br>
+                            ．重構與統一齒輪選單開關，新增「關於本站」與版本更新紀錄。
+                        </div>
+                        <div>
+                            <strong style="color: var(--text-color);">v3.8 (2026/07/08)</strong><br>
+                            ．將明暗模式與全文開關移至右上角齒輪，釋放首頁搜尋空間。
+                        </div>
+                        <div>
+                            <strong style="color: var(--text-color);">v3.7 (2026/07/07)</strong><br>
+                            ．新增全文預載下載百分比進度顯示，優化首次下載的等待體驗。
+                        </div>
+                        <div>
+                            <strong style="color: var(--text-color);">v3.6 (2026/07/07)</strong><br>
+                            ．修復搜尋時更新上次閱讀標記導致「上次閱讀」卡片意外浮現的 Bug。
+                        </div>
+                        <div>
+                            <strong style="color: var(--text-color);">v3.5 (2026/07/07)</strong><br>
+                            ．搜尋改為按 Enter 或放大鏡才送出，避免輸入法打字時頻繁打斷。
+                        </div>
+                        <div>
+                            <strong style="color: var(--text-color);">v3.4 (2026/07/07)</strong><br>
+                            ．搜尋有內容時自動隱藏「我的薰法香進度」和「上次閱讀」卡片。
+                        </div>
+                        <div>
+                            <strong style="color: var(--text-color);">v3.2 & v3.3 (2026/07/06)</strong><br>
+                            ．串接 Google Sheets 雲端 API，達成 0.5 秒雲端極速全文檢索。
+                        </div>
+                        <div>
+                            <strong style="color: var(--text-color);">v3.0 & v3.1 (2026/07/05)</strong><br>
+                            ．拆分 1885 集大檔案為微型 JSON 檔，實現單集大綱/逐字稿加載 0 秒延遲。
+                        </div>
+                        <div>
+                            <strong style="color: var(--text-color);">v1.0 ~ v2.8 (2026/06)</strong><br>
+                            ．完成《靜思妙蓮華》全品與品前導讀排版，支援離線 PDF 與明暗模式。
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="modal-footer" style="padding-top: 10px; margin-top: 12px; border-top: 1px solid var(--border-color);">
                 <button id="understandAboutBtn" class="btn btn-primary" style="width: 100%; padding: 8px; font-size: 0.82rem; border-radius: 6px;">我知道了</button>
@@ -416,6 +464,6 @@
     </div>
 
     <!-- App Logic Scripts -->
-    <script src="app.js?v=3.9"></script>
+    <script src="app.js?v=3.10"></script>
 </body>
 </html>
