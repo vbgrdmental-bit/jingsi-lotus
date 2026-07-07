@@ -1398,8 +1398,8 @@ function fetchMetadata() {
                 const match = cssLink.getAttribute('href').match(/v=([\d.]+)/);
                 if (match) {
                     const version = match[1];
-                    const versionEl = document.getElementById('settingsVersionInfo') || document.getElementById('appVersion');
-                    if (versionEl) versionEl.textContent = `網頁版本 v${version}`;
+                    const versionEl = document.getElementById('appVersion');
+                    if (versionEl) versionEl.textContent = `v${version}`;
                 }
             }
 

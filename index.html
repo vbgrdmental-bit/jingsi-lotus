@@ -15,7 +15,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="app.css?v=3.11">
+    <link rel="stylesheet" href="app.css?v=3.13">
 </head>
 <body class="dark-mode">
     <div class="app-container">
@@ -52,11 +52,9 @@
                             </div>
                             <button id="preloadInfoBtn" class="preload-info-btn" aria-label="說明">i</button>
                         </div>
-                        <div class="settings-item settings-action-item" style="border-bottom: none; padding-top: 8px; justify-content: center;">
-                            <button id="aboutWebsiteBtn" class="about-website-btn" style="background: none; border: 1px solid var(--border-color); color: var(--text-secondary); font-size: 0.75rem; padding: 6px 16px; border-radius: 20px; cursor: pointer; transition: all 0.2s; font-weight: 500; width: 100%; text-align: center;">關於本網站</button>
-                        </div>
-                        <div id="settingsVersionInfo" style="font-size: 0.65rem; color: var(--text-hint); text-align: center; margin-top: 4px; font-weight: normal;">
-                            網頁版本 v3.11
+                        <div class="settings-item settings-action-item" style="border-bottom: none; padding-top: 8px; justify-content: center; flex-direction: column; gap: 8px; width: 100%; display: flex;">
+                            <button id="aboutWebsiteBtn" class="about-website-btn" style="background: none; border: 1px solid var(--border-color); color: var(--text-secondary); font-size: 0.75rem; padding: 6px 16px; border-radius: 20px; cursor: pointer; transition: all 0.2s; font-weight: 500; width: 100%; text-align: center;">關於本站</button>
+                            <button id="settingsVersionInfo" class="about-website-btn" style="background: none; border: 1px solid var(--border-color); color: var(--text-secondary); font-size: 0.75rem; padding: 6px 16px; border-radius: 20px; cursor: pointer; transition: all 0.2s; font-weight: 500; width: 100%; text-align: center;">網頁版本</button>
                         </div>
                     </div>
                 </div>
@@ -352,11 +350,32 @@
                 
                 <div style="background-color: rgba(76, 175, 80, 0.08); border-left: 3px solid #4CAF50; padding: 8px 10px; margin-bottom: 12px; border-radius: 0 6px 6px 0;">
                     <strong style="color: #4CAF50; display: block; margin-bottom: 3px; font-size: 0.82rem;">👍 優點：</strong>
-                    <ul style="margin: 0; padding-left: 16px; list-style-type: disc; color: var(--text-color); font-size: 0.78rem; line-height: 1.4;">    <!-- About Website Modal -->
+                    <ul style="margin: 0; padding-left: 16px; list-style-type: disc; color: var(--text-color); font-size: 0.78rem; line-height: 1.4;">
+                        <li>經文與大綱 0 秒秒開，無讀取延遲。</li>
+                        <li>支援離線全文檢索。</li>
+                        <li>僅一次性下載，日後不再消耗流量。</li>
+                    </ul>
+                </div>
+                
+                <div style="background-color: rgba(244, 67, 54, 0.08); border-left: 3px solid #F44336; padding: 8px 10px; margin-bottom: 12px; border-radius: 0 6px 6px 0;">
+                    <strong style="color: #F44336; display: block; margin-bottom: 3px; font-size: 0.82rem;">⚠️ 缺點與注意：</strong>
+                    <ul style="margin: 0; padding-left: 16px; list-style-type: disc; color: var(--text-color); font-size: 0.78rem; line-height: 1.4;">
+                        <li>首次下載需消耗約 33.6 MB 流量。</li>
+                        <li>依網速需等待約 1~2 分進行下載。</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="modal-footer" style="padding-top: 10px; margin-top: 12px;">
+                <button id="understandPreloadBtn" class="btn btn-primary" style="width: 100%; padding: 8px; font-size: 0.82rem; border-radius: 6px;">我知道了</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- About Website Modal -->
     <div id="aboutWebsiteModal" class="modal-overlay hidden" style="background-color: rgba(0, 0, 0, 0.5); backdrop-filter: blur(8px);">
         <div class="modal-card glass-modal-card" style="max-width: 420px; padding: 20px; box-sizing: border-box; background-color: var(--card-bg); opacity: 0.95; border: 1px solid var(--border-color);">
             <div class="modal-header" style="padding-bottom: 12px; margin-bottom: 12px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between;">
-                <h3 style="font-size: 1.05rem;">關於 靜思妙蓮華 聞法平台</h3>
+                <h3 style="font-size: 1.05rem;">關於本站</h3>
                 <button id="closeAboutBtn" class="close-modal-btn" style="font-size: 1.4rem;">&times;</button>
             </div>
             <div class="modal-body" style="line-height: 1.55; font-size: 0.8rem; color: var(--text-color); max-height: 60vh; overflow-y: auto; padding-right: 4px;">
@@ -412,54 +431,30 @@
     <div id="versionHistoryModal" class="modal-overlay hidden" style="background-color: rgba(0, 0, 0, 0.5); backdrop-filter: blur(8px); z-index: 1100;">
         <div class="modal-card glass-modal-card" style="max-width: 420px; padding: 20px; box-sizing: border-box; background-color: var(--card-bg); opacity: 0.95; border: 1px solid var(--border-color);">
             <div class="modal-header" style="padding-bottom: 12px; margin-bottom: 12px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between;">
-                <h3 style="font-size: 1.05rem;">網頁版本更新歷程</h3>
+                <h3 style="font-size: 1.05rem;">網頁版本更新歷程 (<span id="appVersion">v3.13</span>)</h3>
                 <button id="closeVersionBtn" class="close-modal-btn" style="font-size: 1.4rem;">&times;</button>
             </div>
             <div class="modal-body" style="line-height: 1.55; font-size: 0.8rem; color: var(--text-color); max-height: 60vh; overflow-y: auto; padding-right: 4px;">
                 <div class="changelog-container" style="font-size: 0.72rem; color: var(--text-secondary); line-height: 1.45; display: flex; flex-direction: column; gap: 12px;">
                     <div>
-                        <strong style="color: var(--text-color); font-size: 0.78rem;">v3.11 (2026/07/08)</strong><br>
-                        ．新增 SEO Meta 與社群卡片標籤，實作 `?ep=集數` 網址跳轉，並自動產生 Sitemap.xml。
+                        <strong style="color: var(--text-color); font-size: 0.78rem;">v3.13 (2026/07/08)</strong><br>
+                        ．調整與統一設定選單按鈕外觀，修復說明視窗開啟問題，更名為「關於本站」，並將版本號移入歷程中。
                     </div>
                     <div>
-                        <strong style="color: var(--text-color); font-size: 0.78rem;">v3.10 (2026/07/08)</strong><br>
-                        ．精緻化「關於本站」合作與功能描述，並建立緊湊版更新日誌歷史。
+                        <strong style="color: var(--text-color); font-size: 0.78rem;">v3.10 ~ v3.12 (2026/07/08)</strong><br>
+                        ．新增 SEO Meta 與 `?ep=集數` 網址定位；精緻化「關於本站」創作者與聯絡管道；獨立版本歷程。
                     </div>
                     <div>
-                        <strong style="color: var(--text-color); font-size: 0.78rem;">v3.9 (2026/07/08)</strong><br>
-                        ．重構與統一齒輪選單開關，新增「關於本站」與版本更新紀錄。
+                        <strong style="color: var(--text-color); font-size: 0.78rem;">v3.4 ~ v3.9 (2026/07/07 ~ 07/08)</strong><br>
+                        ．重構右上角齒輪選單，統一明暗/預載開關；優化搜尋觸發與打字打斷機制；自動統計薰法香進度。
                     </div>
                     <div>
-                        <strong style="color: var(--text-color); font-size: 0.78rem;">v3.8 (2026/07/08)</strong><br>
-                        ．將明暗模式與全文開關移至右上角齒輪，釋放首頁搜尋空間。
-                    </div>
-                    <div>
-                        <strong style="color: var(--text-color); font-size: 0.78rem;">v3.7 (2026/07/07)</strong><br>
-                        ．新增全文預載下載百分比進度顯示，優化首次下載的等待體驗。
-                    </div>
-                    <div>
-                        <strong style="color: var(--text-color); font-size: 0.78rem;">v3.6 (2026/07/07)</strong><br>
-                        ．修復搜尋時更新上次閱讀標記導致「上次閱讀」卡片意外浮現的 Bug。
-                    </div>
-                    <div>
-                        <strong style="color: var(--text-color); font-size: 0.78rem;">v3.5 (2026/07/07)</strong><br>
-                        ．搜尋改為按 Enter 或放大鏡才送出，避免輸入法打字時頻繁打斷。
-                    </div>
-                    <div>
-                        <strong style="color: var(--text-color); font-size: 0.78rem;">v3.4 (2026/07/07)</strong><br>
-                        ．搜尋有內容時自動隱藏「我的薰法香進度」和「上次閱讀」卡片。
-                    </div>
-                    <div>
-                        <strong style="color: var(--text-color); font-size: 0.78rem;">v3.2 & v3.3 (2026/07/06)</strong><br>
-                        ．串接 Google Sheets 雲端 API，達成 0.5 秒雲端極速全文檢索。
-                    </div>
-                    <div>
-                        <strong style="color: var(--text-color); font-size: 0.78rem;">v3.0 & v3.1 (2026/07/05)</strong><br>
-                        ．拆分 1885 集大檔案為微型 JSON 檔，實現單集大綱/逐字稿加載 0 秒延遲。
+                        <strong style="color: var(--text-color); font-size: 0.78rem;">v3.0 ~ v3.3 (2026/07/05 ~ 07/06)</strong><br>
+                        ．串接 Google Sheets API 實現雲端勘誤與極速檢索；微型化 JSON 分離儲存，實現載入 0 延遲。
                     </div>
                     <div>
                         <strong style="color: var(--text-color); font-size: 0.78rem;">v1.0 ~ v2.8 (2026/06)</strong><br>
-                        ．完成《靜思妙蓮華》全品與品前導讀排版，支援離線 PDF 與明暗模式。
+                        ．完成《靜思妙蓮華》全品與導讀排版，支援離線 PDF 下載與明暗模式。
                     </div>
                 </div>
             </div>
@@ -470,6 +465,6 @@
     </div>
     
     <!-- App Logic Scripts -->
-    <script src="app.js?v=3.11"></script>
+    <script src="app.js?v=3.13"></script>
 </body>
 </html>
