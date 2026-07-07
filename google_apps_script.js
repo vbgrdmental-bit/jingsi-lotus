@@ -75,6 +75,37 @@ function doGet(e) {
       if (!response.success) {
         response = { success: false, error: "找不到該導讀 " + id };
       }
+    } else if (action === "getAllPreReads") {
+      var sheet = ss.getSheetByName("preread");
+      if (!sheet) {
+        throw new Error("找不到 preread 工作表");
+      }
+      var data = sheet.getDataRange().getValues();
+      var list = [];
+      for (var i = 1; i < data.length; i++) {
+        list.push({
+          id: Number(data[i][0]),
+          title: data[i][1] || "",
+          summary: data[i][2] || "",
+          full_text: data[i][3] || "",
+          edit_history: data[i][4] ? JSON.parse(data[i][4]) : []
+        });
+      }
+      response = { success: true, data: list };
+    } else if (action === "getAllEpisodeTitles") {
+      var sheet = ss.getSheetByName("episodes");
+      if (!sheet) {
+        throw new Error("找不到 episodes 工作表");
+      }
+      var data = sheet.getDataRange().getValues();
+      var list = [];
+      for (var i = 1; i < data.length; i++) {
+        list.push({
+          episode_id: Number(data[i][0]),
+          title: data[i][1] || ""
+        });
+      }
+      response = { success: true, data: list };
     } else {
       response = { success: false, error: "無效的操作" };
     }

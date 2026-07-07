@@ -1002,6 +1002,25 @@ function fetchMetadata() {
             
             fetchGlobalStats();
             
+            // Fetch live titles from Google Sheets in the background to update list titles dynamically!
+            if (typeof GOOGLE_SCRIPT_URL !== 'undefined' && GOOGLE_SCRIPT_URL !== "") {
+                fetch(`${GOOGLE_SCRIPT_URL}?action=getAllEpisodeTitles`)
+                    .then(r => r.json())
+                    .then(res => {
+                        if (res.success && Array.isArray(res.data)) {
+                            res.data.forEach(item => {
+                                const ep = appState.episodesIndex.find(e => e.episode_id === item.episode_id);
+                                if (ep && item.title) {
+                                    ep.title = item.title;
+                                }
+                            });
+                            // Re-render the chapter list to show new titles!
+                            renderChapterList();
+                        }
+                    })
+                    .catch(err => console.warn("Background title sync failed:", err));
+            }
+            
             // Automatically detect and show app version from stylesheet version query string
             const cssLink = document.querySelector('link[href*="app.css"]');
             if (cssLink) {
@@ -1274,26 +1293,56 @@ function renderChapterList() {
     // Render initial list (from in-memory defaults)
     renderPreReadList();
 
-    // Async: fetch persisted preread.json and merge saved title/summary/full_text
-    fetch('./data/preread.json?v=' + Date.now())
-        .then(res => res.json())
-        .then(savedList => {
-            if (!Array.isArray(savedList)) return;
-            savedList.forEach(saved => {
-                const item = window._preReadItems[saved.id];
-                if (!item) return;
-                if (saved.title && saved.title.trim()) item.title = saved.title.trim();
-                if (saved.summary !== undefined) item.summary = saved.summary;
-                if (saved.full_text !== undefined) item.full_text = saved.full_text;
-                if (saved.edit_history) item.edit_history = saved.edit_history;
-            });
-            mergeLocalPrereadEdits();
-            renderPreReadList();
-        })
-        .catch(() => { 
-            mergeLocalPrereadEdits();
-            renderPreReadList();
+    const proceedWithSavedPrereads = (savedList) => {
+        if (!Array.isArray(savedList)) return;
+        savedList.forEach(saved => {
+            const item = window._preReadItems[saved.id];
+            if (!item) return;
+            if (saved.title && saved.title.trim()) item.title = saved.title.trim();
+            if (saved.summary !== undefined) item.summary = saved.summary;
+            if (saved.full_text !== undefined) item.full_text = saved.full_text;
+            if (saved.edit_history) item.edit_history = saved.edit_history;
         });
+        mergeLocalPrereadEdits();
+        renderPreReadList();
+    };
+
+    if (typeof GOOGLE_SCRIPT_URL !== 'undefined' && GOOGLE_SCRIPT_URL !== "") {
+        fetch(`${GOOGLE_SCRIPT_URL}?action=getAllPreReads`)
+            .then(res => res.json())
+            .then(res => {
+                if (res.success && res.data) {
+                    proceedWithSavedPrereads(res.data);
+                } else {
+                    // Fallback to static JSON
+                    fetch('./data/preread.json?v=' + Date.now())
+                        .then(r => r.json())
+                        .then(proceedWithSavedPrereads)
+                        .catch(() => {
+                            mergeLocalPrereadEdits();
+                            renderPreReadList();
+                        });
+                }
+            })
+            .catch(() => {
+                // Fallback to static JSON
+                fetch('./data/preread.json?v=' + Date.now())
+                    .then(r => r.json())
+                    .then(proceedWithSavedPrereads)
+                    .catch(() => {
+                        mergeLocalPrereadEdits();
+                        renderPreReadList();
+                    });
+            });
+    } else {
+        fetch('./data/preread.json?v=' + Date.now())
+            .then(res => res.json())
+            .then(proceedWithSavedPrereads)
+            .catch(() => {
+                mergeLocalPrereadEdits();
+                renderPreReadList();
+            });
+    }
 
     // Expose renderPreReadList globally so saveEditBtn can call it
     window._renderPreReadList = renderPreReadList;
