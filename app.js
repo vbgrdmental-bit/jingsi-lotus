@@ -361,6 +361,7 @@ function uploadCloudSync(quiet = false) {
     }
     
     const payload = {
+        action: 'saveUserProgress',
         sync_key: syncKey,
         last_read: appState.progress.lastRead || "",
         completed_list: Object.keys(appState.progress.completed)

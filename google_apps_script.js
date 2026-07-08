@@ -231,7 +231,7 @@ function doPost(e) {
   
   try {
     var payload = JSON.parse(e.postData.contents);
-    var action = payload.action;
+    var action = payload.action || (e && e.parameter && e.parameter.action);
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     
     if (action === "saveEpisode") {
