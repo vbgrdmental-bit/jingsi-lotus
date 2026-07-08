@@ -196,18 +196,19 @@ function doGet(e) {
         sheet = ss.insertSheet("user_progress");
         sheet.appendRow(["sync_key", "last_read", "completed_list", "last_updated"]);
       }
-      var data = sheet.getDataRange().getValues();
+      
       var found = null;
-      for (var i = 1; i < data.length; i++) {
-        if (String(data[i][0]).toLowerCase().trim() === syncKey) {
-          found = {
-            sync_key: data[i][0],
-            last_read: data[i][1] || "",
-            completed_list: data[i][2] ? JSON.parse(data[i][2]) : [],
-            last_updated: data[i][3] || ""
-          };
-          break;
-        }
+      var finder = sheet.createTextFinder(syncKey).matchEntireCell(true).useRegularExpression(false);
+      var cell = finder.findNext();
+      if (cell) {
+        var foundRow = cell.getRow();
+        var rowData = sheet.getRange(foundRow, 1, 1, 4).getValues()[0];
+        found = {
+          sync_key: rowData[0],
+          last_read: rowData[1] || "",
+          completed_list: rowData[2] ? JSON.parse(rowData[2]) : [],
+          last_updated: rowData[3] || ""
+        };
       }
       response = { success: true, data: found };
     } else {
@@ -354,13 +355,12 @@ function doPost(e) {
         sheet = ss.insertSheet("user_progress");
         sheet.appendRow(["sync_key", "last_read", "completed_list", "last_updated"]);
       }
-      var data = sheet.getDataRange().getValues();
+      
       var foundRow = -1;
-      for (var i = 1; i < data.length; i++) {
-        if (String(data[i][0]).toLowerCase().trim() === syncKey.toLowerCase()) {
-          foundRow = i + 1;
-          break;
-        }
+      var finder = sheet.createTextFinder(syncKey).matchEntireCell(true).useRegularExpression(false);
+      var cell = finder.findNext();
+      if (cell) {
+        foundRow = cell.getRow();
       }
       
       var nowStr = Utilities.formatDate(new Date(), "GMT+8", "yyyy/MM/dd HH:mm:ss");

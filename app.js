@@ -194,8 +194,18 @@ function loadSettingsFromStorage() {
     }
 
     // 4. Sync Key
-    const savedSyncKey = localStorage.getItem('jingsi_sync_key');
-    if (savedSyncKey && elements.syncKeyInput) {
+    let savedSyncKey = localStorage.getItem('jingsi_sync_key');
+    if (!savedSyncKey) {
+        // Auto-generate a unique 8-character random sync key
+        const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+        let randKey = 'js-';
+        for (let i = 0; i < 8; i++) {
+            randKey += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        savedSyncKey = randKey;
+        localStorage.setItem('jingsi_sync_key', randKey);
+    }
+    if (elements.syncKeyInput) {
         elements.syncKeyInput.value = savedSyncKey;
     }
 }
