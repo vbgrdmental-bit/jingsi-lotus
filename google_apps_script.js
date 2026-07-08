@@ -201,7 +201,7 @@ function doGet(e) {
       }
       
       var found = null;
-      var finder = sheet.createTextFinder(syncKey).matchEntireCell(true).useRegularExpression(false);
+      var finder = sheet.getRange("A:A").createTextFinder(syncKey).matchEntireCell(true).useRegularExpression(false);
       var cell = finder.findNext();
       if (cell) {
         var foundRow = cell.getRow();
@@ -363,7 +363,7 @@ function doPost(e) {
       }
       
       var foundRow = -1;
-      var finder = sheet.createTextFinder(syncKey).matchEntireCell(true).useRegularExpression(false);
+      var finder = sheet.getRange("A:A").createTextFinder(syncKey).matchEntireCell(true).useRegularExpression(false);
       var cell = finder.findNext();
       if (cell) {
         foundRow = cell.getRow();
@@ -558,7 +558,7 @@ function resolveMasterKey(ss, key) {
     return cleanKey;
   }
   
-  var finder = sheet.createTextFinder(cleanKey).matchEntireCell(true).useRegularExpression(false);
+  var finder = sheet.getRange("A:A").createTextFinder(cleanKey).matchEntireCell(true).useRegularExpression(false);
   var cell = finder.findNext();
   if (cell && cell.getColumn() === 1) {
     var row = cell.getRow();

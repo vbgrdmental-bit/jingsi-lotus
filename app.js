@@ -199,6 +199,13 @@ document.addEventListener('DOMContentLoaded', () => {
         downloadCloudSync(true);
     }
 
+    // Start background auto-sync polling every 20 seconds if logged in (Real-time Sync)
+    setInterval(() => {
+        if (localStorage.getItem('jingsi_sync_key')) {
+            downloadCloudSync(true);
+        }
+    }, 20000);
+
     // Sync localStorage edits to disk automatically on localhost
     if (isLocalEnvironment()) {
         const prereadEdits = localStorage.getItem('jingsi_preread_edits');
@@ -1296,7 +1303,7 @@ function initEventListeners() {
     // Manual Sync Button
     if (elements.manualSyncBtn) {
         elements.manualSyncBtn.addEventListener('click', () => {
-            uploadCloudSync(true).then(() => {
+            uploadCloudSync(false).then(() => {
                 downloadCloudSync(false);
             });
         });
