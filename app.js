@@ -1187,6 +1187,15 @@ function renderSearchResults(results, query, isCloudOrFullText = false) {
         return;
     }
 
+    // Sort so that pre-read items are placed at the very top
+    results.sort((a, b) => {
+        const isAPreRead = a.is_preread || (typeof a.episode_id === 'string' && a.episode_id.startsWith('preread-'));
+        const isBPreRead = b.is_preread || (typeof b.episode_id === 'string' && b.episode_id.startsWith('preread-'));
+        if (isAPreRead && !isBPreRead) return -1;
+        if (!isAPreRead && isBPreRead) return 1;
+        return 0;
+    });
+
     const cleanQuery = query.toLowerCase().trim();
     const keywords = cleanQuery.split(/[\s　]+/).filter(k => k.length > 0);
 
@@ -1264,13 +1273,20 @@ function renderSearchResults(results, query, isCloudOrFullText = false) {
         }
 
         const isPreRead = res.is_preread || (typeof res.episode_id === 'string' && res.episode_id.startsWith('preread-'));
+        let badgeLabel = `第 ${res.episode_id} 集`;
+        if (isPreRead) {
+            const idxStr = String(res.episode_id).replace('preread-', '');
+            const idxVal = parseInt(idxStr, 10);
+            const numVal = !isNaN(idxVal) ? (idxVal + 1) : '';
+            badgeLabel = numVal ? `第 ${numVal} 集 品前導讀` : '品前導讀';
+        }
 
         const item = document.createElement('div');
         item.className = 'search-result-item';
         item.innerHTML = `
             <div class="search-result-info">
                 <div class="search-result-title-row">
-                    <span class="search-result-number">${isPreRead ? '品前導讀' : `第 ${res.episode_id} 集`}</span>
+                    <span class="search-result-number">${badgeLabel}</span>
                     <span class="search-result-title">${res.title}</span>
                 </div>
                 <div class="search-result-snippet">${highlightedSnippet}</div>
