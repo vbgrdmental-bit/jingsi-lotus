@@ -191,6 +191,9 @@ function doGet(e) {
       if (!syncKey) {
         throw new Error("同步金鑰不可為空");
       }
+      
+      syncKey = resolveMasterKey(ss, syncKey);
+      
       var sheet = ss.getSheetByName("user_progress");
       if (!sheet) {
         sheet = ss.insertSheet("user_progress");
@@ -346,10 +349,13 @@ function doPost(e) {
         response = { success: false, error: "找不到該導讀 " + preReadId };
       }
     } else if (action === "saveUserProgress") {
-      var syncKey = (payload.sync_key || "").trim();
+      var syncKey = (payload.sync_key || "").trim().toLowerCase();
       if (!syncKey) {
         throw new Error("同步金鑰不可為空");
       }
+      
+      syncKey = resolveMasterKey(ss, syncKey);
+      
       var sheet = ss.getSheetByName("user_progress");
       if (!sheet) {
         sheet = ss.insertSheet("user_progress");
@@ -374,6 +380,88 @@ function doPost(e) {
         sheet.appendRow([syncKey, payload.last_read || "", completedStr, nowStr]);
       }
       response = { success: true };
+    } else if (action === "linkAccount") {
+      var primaryKey = (payload.primary_key || "").trim().toLowerCase();
+      var secondaryKey = (payload.secondary_key || "").trim().toLowerCase();
+      
+      if (!primaryKey || !secondaryKey) {
+        throw new Error("主要帳號或綁定帳號不可為空");
+      }
+      
+      if (primaryKey === secondaryKey) {
+        throw new Error("無法將帳號綁定至自身");
+      }
+      
+      var resolvedPrimary = resolveMasterKey(ss, primaryKey);
+      var resolvedSecondary = resolveMasterKey(ss, secondaryKey);
+      
+      if (resolvedPrimary === resolvedSecondary) {
+        response = { success: true, message: "帳號已處於連結狀態" };
+      } else {
+        var linkSheet = ss.getSheetByName("account_links");
+        if (!linkSheet) {
+          linkSheet = ss.insertSheet("account_links");
+          linkSheet.appendRow(["login_id", "master_account_id", "linked_date"]);
+        }
+        
+        var nowStr = Utilities.formatDate(new Date(), "GMT+8", "yyyy/MM/dd HH:mm:ss");
+        
+        // Remove existing link for secondaryKey
+        var finder = linkSheet.createTextFinder(resolvedSecondary).matchEntireCell(true).useRegularExpression(false);
+        var cell = finder.findNext();
+        if (cell && cell.getColumn() === 1) {
+          linkSheet.deleteRow(cell.getRow());
+        }
+        
+        linkSheet.appendRow([resolvedSecondary, resolvedPrimary, nowStr]);
+        
+        // Merge progress: Read secondary progress and merge it into primary
+        var progressSheet = ss.getSheetByName("user_progress");
+        if (progressSheet) {
+          var primaryProgressCell = progressSheet.createTextFinder(resolvedPrimary).matchEntireCell(true).findNext();
+          var secondaryProgressCell = progressSheet.createTextFinder(resolvedSecondary).matchEntireCell(true).findNext();
+          
+          var primaryList = [];
+          var primaryLastRead = "";
+          var primaryRow = -1;
+          
+          if (primaryProgressCell) {
+            primaryRow = primaryProgressCell.getRow();
+            primaryLastRead = progressSheet.getRange(primaryRow, 2).getValue() || "";
+            var pListStr = progressSheet.getRange(primaryRow, 3).getValue();
+            if (pListStr) primaryList = JSON.parse(pListStr);
+          }
+          
+          if (secondaryProgressCell) {
+            var secondaryRow = secondaryProgressCell.getRow();
+            var secondaryLastRead = progressSheet.getRange(secondaryRow, 2).getValue() || "";
+            var sListStr = progressSheet.getRange(secondaryRow, 3).getValue();
+            var secondaryList = [];
+            if (sListStr) secondaryList = JSON.parse(sListStr);
+            
+            // Merge lists
+            var mergedMap = {};
+            primaryList.forEach(function(id) { mergedMap[id] = true; });
+            secondaryList.forEach(function(id) { mergedMap[id] = true; });
+            var mergedList = Object.keys(mergedMap);
+            
+            var finalLastRead = primaryLastRead || secondaryLastRead;
+            
+            if (primaryRow !== -1) {
+              progressSheet.getRange(primaryRow, 2).setValue(finalLastRead);
+              progressSheet.getRange(primaryRow, 3).setValue(JSON.stringify(mergedList));
+              progressSheet.getRange(primaryRow, 4).setValue(nowStr);
+            } else {
+              progressSheet.appendRow([resolvedPrimary, finalLastRead, JSON.stringify(mergedList), nowStr]);
+            }
+            
+            // Delete secondary progress record
+            progressSheet.deleteRow(secondaryRow);
+          }
+        }
+        
+        response = { success: true };
+      }
     } else {
       response = { success: false, error: "無效的操作" };
     }
@@ -457,4 +545,27 @@ function initializeDatabase() {
   }
   
   Logger.log("資料庫初始化完成！已匯入 " + rawEpisodes.length + " 集項目。");
+}
+
+function resolveMasterKey(ss, key) {
+  if (!key) return "";
+  var cleanKey = key.trim().toLowerCase();
+  
+  var sheet = ss.getSheetByName("account_links");
+  if (!sheet) {
+    sheet = ss.insertSheet("account_links");
+    sheet.appendRow(["login_id", "master_account_id", "linked_date"]);
+    return cleanKey;
+  }
+  
+  var finder = sheet.createTextFinder(cleanKey).matchEntireCell(true).useRegularExpression(false);
+  var cell = finder.findNext();
+  if (cell && cell.getColumn() === 1) {
+    var row = cell.getRow();
+    var masterId = sheet.getRange(row, 2).getValue().toString().trim().toLowerCase();
+    if (masterId && masterId !== cleanKey) {
+      return resolveMasterKey(ss, masterId);
+    }
+  }
+  return cleanKey;
 }

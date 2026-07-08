@@ -70,6 +70,25 @@
                                     <button id="manualSyncBtn" class="about-website-btn" style="flex: 1; padding: 6px; font-size: 0.7rem; border-radius: 6px; border: 1px solid var(--border-color); background: none; color: var(--text-secondary); cursor: pointer; text-align: center;">🔄 手動同步</button>
                                     <button id="logoutSyncBtn" class="about-website-btn" style="flex: 1; padding: 6px; font-size: 0.7rem; border-radius: 6px; border: 1px solid var(--border-color); background: none; color: var(--text-secondary); cursor: pointer; text-align: center;">🚪 登出帳號</button>
                                 </div>
+                                <!-- Account Linking UI -->
+                                <div id="accountLinkingContainer" style="margin-top: 6px; border-top: 1px dashed var(--border-color); padding-top: 8px; display: flex; flex-direction: column; gap: 6px;">
+                                    <div style="font-size: 0.65rem; color: var(--text-secondary);">連結其它帳號以共享進度：</div>
+                                    <button id="linkGoogleBtn" class="about-website-btn" style="padding: 6px; font-size: 0.7rem; border-radius: 6px; border: 1px solid var(--border-color); background: none; color: var(--text-secondary); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%;">
+                                        <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor">
+                                            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                                            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                                            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05"/>
+                                            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335"/>
+                                        </svg>
+                                        <span>連結 Google 帳號</span>
+                                    </button>
+                                    <button id="linkLineBtn" class="about-website-btn" style="padding: 6px; font-size: 0.7rem; border-radius: 6px; border: 1px solid #06C755; background-color: #06C755; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%;">
+                                        <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor">
+                                            <path d="M24 10.3c0-4.86-5.38-8.8-12-8.8s-12 3.94-12 8.8c0 4.36 4.27 8 10 8.7a1.07 1.07 0 0 1 .68.96c0 .48-.25 1.25-.3 1.74a.43.43 0 0 0 .66.42c1.47-.98 4.24-2.85 5.56-3.87 4.19-.34 7.4-3.52 7.4-7.95zm-15.54 2.88H7.13a.47.47 0 0 1-.47-.47V7.83a.47.47 0 0 1 .47-.47h.33a.47.47 0 0 1 .47.47v4.1h1.07a.47.47 0 0 1 .47.47v.3a.47.47 0 0 1-.47.48zm2.44 0h-.34a.47.47 0 0 1-.47-.47V7.83a.47.47 0 0 1 .47-.47h.34a.47.47 0 0 1 .47.47v4.88a.47.47 0 0 1-.47.47zm5.55 0h-.31a.48.48 0 0 1-.42-.25L13.7 9v3.71a.47.47 0 0 1-.47.47h-.34a.47.47 0 0 1-.47-.47V7.83a.47.47 0 0 1 .47-.47h.31a.48.48 0 0 1 .42.25l2.43 3.49V7.83a.47.47 0 0 1 .47-.47h.34a.47.47 0 0 1 .47.47v4.88a.47.47 0 0 1-.47.47zm3.89-1.21h-1.07V11h1.07a.47.47 0 0 1 .47.47v.3a.47.47 0 0 1-.47.48zm0-1.74h-1.07V9.1h1.07a.47.47 0 0 1 .47.47v.3a.47.47 0 0 1-.47.47zm0-1.73h-1.07V7.83h1.07a.47.47 0 0 1 .47.47v.3a.47.47 0 0 1-.47.47h.33z"/>
+                                        </svg>
+                                        <span>連結 LINE 帳號</span>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                         <div class="settings-item settings-action-item" style="border-top: 1px solid var(--border-color); border-bottom: none; padding-top: 8px; justify-content: center; flex-direction: column; gap: 8px; width: 100%; display: flex;">

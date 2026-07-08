@@ -103,6 +103,8 @@ const elements = {
     syncModalTitle: document.getElementById('syncModalTitle'),
     googleAuthBtn: document.getElementById('googleAuthBtn'),
     lineAuthBtn: document.getElementById('lineAuthBtn'),
+    linkGoogleBtn: document.getElementById('linkGoogleBtn'),
+    linkLineBtn: document.getElementById('linkLineBtn'),
     editModal: document.getElementById('editModal'),
     closeEditModalBtn: document.getElementById('closeEditModalBtn'),
     cancelEditBtn: document.getElementById('cancelEditBtn'),
@@ -149,10 +151,37 @@ document.addEventListener('DOMContentLoaded', () => {
                     liff.getProfile().then(profile => {
                         const lineUserId = "line-" + profile.userId;
                         const lineDisplayName = profile.displayName;
-                        localStorage.setItem('jingsi_sync_key', lineUserId);
-                        updateSyncUI();
-                        if (elements.syncAccountNameDisplay) {
-                            elements.syncAccountNameDisplay.textContent = `LINE (${lineDisplayName})`;
+                        
+                        const pendingLinkPrimary = localStorage.getItem('jingsi_link_line_pending');
+                        if (pendingLinkPrimary) {
+                            localStorage.removeItem('jingsi_link_line_pending');
+                            
+                            fetch(GOOGLE_SCRIPT_URL, {
+                                method: 'POST',
+                                body: JSON.stringify({
+                                    action: 'linkAccount',
+                                    primary_key: pendingLinkPrimary,
+                                    secondary_key: lineUserId
+                                })
+                            })
+                            .then(r => r.json())
+                            .then(res => {
+                                if (res.success) {
+                                    alert(`成功將 LINE 帳號 (${lineDisplayName}) 連結至目前進度！\n兩邊帳號已完成共享。`);
+                                    localStorage.setItem('jingsi_sync_key', pendingLinkPrimary);
+                                    updateSyncUI();
+                                    downloadCloudSync(true);
+                                } else {
+                                    alert("連結 LINE 失敗：" + (res.error || "未知錯誤"));
+                                }
+                            })
+                            .catch(err => console.error("Pending link failed:", err));
+                        } else {
+                            localStorage.setItem('jingsi_sync_key', lineUserId);
+                            updateSyncUI();
+                            if (elements.syncAccountNameDisplay) {
+                                elements.syncAccountNameDisplay.textContent = `LINE (${lineDisplayName})`;
+                            }
                         }
                     });
                 }
@@ -242,7 +271,17 @@ function updateSyncUI() {
     if (syncKey) {
         elements.syncLoggedOutView.style.display = 'none';
         elements.syncLoggedInView.style.display = 'flex';
-        elements.syncAccountNameDisplay.textContent = syncKey;
+        if (syncKey.startsWith('line-')) {
+            if (!elements.syncAccountNameDisplay.textContent.startsWith('LINE (')) {
+                elements.syncAccountNameDisplay.textContent = "LINE 帳號";
+            }
+            if (elements.linkLineBtn) elements.linkLineBtn.style.display = 'none';
+            if (elements.linkGoogleBtn) elements.linkGoogleBtn.style.display = 'flex';
+        } else {
+            elements.syncAccountNameDisplay.textContent = syncKey;
+            if (elements.linkLineBtn) elements.linkLineBtn.style.display = 'flex';
+            if (elements.linkGoogleBtn) elements.linkGoogleBtn.style.display = 'none';
+        }
     } else {
         elements.syncLoggedOutView.style.display = 'flex';
         elements.syncLoggedInView.style.display = 'none';
@@ -1366,6 +1405,88 @@ function initEventListeners() {
                 console.error("LINE LIFF SDK failed:", e);
                 alert("無法載入 LINE 登入模組，請確認網路！");
             }
+    }
+
+    // Account Linking Helpers and Listeners
+    const callLinkAccountAPI = (primary, secondary, successMessage) => {
+        if (!primary || !secondary) return;
+        return fetch(GOOGLE_SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify({
+                action: 'linkAccount',
+                primary_key: primary,
+                secondary_key: secondary
+            })
+        })
+        .then(r => r.json())
+        .then(res => {
+            if (res.success) {
+                alert(successMessage);
+                downloadCloudSync(true);
+            } else {
+                alert("帳號連結失敗：" + (res.error || "未知錯誤"));
+            }
+        })
+        .catch(err => {
+            console.error("Account link API failed:", err);
+            alert("伺服器連線失敗，請檢查網路！");
+        });
+    };
+
+    if (elements.linkGoogleBtn) {
+        elements.linkGoogleBtn.addEventListener('click', () => {
+            if (!GOOGLE_CLIENT_ID || GOOGLE_CLIENT_ID === "") {
+                alert("本站已支援連結 Google 帳號！請於設定中填入 Google Client ID 即可啟用。");
+                return;
+            }
+            const currentSyncKey = localStorage.getItem('jingsi_sync_key');
+            if (!currentSyncKey) return;
+            
+            google.accounts.id.initialize({
+                client_id: GOOGLE_CLIENT_ID,
+                callback: (response) => {
+                    try {
+                        const token = response.credential;
+                        const payload = JSON.parse(atob(token.split('.')[1]));
+                        const email = payload.email;
+                        if (email) {
+                            callLinkAccountAPI(currentSyncKey, email, `成功將 Google 帳號 (${email}) 連結至目前進度！\n兩邊帳號已完成共享。`);
+                        }
+                    } catch(e) {
+                        alert("解析 Google 憑證失敗！");
+                    }
+                },
+                auto_select: false
+            });
+            google.accounts.id.prompt();
+        });
+    }
+
+    if (elements.linkLineBtn) {
+        elements.linkLineBtn.addEventListener('click', () => {
+            if (!LINE_LIFF_ID || LINE_LIFF_ID === "") {
+                alert("本站已支援連結 LINE 帳號！請於設定中填入 LINE LIFF ID 即可啟用。");
+                return;
+            }
+            const currentSyncKey = localStorage.getItem('jingsi_sync_key');
+            if (!currentSyncKey) return;
+            
+            liff.init({ liffId: LINE_LIFF_ID })
+                .then(() => {
+                    if (liff.isLoggedIn()) {
+                        liff.getProfile().then(profile => {
+                            const lineUserId = "line-" + profile.userId;
+                            const lineDisplayName = profile.displayName;
+                            callLinkAccountAPI(currentSyncKey, lineUserId, `成功將 LINE 帳號 (${lineDisplayName}) 連結至目前進度！\n兩邊帳號已完成共享。`);
+                        });
+                    } else {
+                        localStorage.setItem('jingsi_link_line_pending', currentSyncKey);
+                        liff.login();
+                    }
+                })
+                .catch(err => {
+                    alert("LINE 登入模組載入失敗！");
+                });
         });
     }
 }
