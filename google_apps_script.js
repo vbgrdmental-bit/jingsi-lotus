@@ -186,6 +186,30 @@ function doGet(e) {
       }
       
       response = { success: true, data: list };
+    } else if (action === "getUserProgress") {
+      var syncKey = (e.parameter.sync_key || "").trim().toLowerCase();
+      if (!syncKey) {
+        throw new Error("同步金鑰不可為空");
+      }
+      var sheet = ss.getSheetByName("user_progress");
+      if (!sheet) {
+        sheet = ss.insertSheet("user_progress");
+        sheet.appendRow(["sync_key", "last_read", "completed_list", "last_updated"]);
+      }
+      var data = sheet.getDataRange().getValues();
+      var found = null;
+      for (var i = 1; i < data.length; i++) {
+        if (String(data[i][0]).toLowerCase().trim() === syncKey) {
+          found = {
+            sync_key: data[i][0],
+            last_read: data[i][1] || "",
+            completed_list: data[i][2] ? JSON.parse(data[i][2]) : [],
+            last_updated: data[i][3] || ""
+          };
+          break;
+        }
+      }
+      response = { success: true, data: found };
     } else {
       response = { success: false, error: "無效的操作" };
     }
@@ -320,6 +344,36 @@ function doPost(e) {
       } else {
         response = { success: false, error: "找不到該導讀 " + preReadId };
       }
+    } else if (action === "saveUserProgress") {
+      var syncKey = (payload.sync_key || "").trim();
+      if (!syncKey) {
+        throw new Error("同步金鑰不可為空");
+      }
+      var sheet = ss.getSheetByName("user_progress");
+      if (!sheet) {
+        sheet = ss.insertSheet("user_progress");
+        sheet.appendRow(["sync_key", "last_read", "completed_list", "last_updated"]);
+      }
+      var data = sheet.getDataRange().getValues();
+      var foundRow = -1;
+      for (var i = 1; i < data.length; i++) {
+        if (String(data[i][0]).toLowerCase().trim() === syncKey.toLowerCase()) {
+          foundRow = i + 1;
+          break;
+        }
+      }
+      
+      var nowStr = Utilities.formatDate(new Date(), "GMT+8", "yyyy/MM/dd HH:mm:ss");
+      var completedStr = JSON.stringify(payload.completed_list || []);
+      
+      if (foundRow !== -1) {
+        sheet.getRange(foundRow, 2).setValue(payload.last_read || "");
+        sheet.getRange(foundRow, 3).setValue(completedStr);
+        sheet.getRange(foundRow, 4).setValue(nowStr);
+      } else {
+        sheet.appendRow([syncKey, payload.last_read || "", completedStr, nowStr]);
+      }
+      response = { success: true };
     } else {
       response = { success: false, error: "無效的操作" };
     }

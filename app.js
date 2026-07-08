@@ -81,6 +81,10 @@ const elements = {
     aboutWebsiteModal: document.getElementById('aboutWebsiteModal'),
     closeAboutBtn: document.getElementById('closeAboutBtn'),
     understandAboutBtn: document.getElementById('understandAboutBtn'),
+    syncKeyInput: document.getElementById('syncKeyInput'),
+    saveSyncKeyBtn: document.getElementById('saveSyncKeyBtn'),
+    uploadSyncBtn: document.getElementById('uploadSyncBtn'),
+    downloadSyncBtn: document.getElementById('downloadSyncBtn'),
     editModal: document.getElementById('editModal'),
     closeEditModalBtn: document.getElementById('closeEditModalBtn'),
     cancelEditBtn: document.getElementById('cancelEditBtn'),
@@ -188,12 +192,39 @@ function loadSettingsFromStorage() {
             }
         }
     }
+
+    // 4. Sync Key
+    const savedSyncKey = localStorage.getItem('jingsi_sync_key');
+    if (savedSyncKey && elements.syncKeyInput) {
+        elements.syncKeyInput.value = savedSyncKey;
+    }
 }
 
 // Save progress to LocalStorage
 function saveProgress() {
     localStorage.setItem('jingsi_progress', JSON.stringify(appState.progress));
     updateGlobalProgressBar();
+
+    // Auto-sync in the background if sync key exists!
+    const syncKey = localStorage.getItem('jingsi_sync_key');
+    if (syncKey && typeof GOOGLE_SCRIPT_URL !== 'undefined' && GOOGLE_SCRIPT_URL !== "") {
+        const payload = {
+            sync_key: syncKey,
+            last_read: appState.progress.lastRead || "",
+            completed_list: Object.keys(appState.progress.completed)
+        };
+        fetch(`${GOOGLE_SCRIPT_URL}?action=saveUserProgress`, {
+            method: 'POST',
+            body: JSON.stringify(payload)
+        })
+        .then(r => r.json())
+        .then(res => {
+            if (res.success) {
+                console.log("Reading progress auto-synced to cloud.");
+            }
+        })
+        .catch(err => console.warn("Failed to auto-sync progress:", err));
+    }
 }
 
 // Initialize Theme
@@ -924,6 +955,145 @@ function initEventListeners() {
             });
         });
     }
+
+    // ----------------- Cross-Device Progress Sync Event Bindings -----------------
+    const uploadCloudSync = () => {
+        const syncKey = (elements.syncKeyInput ? elements.syncKeyInput.value : "").trim();
+        if (!syncKey) {
+            alert("請先輸入您的自訂同步金鑰！");
+            return;
+        }
+        if (typeof GOOGLE_SCRIPT_URL === 'undefined' || GOOGLE_SCRIPT_URL === "") {
+            alert("未偵測到雲端資料庫 URL，無法進行雲端同步。");
+            return;
+        }
+        
+        elements.uploadSyncBtn.disabled = true;
+        elements.uploadSyncBtn.textContent = "🔼 上傳中...";
+        
+        const payload = {
+            sync_key: syncKey,
+            last_read: appState.progress.lastRead || "",
+            completed_list: Object.keys(appState.progress.completed)
+        };
+        
+        fetch(`${GOOGLE_SCRIPT_URL}?action=saveUserProgress`, {
+            method: 'POST',
+            body: JSON.stringify(payload)
+        })
+        .then(r => r.json())
+        .then(res => {
+            if (res.success) {
+                alert("閱讀紀錄已成功備份至雲端！您可以在其他裝置輸入同一個金鑰點選「下載同步」來同步紀錄。");
+            } else {
+                alert("備份失敗：" + (res.error || "未知錯誤"));
+            }
+        })
+        .catch(err => {
+            console.error("Upload sync failed:", err);
+            alert("上傳失敗，請檢查網路連線！");
+        })
+        .finally(() => {
+            elements.uploadSyncBtn.disabled = false;
+            elements.uploadSyncBtn.textContent = "🔼 上傳進度";
+        });
+    };
+
+    const downloadCloudSync = (quiet = false) => {
+        const syncKey = (elements.syncKeyInput ? elements.syncKeyInput.value : "").trim();
+        if (!syncKey) {
+            if (!quiet) alert("請先輸入您的自訂同步金鑰！");
+            return Promise.resolve();
+        }
+        if (typeof GOOGLE_SCRIPT_URL === 'undefined' || GOOGLE_SCRIPT_URL === "") {
+            if (!quiet) alert("未偵測到雲端資料庫 URL，無法進行雲端同步。");
+            return Promise.resolve();
+        }
+        
+        if (!quiet) {
+            elements.downloadSyncBtn.disabled = true;
+            elements.downloadSyncBtn.textContent = "🔽 同步中...";
+        }
+        
+        return fetch(`${GOOGLE_SCRIPT_URL}?action=getUserProgress&sync_key=${encodeURIComponent(syncKey)}`)
+            .then(r => r.json())
+            .then(res => {
+                if (res.success && res.data) {
+                    const cloudData = res.data;
+                    let hasChanges = false;
+                    
+                    if (cloudData.last_read && cloudData.last_read !== appState.progress.lastRead) {
+                        appState.progress.lastRead = cloudData.last_read;
+                        hasChanges = true;
+                    }
+                    
+                    if (Array.isArray(cloudData.completed_list)) {
+                        cloudData.completed_list.forEach(id => {
+                            if (!appState.progress.completed[id]) {
+                                appState.progress.completed[id] = true;
+                                hasChanges = true;
+                            }
+                        });
+                    }
+                    
+                    if (hasChanges) {
+                        localStorage.setItem('jingsi_progress', JSON.stringify(appState.progress));
+                        updateGlobalProgressBar();
+                        if (window._renderPreReadList) window._renderPreReadList();
+                        renderChapterList();
+                        updateResumeBookmark();
+                        
+                        if (!quiet) {
+                            alert("閱讀紀錄已成功與雲端同步並合併！");
+                        }
+                    } else {
+                        if (!quiet) {
+                            alert("您的紀錄已是最新狀態，無需同步。");
+                        }
+                    }
+                } else {
+                    if (!quiet) {
+                        alert("雲端尚無此同步金鑰的紀錄，已自動為您註冊此金鑰！您可以點選「上傳進度」開始備份。");
+                    }
+                }
+            })
+            .catch(err => {
+                console.error("Download sync failed:", err);
+                if (!quiet) {
+                    alert("下載同步失敗，請檢查網路連線！");
+                }
+            })
+            .finally(() => {
+                if (!quiet) {
+                    elements.downloadSyncBtn.disabled = false;
+                    elements.downloadSyncBtn.textContent = "🔽 下載同步";
+                }
+            });
+    };
+
+    // Expose downloadCloudSync globally so it can be called on page load
+    window._downloadCloudSync = downloadCloudSync;
+
+    if (elements.saveSyncKeyBtn) {
+        elements.saveSyncKeyBtn.addEventListener('click', () => {
+            const val = (elements.syncKeyInput ? elements.syncKeyInput.value : "").trim();
+            if (!val) {
+                alert("請輸入金鑰！");
+                return;
+            }
+            localStorage.setItem('jingsi_sync_key', val);
+            alert("同步金鑰已儲存！系統將會為您下載雲端上此金鑰的紀錄，並在您往後閱讀時自動在背景備份。");
+            downloadCloudSync(false);
+        });
+    }
+
+    if (elements.uploadSyncBtn) {
+        elements.uploadSyncBtn.addEventListener('click', uploadCloudSync);
+    }
+
+    if (elements.downloadSyncBtn) {
+        elements.downloadSyncBtn.addEventListener('click', () => downloadCloudSync(false));
+    }
 }
 
 function saveLocalEditBackup(payload) {
@@ -1454,6 +1624,11 @@ function fetchMetadata() {
 
             // Handle URL Query Parameter routing for SEO
             handleUrlRouting();
+
+            // Automatically download latest progress in the background if sync key exists!
+            if (window._downloadCloudSync) {
+                window._downloadCloudSync(true);
+            }
         })
         .catch(err => {
             console.error("Error loading metadata", err);
