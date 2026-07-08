@@ -147,6 +147,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (typeof LINE_LIFF_ID !== 'undefined' && LINE_LIFF_ID !== "" && typeof liff !== 'undefined') {
         liff.init({ liffId: LINE_LIFF_ID })
             .then(() => {
+                window._liffInitialized = true;
                 if (liff.isLoggedIn()) {
                     liff.getProfile().then(profile => {
                         const lineUserId = "line-" + profile.userId;
@@ -182,6 +183,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             if (elements.syncAccountNameDisplay) {
                                 elements.syncAccountNameDisplay.textContent = `LINE (${lineDisplayName})`;
                             }
+                            downloadCloudSync(true);
                         }
                     });
                 }
@@ -190,6 +192,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     fetchMetadata();
+
+    // Automatically trigger cloud download on page load if logged in with Google/Custom account
+    const currentSyncKey = localStorage.getItem('jingsi_sync_key');
+    if (currentSyncKey && !currentSyncKey.startsWith('line-')) {
+        downloadCloudSync(true);
+    }
 
     // Sync localStorage edits to disk automatically on localhost
     if (isLocalEnvironment()) {
@@ -342,6 +350,101 @@ function setThemeMode(isLight) {
     }
     localStorage.setItem('jingsi_theme', appState.theme);
 }
+
+// ----------------- Cross-Device Progress Sync Core Functions -----------------
+function uploadCloudSync(quiet = false) {
+    const syncKey = localStorage.getItem('jingsi_sync_key');
+    if (!syncKey) return Promise.resolve();
+    
+    if (typeof GOOGLE_SCRIPT_URL === 'undefined' || GOOGLE_SCRIPT_URL === "") {
+        return Promise.resolve();
+    }
+    
+    const payload = {
+        sync_key: syncKey,
+        last_read: appState.progress.lastRead || "",
+        completed_list: Object.keys(appState.progress.completed)
+    };
+    
+    return fetch(`${GOOGLE_SCRIPT_URL}?action=saveUserProgress`, {
+        method: 'POST',
+        body: JSON.stringify(payload)
+    })
+    .then(r => r.json())
+    .then(res => {
+        if (res.success) {
+            console.log("Progress saved to cloud.");
+            if (!quiet) alert("手動上傳備份成功！");
+        } else {
+            if (!quiet) alert("備份失敗：" + (res.error || "未知錯誤"));
+        }
+    })
+    .catch(err => {
+        console.error("Upload sync failed:", err);
+        if (!quiet) alert("上傳失敗，請檢查網路連線！");
+    });
+}
+
+function downloadCloudSync(quiet = false) {
+    const syncKey = localStorage.getItem('jingsi_sync_key');
+    if (!syncKey) return Promise.resolve();
+    
+    if (typeof GOOGLE_SCRIPT_URL === 'undefined' || GOOGLE_SCRIPT_URL === "") {
+        return Promise.resolve();
+    }
+    
+    if (!quiet && elements.manualSyncBtn) {
+        elements.manualSyncBtn.disabled = true;
+        elements.manualSyncBtn.textContent = "🔄 同步中...";
+    }
+    
+    return fetch(`${GOOGLE_SCRIPT_URL}?action=getUserProgress&sync_key=${encodeURIComponent(syncKey)}`)
+        .then(r => r.json())
+        .then(res => {
+            if (res.success && res.data) {
+                const cloudData = res.data;
+                let hasChanges = false;
+                
+                if (cloudData.last_read && cloudData.last_read !== appState.progress.lastRead) {
+                    appState.progress.lastRead = cloudData.last_read;
+                    hasChanges = true;
+                }
+                
+                if (Array.isArray(cloudData.completed_list)) {
+                    cloudData.completed_list.forEach(id => {
+                        if (!appState.progress.completed[id]) {
+                            appState.progress.completed[id] = true;
+                            hasChanges = true;
+                        }
+                    });
+                }
+                
+                if (hasChanges) {
+                    localStorage.setItem('jingsi_progress', JSON.stringify(appState.progress));
+                    updateGlobalProgressBar();
+                    if (window._renderPreReadList) window._renderPreReadList();
+                    renderChapterList();
+                    updateResumeBookmark();
+                    
+                    if (!quiet) {
+                        alert("閱讀紀錄已成功與雲端同步並合併！");
+                    }
+                } else {
+                    if (!quiet) {
+                        alert("您的紀錄已是最新狀態，無需同步。");
+                    }
+                }
+            }
+        })
+        .finally(() => {
+            if (!quiet && elements.manualSyncBtn) {
+                elements.manualSyncBtn.disabled = false;
+                elements.manualSyncBtn.textContent = "🔄 手動同步";
+            }
+        });
+}
+
+window._downloadCloudSync = downloadCloudSync;
 
 // Bind UI Listeners
 function initEventListeners() {
@@ -1048,100 +1151,6 @@ function initEventListeners() {
     // ----------------- Cross-Device Progress Sync Event Bindings -----------------
     let isRegisterTab = false; // Default to Login tab
 
-    const uploadCloudSync = (quiet = false) => {
-        const syncKey = localStorage.getItem('jingsi_sync_key');
-        if (!syncKey) return Promise.resolve();
-        
-        if (typeof GOOGLE_SCRIPT_URL === 'undefined' || GOOGLE_SCRIPT_URL === "") {
-            return Promise.resolve();
-        }
-        
-        const payload = {
-            sync_key: syncKey,
-            last_read: appState.progress.lastRead || "",
-            completed_list: Object.keys(appState.progress.completed)
-        };
-        
-        return fetch(`${GOOGLE_SCRIPT_URL}?action=saveUserProgress`, {
-            method: 'POST',
-            body: JSON.stringify(payload)
-        })
-        .then(r => r.json())
-        .then(res => {
-            if (res.success) {
-                console.log("Progress saved to cloud.");
-                if (!quiet) alert("手動上傳備份成功！");
-            } else {
-                if (!quiet) alert("備份失敗：" + (res.error || "未知錯誤"));
-            }
-        })
-        .catch(err => {
-            console.error("Upload sync failed:", err);
-            if (!quiet) alert("上傳失敗，請檢查網路連線！");
-        });
-    };
-
-    const downloadCloudSync = (quiet = false) => {
-        const syncKey = localStorage.getItem('jingsi_sync_key');
-        if (!syncKey) return Promise.resolve();
-        
-        if (typeof GOOGLE_SCRIPT_URL === 'undefined' || GOOGLE_SCRIPT_URL === "") {
-            return Promise.resolve();
-        }
-        
-        if (!quiet && elements.manualSyncBtn) {
-            elements.manualSyncBtn.disabled = true;
-            elements.manualSyncBtn.textContent = "🔄 同步中...";
-        }
-        
-        return fetch(`${GOOGLE_SCRIPT_URL}?action=getUserProgress&sync_key=${encodeURIComponent(syncKey)}`)
-            .then(r => r.json())
-            .then(res => {
-                if (res.success && res.data) {
-                    const cloudData = res.data;
-                    let hasChanges = false;
-                    
-                    if (cloudData.last_read && cloudData.last_read !== appState.progress.lastRead) {
-                        appState.progress.lastRead = cloudData.last_read;
-                        hasChanges = true;
-                    }
-                    
-                    if (Array.isArray(cloudData.completed_list)) {
-                        cloudData.completed_list.forEach(id => {
-                            if (!appState.progress.completed[id]) {
-                                appState.progress.completed[id] = true;
-                                hasChanges = true;
-                            }
-                        });
-                    }
-                    
-                    if (hasChanges) {
-                        localStorage.setItem('jingsi_progress', JSON.stringify(appState.progress));
-                        updateGlobalProgressBar();
-                        if (window._renderPreReadList) window._renderPreReadList();
-                        renderChapterList();
-                        updateResumeBookmark();
-                        
-                        if (!quiet) {
-                            alert("閱讀紀錄已成功與雲端同步並合併！");
-                        }
-                    } else {
-                        if (!quiet) {
-                            alert("您的紀錄已是最新狀態，無需同步。");
-                        }
-                    }
-                }
-            })
-            .finally(() => {
-                if (!quiet && elements.manualSyncBtn) {
-                    elements.manualSyncBtn.disabled = false;
-                    elements.manualSyncBtn.textContent = "🔄 手動同步";
-                }
-            });
-    };
-
-    window._downloadCloudSync = downloadCloudSync;
-
     // Toggle Modal
     if (elements.openSyncModalBtn) {
         elements.openSyncModalBtn.addEventListener('click', () => {
@@ -1358,53 +1367,41 @@ function initEventListeners() {
     // LINE Sign-In Callback
     if (elements.lineAuthBtn) {
         elements.lineAuthBtn.addEventListener('click', () => {
-            if (!LINE_LIFF_ID || LINE_LIFF_ID === "") {
-                alert("【系統提示】\n本站已支援 LINE 一鍵快速同步！\n\n請創作者於專案設定中填入您申請的 LINE LIFF ID 即可正式啟用此按鈕。");
-                return;
-            }
-            try {
-                liff.init({ liffId: LINE_LIFF_ID })
-                    .then(() => {
-                        if (liff.isLoggedIn()) {
-                            liff.getProfile().then(profile => {
-                                const lineUserId = "line-" + profile.userId;
-                                const lineDisplayName = profile.displayName;
-                                
-                                elements.lineAuthBtn.disabled = true;
-                                elements.lineAuthBtn.textContent = "連線中...";
-                                
-                                localStorage.setItem('jingsi_sync_key', lineUserId);
-                                downloadCloudSync(true).then(() => {
-                                    uploadCloudSync(true).then(() => {
-                                        updateSyncUI();
-                                        if (elements.syncAccountNameDisplay) {
-                                            elements.syncAccountNameDisplay.textContent = `LINE (${lineDisplayName})`;
-                                        }
-                                        elements.syncAccountModal.classList.add('hidden');
-                                        alert(`已成功使用 LINE 帳號 (${lineDisplayName}) 同步！`);
-                                    });
-                                })
-                                .catch(err => {
-                                    console.error("LINE sync integration failed:", err);
-                                    alert("同步失敗，請確認網路連線。");
-                                })
-                                .finally(() => {
-                                    elements.lineAuthBtn.disabled = false;
-                                    elements.lineAuthBtn.textContent = "LINE 帳號登入";
-                                });
+            ensureLiffInitialized(() => {
+                if (liff.isLoggedIn()) {
+                    liff.getProfile().then(profile => {
+                        const lineUserId = "line-" + profile.userId;
+                        const lineDisplayName = profile.displayName;
+                        
+                        elements.lineAuthBtn.disabled = true;
+                        elements.lineAuthBtn.textContent = "連線中...";
+                        
+                        localStorage.setItem('jingsi_sync_key', lineUserId);
+                        downloadCloudSync(true).then(() => {
+                            uploadCloudSync(true).then(() => {
+                                updateSyncUI();
+                                if (elements.syncAccountNameDisplay) {
+                                    elements.syncAccountNameDisplay.textContent = `LINE (${lineDisplayName})`;
+                                }
+                                elements.syncAccountModal.classList.add('hidden');
+                                alert(`已成功使用 LINE 帳號 (${lineDisplayName}) 同步！`);
                             });
-                        } else {
-                            liff.login();
-                        }
-                    })
-                    .catch(err => {
-                        console.error("LINE LIFF init failed:", err);
-                        alert("LINE 登入模組初始化失敗，請確認設定或網路！");
+                        })
+                        .catch(err => {
+                            console.error("LINE sync integration failed:", err);
+                            alert("同步失敗，請確認網路連線。");
+                        })
+                        .finally(() => {
+                            elements.lineAuthBtn.disabled = false;
+                            elements.lineAuthBtn.textContent = "LINE 帳號登入";
+                        });
                     });
-            } catch (e) {
-                console.error("LINE LIFF SDK failed:", e);
-                alert("無法載入 LINE 登入模組，請確認網路！");
-            }
+                } else {
+                    liff.login();
+                }
+            }, (err) => {
+                alert("LINE 登入失敗，模組載入失敗！");
+            });
         });
     }
 
@@ -1432,6 +1429,32 @@ function initEventListeners() {
             console.error("Account link API failed:", err);
             alert("伺服器連線失敗，請檢查網路！");
         });
+    };
+
+    const ensureLiffInitialized = (onSuccess, onError) => {
+        if (typeof LINE_LIFF_ID === 'undefined' || LINE_LIFF_ID === "") {
+            alert("本站已支援 LINE 登入！請於設定中填入 LINE LIFF ID 即可啟用。");
+            return;
+        }
+        if (window._liffInitialized) {
+            onSuccess();
+        } else {
+            try {
+                liff.init({ liffId: LINE_LIFF_ID })
+                    .then(() => {
+                        window._liffInitialized = true;
+                        onSuccess();
+                    })
+                    .catch(err => {
+                        console.error("LINE LIFF init failed:", err);
+                        if (onError) onError(err);
+                        else alert("LINE 登入模組初始化失敗，請確認設定或網路！");
+                    });
+            } catch (e) {
+                console.error("LINE LIFF SDK failed:", e);
+                alert("無法載入 LINE 登入模組，請確認網路！");
+            }
+        }
     };
 
     if (elements.linkGoogleBtn) {
@@ -1465,29 +1488,23 @@ function initEventListeners() {
 
     if (elements.linkLineBtn) {
         elements.linkLineBtn.addEventListener('click', () => {
-            if (!LINE_LIFF_ID || LINE_LIFF_ID === "") {
-                alert("本站已支援連結 LINE 帳號！請於設定中填入 LINE LIFF ID 即可啟用。");
-                return;
-            }
             const currentSyncKey = localStorage.getItem('jingsi_sync_key');
             if (!currentSyncKey) return;
             
-            liff.init({ liffId: LINE_LIFF_ID })
-                .then(() => {
-                    if (liff.isLoggedIn()) {
-                        liff.getProfile().then(profile => {
-                            const lineUserId = "line-" + profile.userId;
-                            const lineDisplayName = profile.displayName;
-                            callLinkAccountAPI(currentSyncKey, lineUserId, `成功將 LINE 帳號 (${lineDisplayName}) 連結至目前進度！\n兩邊帳號已完成共享。`);
-                        });
-                    } else {
-                        localStorage.setItem('jingsi_link_line_pending', currentSyncKey);
-                        liff.login();
-                    }
-                })
-                .catch(err => {
-                    alert("LINE 登入模組載入失敗！");
-                });
+            ensureLiffInitialized(() => {
+                if (liff.isLoggedIn()) {
+                    liff.getProfile().then(profile => {
+                        const lineUserId = "line-" + profile.userId;
+                        const lineDisplayName = profile.displayName;
+                        callLinkAccountAPI(currentSyncKey, lineUserId, `成功將 LINE 帳號 (${lineDisplayName}) 連結至目前進度！\n兩邊帳號已完成共享。`);
+                    });
+                } else {
+                    localStorage.setItem('jingsi_link_line_pending', currentSyncKey);
+                    liff.login();
+                }
+            }, (err) => {
+                alert("LINE 連結失敗，登入模組載入失敗！");
+            });
         });
     }
 }
