@@ -81,10 +81,22 @@ const elements = {
     aboutWebsiteModal: document.getElementById('aboutWebsiteModal'),
     closeAboutBtn: document.getElementById('closeAboutBtn'),
     understandAboutBtn: document.getElementById('understandAboutBtn'),
-    syncKeyInput: document.getElementById('syncKeyInput'),
-    saveSyncKeyBtn: document.getElementById('saveSyncKeyBtn'),
-    uploadSyncBtn: document.getElementById('uploadSyncBtn'),
-    downloadSyncBtn: document.getElementById('downloadSyncBtn'),
+    syncStateContainer: document.getElementById('syncStateContainer'),
+    syncLoggedOutView: document.getElementById('syncLoggedOutView'),
+    syncLoggedInView: document.getElementById('syncLoggedInView'),
+    syncAccountNameDisplay: document.getElementById('syncAccountNameDisplay'),
+    openSyncModalBtn: document.getElementById('openSyncModalBtn'),
+    manualSyncBtn: document.getElementById('manualSyncBtn'),
+    logoutSyncBtn: document.getElementById('logoutSyncBtn'),
+    syncAccountModal: document.getElementById('syncAccountModal'),
+    closeSyncModalBtn: document.getElementById('closeSyncModalBtn'),
+    syncTabLoginBtn: document.getElementById('syncTabLoginBtn'),
+    syncTabRegisterBtn: document.getElementById('syncTabRegisterBtn'),
+    syncAccountInput: document.getElementById('syncAccountInput'),
+    syncPasswordInput: document.getElementById('syncPasswordInput'),
+    syncSubmitBtn: document.getElementById('syncSubmitBtn'),
+    syncErrorMessage: document.getElementById('syncErrorMessage'),
+    syncModalTitle: document.getElementById('syncModalTitle'),
     editModal: document.getElementById('editModal'),
     closeEditModalBtn: document.getElementById('closeEditModalBtn'),
     cancelEditBtn: document.getElementById('cancelEditBtn'),
@@ -194,19 +206,21 @@ function loadSettingsFromStorage() {
     }
 
     // 4. Sync Key
-    let savedSyncKey = localStorage.getItem('jingsi_sync_key');
-    if (!savedSyncKey) {
-        // Auto-generate a unique 8-character random sync key
-        const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
-        let randKey = 'js-';
-        for (let i = 0; i < 8; i++) {
-            randKey += chars.charAt(Math.floor(Math.random() * chars.length));
-        }
-        savedSyncKey = randKey;
-        localStorage.setItem('jingsi_sync_key', randKey);
-    }
-    if (elements.syncKeyInput) {
-        elements.syncKeyInput.value = savedSyncKey;
+    // We do not auto-generate a key anymore; they can choose to log in to sync or browse anonymously.
+    updateSyncUI();
+}
+
+function updateSyncUI() {
+    if (!elements.syncLoggedOutView) return;
+    const syncKey = localStorage.getItem('jingsi_sync_key');
+    if (syncKey) {
+        elements.syncLoggedOutView.style.display = 'none';
+        elements.syncLoggedInView.style.display = 'flex';
+        elements.syncAccountNameDisplay.textContent = syncKey;
+    } else {
+        elements.syncLoggedOutView.style.display = 'flex';
+        elements.syncLoggedInView.style.display = 'none';
+        elements.syncAccountNameDisplay.textContent = '';
     }
 }
 
@@ -967,19 +981,15 @@ function initEventListeners() {
     }
 
     // ----------------- Cross-Device Progress Sync Event Bindings -----------------
-    const uploadCloudSync = () => {
-        const syncKey = (elements.syncKeyInput ? elements.syncKeyInput.value : "").trim();
-        if (!syncKey) {
-            alert("請先輸入您的自訂同步金鑰！");
-            return;
-        }
-        if (typeof GOOGLE_SCRIPT_URL === 'undefined' || GOOGLE_SCRIPT_URL === "") {
-            alert("未偵測到雲端資料庫 URL，無法進行雲端同步。");
-            return;
-        }
+    let isRegisterTab = false; // Default to Login tab
+
+    const uploadCloudSync = (quiet = false) => {
+        const syncKey = localStorage.getItem('jingsi_sync_key');
+        if (!syncKey) return Promise.resolve();
         
-        elements.uploadSyncBtn.disabled = true;
-        elements.uploadSyncBtn.textContent = "🔼 上傳中...";
+        if (typeof GOOGLE_SCRIPT_URL === 'undefined' || GOOGLE_SCRIPT_URL === "") {
+            return Promise.resolve();
+        }
         
         const payload = {
             sync_key: syncKey,
@@ -987,42 +997,36 @@ function initEventListeners() {
             completed_list: Object.keys(appState.progress.completed)
         };
         
-        fetch(`${GOOGLE_SCRIPT_URL}?action=saveUserProgress`, {
+        return fetch(`${GOOGLE_SCRIPT_URL}?action=saveUserProgress`, {
             method: 'POST',
             body: JSON.stringify(payload)
         })
         .then(r => r.json())
         .then(res => {
             if (res.success) {
-                alert("閱讀紀錄已成功備份至雲端！您可以在其他裝置輸入同一個金鑰點選「下載同步」來同步紀錄。");
+                console.log("Progress saved to cloud.");
+                if (!quiet) alert("手動上傳備份成功！");
             } else {
-                alert("備份失敗：" + (res.error || "未知錯誤"));
+                if (!quiet) alert("備份失敗：" + (res.error || "未知錯誤"));
             }
         })
         .catch(err => {
             console.error("Upload sync failed:", err);
-            alert("上傳失敗，請檢查網路連線！");
-        })
-        .finally(() => {
-            elements.uploadSyncBtn.disabled = false;
-            elements.uploadSyncBtn.textContent = "🔼 上傳進度";
+            if (!quiet) alert("上傳失敗，請檢查網路連線！");
         });
     };
 
     const downloadCloudSync = (quiet = false) => {
-        const syncKey = (elements.syncKeyInput ? elements.syncKeyInput.value : "").trim();
-        if (!syncKey) {
-            if (!quiet) alert("請先輸入您的自訂同步金鑰！");
-            return Promise.resolve();
-        }
+        const syncKey = localStorage.getItem('jingsi_sync_key');
+        if (!syncKey) return Promise.resolve();
+        
         if (typeof GOOGLE_SCRIPT_URL === 'undefined' || GOOGLE_SCRIPT_URL === "") {
-            if (!quiet) alert("未偵測到雲端資料庫 URL，無法進行雲端同步。");
             return Promise.resolve();
         }
         
-        if (!quiet) {
-            elements.downloadSyncBtn.disabled = true;
-            elements.downloadSyncBtn.textContent = "🔽 同步中...";
+        if (!quiet && elements.manualSyncBtn) {
+            elements.manualSyncBtn.disabled = true;
+            elements.manualSyncBtn.textContent = "🔄 同步中...";
         }
         
         return fetch(`${GOOGLE_SCRIPT_URL}?action=getUserProgress&sync_key=${encodeURIComponent(syncKey)}`)
@@ -1061,48 +1065,176 @@ function initEventListeners() {
                             alert("您的紀錄已是最新狀態，無需同步。");
                         }
                     }
-                } else {
-                    if (!quiet) {
-                        alert("雲端尚無此同步金鑰的紀錄，已自動為您註冊此金鑰！您可以點選「上傳進度」開始備份。");
-                    }
-                }
-            })
-            .catch(err => {
-                console.error("Download sync failed:", err);
-                if (!quiet) {
-                    alert("下載同步失敗，請檢查網路連線！");
                 }
             })
             .finally(() => {
-                if (!quiet) {
-                    elements.downloadSyncBtn.disabled = false;
-                    elements.downloadSyncBtn.textContent = "🔽 下載同步";
+                if (!quiet && elements.manualSyncBtn) {
+                    elements.manualSyncBtn.disabled = false;
+                    elements.manualSyncBtn.textContent = "🔄 手動同步";
                 }
             });
     };
 
-    // Expose downloadCloudSync globally so it can be called on page load
     window._downloadCloudSync = downloadCloudSync;
 
-    if (elements.saveSyncKeyBtn) {
-        elements.saveSyncKeyBtn.addEventListener('click', () => {
-            const val = (elements.syncKeyInput ? elements.syncKeyInput.value : "").trim();
-            if (!val) {
-                alert("請輸入金鑰！");
-                return;
-            }
-            localStorage.setItem('jingsi_sync_key', val);
-            alert("同步金鑰已儲存！系統將會為您下載雲端上此金鑰的紀錄，並在您往後閱讀時自動在背景備份。");
-            downloadCloudSync(false);
+    // Toggle Modal
+    if (elements.openSyncModalBtn) {
+        elements.openSyncModalBtn.addEventListener('click', () => {
+            elements.syncAccountModal.classList.remove('hidden');
+            elements.syncAccountInput.value = '';
+            elements.syncPasswordInput.value = '';
+            elements.syncErrorMessage.style.display = 'none';
+            switchSyncTab(false);
         });
     }
 
-    if (elements.uploadSyncBtn) {
-        elements.uploadSyncBtn.addEventListener('click', uploadCloudSync);
+    if (elements.closeSyncModalBtn) {
+        elements.closeSyncModalBtn.addEventListener('click', () => {
+            elements.syncAccountModal.classList.add('hidden');
+        });
     }
 
-    if (elements.downloadSyncBtn) {
-        elements.downloadSyncBtn.addEventListener('click', () => downloadCloudSync(false));
+    const switchSyncTab = (toRegister) => {
+        isRegisterTab = toRegister;
+        if (toRegister) {
+            elements.syncTabLoginBtn.style.borderBottomColor = 'transparent';
+            elements.syncTabLoginBtn.style.color = 'var(--text-secondary)';
+            elements.syncTabLoginBtn.style.fontWeight = 'normal';
+            
+            elements.syncTabRegisterBtn.style.borderBottomColor = 'var(--accent-color)';
+            elements.syncTabRegisterBtn.style.color = 'var(--text-color)';
+            elements.syncTabRegisterBtn.style.fontWeight = '500';
+            
+            elements.syncModalTitle.textContent = "註冊新同步帳號";
+            elements.syncSubmitBtn.textContent = "立即註冊";
+        } else {
+            elements.syncTabLoginBtn.style.borderBottomColor = 'var(--accent-color)';
+            elements.syncTabLoginBtn.style.color = 'var(--text-color)';
+            elements.syncTabLoginBtn.style.fontWeight = '500';
+            
+            elements.syncTabRegisterBtn.style.borderBottomColor = 'transparent';
+            elements.syncTabRegisterBtn.style.color = 'var(--text-secondary)';
+            elements.syncTabRegisterBtn.style.fontWeight = 'normal';
+            
+            elements.syncModalTitle.textContent = "登入同步帳號";
+            elements.syncSubmitBtn.textContent = "立即登入";
+        }
+        elements.syncErrorMessage.style.display = 'none';
+    };
+
+    if (elements.syncTabLoginBtn) {
+        elements.syncTabLoginBtn.addEventListener('click', () => switchSyncTab(false));
+    }
+    if (elements.syncTabRegisterBtn) {
+        elements.syncTabRegisterBtn.addEventListener('click', () => switchSyncTab(true));
+    }
+
+    // Submit Logic
+    if (elements.syncSubmitBtn) {
+        elements.syncSubmitBtn.addEventListener('click', () => {
+            const accountId = elements.syncAccountInput.value.trim();
+            const password = elements.syncPasswordInput.value.trim();
+            
+            if (!accountId || !password) {
+                elements.syncErrorMessage.textContent = "帳號與密碼欄位不可為空！";
+                elements.syncErrorMessage.style.display = 'block';
+                return;
+            }
+
+            if (accountId.length < 3) {
+                elements.syncErrorMessage.textContent = "帳號長度需至少為 3 個字元！";
+                elements.syncErrorMessage.style.display = 'block';
+                return;
+            }
+
+            elements.syncSubmitBtn.disabled = true;
+            elements.syncSubmitBtn.textContent = isRegisterTab ? "註冊中..." : "登入中...";
+            elements.syncErrorMessage.style.display = 'none';
+
+            const action = isRegisterTab ? "registerUser" : "loginUser";
+            const payload = {
+                action: action,
+                account_id: accountId,
+                password: password
+            };
+
+            fetch(GOOGLE_SCRIPT_URL, {
+                method: 'POST',
+                body: JSON.stringify(payload)
+            })
+            .then(r => r.json())
+            .then(res => {
+                if (res.success) {
+                    localStorage.setItem('jingsi_sync_key', accountId);
+                    updateSyncUI();
+                    elements.syncAccountModal.classList.add('hidden');
+                    
+                    if (isRegisterTab) {
+                        uploadCloudSync(true).then(() => {
+                            alert("註冊成功！已自動將您的本地紀錄同步至新帳號中！");
+                        });
+                    } else {
+                        if (res.data) {
+                            const cloudData = res.data;
+                            let hasChanges = false;
+                            
+                            if (cloudData.last_read && cloudData.last_read !== appState.progress.lastRead) {
+                                appState.progress.lastRead = cloudData.last_read;
+                                hasChanges = true;
+                            }
+                            
+                            if (Array.isArray(cloudData.completed_list)) {
+                                cloudData.completed_list.forEach(id => {
+                                    if (!appState.progress.completed[id]) {
+                                        appState.progress.completed[id] = true;
+                                        hasChanges = true;
+                                    }
+                                });
+                            }
+                            
+                            localStorage.setItem('jingsi_progress', JSON.stringify(appState.progress));
+                            updateGlobalProgressBar();
+                            if (window._renderPreReadList) window._renderPreReadList();
+                            renderChapterList();
+                            updateResumeBookmark();
+                        }
+                        alert("登入成功！已成功連線並合併您的閱讀紀錄！");
+                    }
+                } else {
+                    elements.syncErrorMessage.textContent = res.error || "操作失敗";
+                    elements.syncErrorMessage.style.display = 'block';
+                }
+            })
+            .catch(err => {
+                console.error("Sync auth error:", err);
+                elements.syncErrorMessage.textContent = "連線失敗，請檢查網路！";
+                elements.syncErrorMessage.style.display = 'block';
+            })
+            .finally(() => {
+                elements.syncSubmitBtn.disabled = false;
+                elements.syncSubmitBtn.textContent = isRegisterTab ? "立即註冊" : "立即登入";
+            });
+        });
+    }
+
+    // Manual Sync Button
+    if (elements.manualSyncBtn) {
+        elements.manualSyncBtn.addEventListener('click', () => {
+            uploadCloudSync(true).then(() => {
+                downloadCloudSync(false);
+            });
+        });
+    }
+
+    // Logout Button
+    if (elements.logoutSyncBtn) {
+        elements.logoutSyncBtn.addEventListener('click', () => {
+            if (confirm("確定要登出此同步帳號嗎？\n登出後，您的進度將不再自動上傳備份。")) {
+                localStorage.removeItem('jingsi_sync_key');
+                updateSyncUI();
+                alert("已成功登出同步帳號。");
+            }
+        });
     }
 }
 

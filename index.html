@@ -52,15 +52,21 @@
                             </div>
                             <button id="preloadInfoBtn" class="preload-info-btn" aria-label="說明">i</button>
                         </div>
-                        <div class="settings-item" style="flex-direction: column; align-items: stretch; gap: 6px; padding: 12px 0; display: flex;">
+                        <div class="settings-item" style="flex-direction: column; align-items: stretch; gap: 6px; padding: 12px 0; display: flex;" id="syncStateContainer">
                             <div style="font-size: 0.8rem; font-weight: bold; color: var(--text-color); margin-bottom: 2px;">跨裝置進度同步</div>
-                            <div style="display: flex; gap: 6px; width: 100%;">
-                                <input type="text" id="syncKeyInput" placeholder="自訂金鑰 (如姓名/信箱)" style="flex: 1; font-size: 0.75rem; padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border-color); background-color: var(--card-bg); color: var(--text-color); outline: none;">
-                                <button id="saveSyncKeyBtn" class="btn btn-primary" style="padding: 6px 12px; font-size: 0.75rem; border-radius: 6px; white-space: nowrap; cursor: pointer; border: none; background-color: var(--accent-color); color: white; font-weight: 500;">儲存</button>
+                            <div id="syncLoggedOutView" style="display: flex; flex-direction: column; gap: 6px;">
+                                <div style="font-size: 0.72rem; color: var(--text-secondary); line-height: 1.35;">登入帳號後，您的閱讀紀錄會自動備份並在所有裝置同步。</div>
+                                <button id="openSyncModalBtn" class="btn btn-primary" style="padding: 6px 12px; font-size: 0.75rem; border-radius: 6px; cursor: pointer; border: none; background-color: var(--accent-color); color: white; font-weight: 500; text-align: center; width: 100%;">登入 / 註冊同步帳號</button>
                             </div>
-                            <div style="display: flex; gap: 8px; width: 100%; margin-top: 4px;">
-                                <button id="uploadSyncBtn" class="about-website-btn" style="flex: 1; padding: 6px; font-size: 0.7rem; border-radius: 6px; border: 1px solid var(--border-color); background: none; color: var(--text-secondary); cursor: pointer; text-align: center;">🔼 上傳進度</button>
-                                <button id="downloadSyncBtn" class="about-website-btn" style="flex: 1; padding: 6px; font-size: 0.7rem; border-radius: 6px; border: 1px solid var(--border-color); background: none; color: var(--text-secondary); cursor: pointer; text-align: center;">🔽 下載同步</button>
+                            <div id="syncLoggedInView" style="display: none; flex-direction: column; gap: 6px;">
+                                <div style="font-size: 0.72rem; color: var(--text-secondary); display: flex; align-items: center; justify-content: space-between;">
+                                    <span>帳號：<strong id="syncAccountNameDisplay" style="color: var(--text-color);"></strong></span>
+                                    <span style="font-size: 0.65rem; color: var(--accent-color); font-weight: bold;">● 已同步</span>
+                                </div>
+                                <div style="display: flex; gap: 8px; width: 100%; margin-top: 4px;">
+                                    <button id="manualSyncBtn" class="about-website-btn" style="flex: 1; padding: 6px; font-size: 0.7rem; border-radius: 6px; border: 1px solid var(--border-color); background: none; color: var(--text-secondary); cursor: pointer; text-align: center;">🔄 手動同步</button>
+                                    <button id="logoutSyncBtn" class="about-website-btn" style="flex: 1; padding: 6px; font-size: 0.7rem; border-radius: 6px; border: 1px solid var(--border-color); background: none; color: var(--text-secondary); cursor: pointer; text-align: center;">🚪 登出帳號</button>
+                                </div>
                             </div>
                         </div>
                         <div class="settings-item settings-action-item" style="border-top: 1px solid var(--border-color); border-bottom: none; padding-top: 8px; justify-content: center; flex-direction: column; gap: 8px; width: 100%; display: flex;">
@@ -483,6 +489,38 @@
             </div>
             <div class="modal-footer" style="padding-top: 10px; margin-top: 12px; border-top: 1px solid var(--border-color);">
                 <button id="understandVersionBtn" class="btn btn-primary" style="width: 100%; padding: 8px; font-size: 0.82rem; border-radius: 6px;">我知道了</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sync Account Modal -->
+    <div id="syncAccountModal" class="modal-overlay hidden" style="background-color: rgba(0, 0, 0, 0.5); backdrop-filter: blur(8px); z-index: 1100;">
+        <div class="modal-card glass-modal-card" style="max-width: 360px; padding: 24px; box-sizing: border-box; background-color: var(--card-bg); opacity: 0.95; border: 1px solid var(--border-color); border-radius: 12px;">
+            <div class="modal-header" style="padding-bottom: 12px; margin-bottom: 16px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between;">
+                <h3 id="syncModalTitle" style="font-size: 1.05rem; margin: 0; color: var(--text-color);">登入同步帳號</h3>
+                <button id="closeSyncModalBtn" class="close-modal-btn" style="font-size: 1.4rem; background: none; border: none; color: var(--text-secondary); cursor: pointer;">&times;</button>
+            </div>
+            
+            <!-- Tab Headers -->
+            <div style="display: flex; border-bottom: 1px solid var(--border-color); margin-bottom: 16px;">
+                <button id="syncTabLoginBtn" style="flex: 1; padding: 8px; background: none; border: none; border-bottom: 2px solid var(--accent-color); color: var(--text-color); font-weight: 500; font-size: 0.85rem; cursor: pointer; outline: none;">登入</button>
+                <button id="syncTabRegisterBtn" style="flex: 1; padding: 8px; background: none; border: none; border-bottom: 2px solid transparent; color: var(--text-secondary); font-size: 0.85rem; cursor: pointer; outline: none;">註冊新帳號</button>
+            </div>
+            
+            <div class="modal-body" style="display: flex; flex-direction: column; gap: 12px;">
+                <div style="display: flex; flex-direction: column; gap: 4px;">
+                    <label style="font-size: 0.75rem; color: var(--text-secondary);">帳號名稱</label>
+                    <input type="text" id="syncAccountInput" placeholder="請輸入帳號" style="font-size: 0.8rem; padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border-color); background-color: var(--bg-color); color: var(--text-color); outline: none;">
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 4px;">
+                    <label style="font-size: 0.75rem; color: var(--text-secondary);">密碼</label>
+                    <input type="password" id="syncPasswordInput" placeholder="請輸入密碼 (建議使用簡單好記的密碼)" style="font-size: 0.8rem; padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border-color); background-color: var(--bg-color); color: var(--text-color); outline: none;">
+                </div>
+                <div id="syncErrorMessage" style="font-size: 0.75rem; color: #ff5252; min-height: 16px; display: none;"></div>
+            </div>
+            
+            <div class="modal-footer" style="padding-top: 16px; margin-top: 16px; border-top: 1px solid var(--border-color);">
+                <button id="syncSubmitBtn" class="btn btn-primary" style="width: 100%; padding: 8px; font-size: 0.82rem; border-radius: 6px; background-color: var(--accent-color); color: white; border: none; cursor: pointer; font-weight: 500;">立即登入</button>
             </div>
         </div>
     </div>
