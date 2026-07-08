@@ -3984,13 +3984,13 @@ function startPreloadingDatabase() {
     
     // If it's already cached in memory, just update the label and skip fetch
     if (appState.rawEpisodesCache) {
-        elements.preloadLabel.textContent = "✅ 全文預載模式";
-        elements.preloadLabel.style.color = "var(--accent-color)";
+        elements.preloadLabel.textContent = "全文預載模式 (100%)";
+        elements.preloadLabel.style.color = "";
         return;
     }
     
-    elements.preloadLabel.textContent = "⏳ 下載中 (0%)...";
-    elements.preloadLabel.style.color = "var(--text-hint)";
+    elements.preloadLabel.textContent = "全文預載模式 (0%)";
+    elements.preloadLabel.style.color = "";
     
     fetch('./data/raw_episodes.json')
         .then(response => {
@@ -4024,12 +4024,10 @@ function startPreloadingDatabase() {
                             // Calculate percentage progress
                             if (totalBytes > 0) {
                                 const percent = Math.round((loadedBytes / totalBytes) * 100);
-                                // Update UI label
-                                elements.preloadLabel.textContent = `⏳ 下載中 (${percent}%)...`;
+                                elements.preloadLabel.textContent = `全文預載模式 (${percent}%)`;
                             } else {
-                                // If Content-Length header is missing, show loaded MB progress
                                 const loadedMB = (loadedBytes / (1024 * 1024)).toFixed(1);
-                                elements.preloadLabel.textContent = `⏳ 下載中 (${loadedMB}MB)...`;
+                                elements.preloadLabel.textContent = `全文預載模式 (${loadedMB}MB)`;
                             }
                             
                             controller.enqueue(value);
@@ -4056,13 +4054,13 @@ function startPreloadingDatabase() {
             // If the toggle checkbox was unchecked during download, abort keeping it active
             if (elements.preloadToggle && !elements.preloadToggle.checked) {
                 appState.rawEpisodesCache = null;
-                elements.preloadLabel.textContent = "雲端模式";
-                elements.preloadLabel.style.color = "var(--text-secondary)";
+                elements.preloadLabel.textContent = "全文預載模式";
+                elements.preloadLabel.style.color = "";
                 return;
             }
             
-            elements.preloadLabel.textContent = "✅ 全文預載模式";
-            elements.preloadLabel.style.color = "var(--accent-color)";
+            elements.preloadLabel.textContent = "全文預載模式 (100%)";
+            elements.preloadLabel.style.color = "";
             
             // If search is active, trigger search immediately using local cache
             if (elements.searchInput && elements.searchInput.value.trim().length > 0) {
@@ -4071,8 +4069,8 @@ function startPreloadingDatabase() {
         })
         .catch(err => {
             console.error("Failed to preload full database:", err);
-            elements.preloadLabel.textContent = "❌ 載入失敗，請確認網路連線";
-            elements.preloadLabel.style.color = "red";
+            elements.preloadLabel.textContent = "全文預載模式 ✕ 載入失敗";
+            elements.preloadLabel.style.color = "";
             if (elements.preloadToggle) {
                 elements.preloadToggle.checked = false;
             }
@@ -4084,8 +4082,8 @@ function startPreloadingDatabase() {
 function stopPreloadingDatabase() {
     appState.rawEpisodesCache = null;
     if (elements.preloadLabel) {
-        elements.preloadLabel.textContent = "雲端模式";
-        elements.preloadLabel.style.color = "var(--text-secondary)";
+        elements.preloadLabel.textContent = "全文預載模式";
+        elements.preloadLabel.style.color = "";
     }
 }
 
