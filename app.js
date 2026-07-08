@@ -291,6 +291,7 @@ function updateSyncUI() {
     const syncProviderIcons = document.getElementById('syncProviderIcons');
     const linkLineBtn = document.getElementById('linkLineBtn');
     const googleLinkBtnWrapper = document.getElementById('googleLinkBtnWrapper');
+    const accountLinkingContainer = document.getElementById('accountLinkingContainer');
     
     if (syncKey) {
         syncToggle.checked = true;
@@ -307,39 +308,100 @@ function updateSyncUI() {
             }
         }
         
+        let showGoogle = syncKey.includes('@');
+        let showLine = syncKey.startsWith('line-');
+        
+        const linkedProviders = (appState.progress && appState.progress.linkedProviders) || [];
+        if (linkedProviders.includes('google')) showGoogle = true;
+        if (linkedProviders.includes('line')) showLine = true;
+        
         if (syncProviderIcons) {
             let iconsHtml = '';
-            const linkedProviders = (appState.progress && appState.progress.linkedProviders) || [];
-            
-            let showGoogle = syncKey.includes('@') || linkedProviders.includes('google');
-            let showLine = syncKey.startsWith('line-') || linkedProviders.includes('line');
             
             if (showGoogle) {
                 iconsHtml += `
-                    <svg width="12" height="12" viewBox="0 0 24 24" style="vertical-align: middle; margin-right: 2px;" title="Google 已同步">
-                        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-                        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-                        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05"/>
-                        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335"/>
-                    </svg>
+                    <span style="display: inline-flex; align-items: center; justify-content: center; width: 15px; height: 15px; background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 4px; padding: 1.5px;" title="Google 已同步">
+                        <svg width="10" height="10" viewBox="0 0 24 24">
+                            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05"/>
+                            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335"/>
+                        </svg>
+                    </span>
                 `;
             }
             if (showLine) {
                 iconsHtml += `
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="#06C755" style="vertical-align: middle;" title="LINE 已同步">
-                        <path d="M24 10.3c0-4.86-5.38-8.8-12-8.8s-12 3.94-12 8.8c0 4.36 4.27 8 10 8.7a1.07 1.07 0 0 1 .68.96c0 .48-.25 1.25-.3 1.74a.43.43 0 0 0 .66.42c1.47-.98 4.24-2.85 5.56-3.87 4.19-.34 7.4-3.52 7.4-7.95z"/>
-                    </svg>
+                    <span style="display: inline-flex; align-items: center; justify-content: center; width: 15px; height: 15px; background-color: #06C755; border-radius: 4px; padding: 1.5px; margin-left: 2px;" title="LINE 已同步">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="white">
+                            <path d="M24 10.3c0-4.86-5.38-8.8-12-8.8s-12 3.94-12 8.8c0 4.36 4.27 8 10 8.7a1.07 1.07 0 0 1 .68.96c0 .48-.25 1.25-.3 1.74a.43.43 0 0 0 .66.42c1.47-.98 4.24-2.85 5.56-3.87 4.19-.34 7.4-3.52 7.4-7.95zm-15.54 2.88H7.13a.47.47 0 0 1-.47-.47V7.83a.47.47 0 0 1 .47-.47h.33a.47.47 0 0 1 .47.47v4.1h1.07a.47.47 0 0 1 .47.47v.3a.47.47 0 0 1-.47.48zm2.44 0h-.34a.47.47 0 0 1-.47-.47V7.83a.47.47 0 0 1 .47-.47h.34a.47.47 0 0 1 .47.47v4.88a.47.47 0 0 1-.47.47zm5.55 0h-.31a.48.48 0 0 1-.42-.25L13.7 9v3.71a.47.47 0 0 1-.47.47h-.34a.47.47 0 0 1-.47-.47V7.83a.47.47 0 0 1 .47-.47h.31a.48.48 0 0 1 .42.25l2.43 3.49V7.83a.47.47 0 0 1 .47-.47h.34a.47.47 0 0 1 .47.47v4.88a.47.47 0 0 1-.47.47zm3.89-1.21h-1.07V11h1.07a.47.47 0 0 1 .47.47v.3a.47.47 0 0 1-.47.48zm0-1.74h-1.07V9.1h1.07a.47.47 0 0 1 .47.47v.3a.47.47 0 0 1-.47.47zm0-1.73h-1.07V7.83h1.07a.47.47 0 0 1 .47.47v.3a.47.47 0 0 1-.47.47h.33z"/>
+                        </svg>
+                    </span>
                 `;
             }
             syncProviderIcons.innerHTML = iconsHtml;
         }
         
-        if (syncKey.startsWith('line-')) {
-            if (linkLineBtn) linkLineBtn.style.display = 'none';
-            if (googleLinkBtnWrapper) googleLinkBtnWrapper.style.display = 'flex';
+        // Handle linking controls visibility
+        if (showGoogle && showLine) {
+            // Both linked! Hide the entire section.
+            if (accountLinkingContainer) accountLinkingContainer.style.display = 'none';
         } else {
-            if (linkLineBtn) linkLineBtn.style.display = 'flex';
-            if (googleLinkBtnWrapper) googleLinkBtnWrapper.style.display = 'none';
+            if (accountLinkingContainer) accountLinkingContainer.style.display = 'flex';
+            
+            if (showLine) {
+                // LINE is connected, show Google link button if not connected
+                if (linkLineBtn) linkLineBtn.style.display = 'none';
+                if (googleLinkBtnWrapper) {
+                    googleLinkBtnWrapper.style.display = 'flex';
+                    if (!googleLinkBtnWrapper.querySelector('#linkGoogleBtn')) {
+                        googleLinkBtnWrapper.innerHTML = `
+                            <button id="linkGoogleBtn" class="about-website-btn" style="padding: 6px; font-size: 0.7rem; border-radius: 6px; border: 1px solid var(--border-color); background: none; color: var(--text-secondary); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; font-weight: 500;">
+                                <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                                    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                                    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05"/>
+                                    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335"/>
+                                </svg>
+                                <span>連結 Google 帳號以共享進度</span>
+                            </button>
+                        `;
+                        const dBtn = document.getElementById('linkGoogleBtn');
+                        if (dBtn) {
+                            dBtn.addEventListener('click', () => {
+                                if (!GOOGLE_CLIENT_ID || GOOGLE_CLIENT_ID === "") {
+                                    alert("本站已支援連結 Google 帳號！請於設定中填入 Google Client ID 即可啟用。");
+                                    return;
+                                }
+                                const currentSyncKey = localStorage.getItem('jingsi_sync_key');
+                                if (!currentSyncKey) return;
+                                
+                                google.accounts.id.initialize({
+                                    client_id: GOOGLE_CLIENT_ID,
+                                    callback: (response) => {
+                                        try {
+                                            const token = response.credential;
+                                            const payload = JSON.parse(atob(token.split('.')[1]));
+                                            const email = payload.email;
+                                            if (email) {
+                                                callLinkAccountAPI(currentSyncKey, email, `成功將 Google 帳號 (${email}) 連結至目前進度！\n兩邊帳號已完成共享。`);
+                                            }
+                                        } catch(e) {
+                                            alert("解析 Google 憑證失敗！");
+                                        }
+                                    },
+                                    auto_select: false
+                                });
+                                google.accounts.id.prompt();
+                            });
+                        }
+                    }
+                }
+            } else {
+                // Google is connected, show LINE link button if not connected
+                if (linkLineBtn) linkLineBtn.style.display = 'flex';
+                if (googleLinkBtnWrapper) googleLinkBtnWrapper.style.display = 'none';
+            }
         }
     } else {
         syncToggle.checked = false;
@@ -1411,34 +1473,6 @@ function initEventListeners() {
         }
     };
 
-    if (elements.linkGoogleBtn) {
-        elements.linkGoogleBtn.addEventListener('click', () => {
-            if (!GOOGLE_CLIENT_ID || GOOGLE_CLIENT_ID === "") {
-                alert("本站已支援連結 Google 帳號！請於設定中填入 Google Client ID 即可啟用。");
-                return;
-            }
-            const currentSyncKey = localStorage.getItem('jingsi_sync_key');
-            if (!currentSyncKey) return;
-            
-            google.accounts.id.initialize({
-                client_id: GOOGLE_CLIENT_ID,
-                callback: (response) => {
-                    try {
-                        const token = response.credential;
-                        const payload = JSON.parse(atob(token.split('.')[1]));
-                        const email = payload.email;
-                        if (email) {
-                            callLinkAccountAPI(currentSyncKey, email, `成功將 Google 帳號 (${email}) 連結至目前進度！\n兩邊帳號已完成共享。`);
-                        }
-                    } catch(e) {
-                        alert("解析 Google 憑證失敗！");
-                    }
-                },
-                auto_select: false
-            });
-            google.accounts.id.prompt();
-        });
-    }
 
     if (elements.linkLineBtn) {
         elements.linkLineBtn.addEventListener('click', () => {
