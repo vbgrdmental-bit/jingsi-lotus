@@ -15,7 +15,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="app.css?v=3.17">
+    <link rel="stylesheet" href="app.css?v=3.18">
 </head>
 <body class="dark-mode">
     <div class="app-container">
@@ -448,11 +448,15 @@
     <div id="versionHistoryModal" class="modal-overlay hidden" style="background-color: rgba(0, 0, 0, 0.5); backdrop-filter: blur(8px); z-index: 1100;">
         <div class="modal-card glass-modal-card" style="max-width: 420px; padding: 20px; box-sizing: border-box; background-color: var(--card-bg); opacity: 0.95; border: 1px solid var(--border-color);">
             <div class="modal-header" style="padding-bottom: 12px; margin-bottom: 12px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between;">
-                <h3 style="font-size: 1.05rem;">網頁版本更新歷程 (<span id="appVersion">v3.17</span>)</h3>
+                <h3 style="font-size: 1.05rem;">網頁版本更新歷程 (<span id="appVersion">v3.18</span>)</h3>
                 <button id="closeVersionBtn" class="close-modal-btn" style="font-size: 1.4rem;">&times;</button>
             </div>
             <div class="modal-body" style="line-height: 1.55; font-size: 0.8rem; color: var(--text-color); max-height: 60vh; overflow-y: auto; padding-right: 4px;">
                 <div class="changelog-container" style="font-size: 0.72rem; color: var(--text-secondary); line-height: 1.45; display: flex; flex-direction: column; gap: 12px;">
+                    <div>
+                        <strong style="color: var(--text-color); font-size: 0.78rem;">v3.18 (2026/07/08)</strong><br>
+                        ．實作「登入與註冊帳號」模組：訪客可自由選擇註冊專屬帳密登入，免除複製隨機代碼的繁瑣，登入後自動雙向同步。
+                    </div>
                     <div>
                         <strong style="color: var(--text-color); font-size: 0.78rem;">v3.17 (2026/07/08)</strong><br>
                         ．優化跨裝置同步：改用 Google Sheets 內建 `TextFinder` 二分速查以支援數萬人規模之流暢同步；預設自動生成唯一隨機代碼以防重名衝突。
@@ -526,6 +530,6 @@
     </div>
     
     <!-- App Logic Scripts -->
-    <script src="app.js?v=3.17"></script>
+    <script src="app.js?v=3.18"></script>
 </body>
 </html>
