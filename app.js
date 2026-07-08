@@ -2,7 +2,7 @@
 const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzBixT1lzyqQY5JqsjOfXeHwd3FD0msKQnpCwBrfpA-YfpFHuboBFABLeUXzr1KJx1-2Q/exec";
 
 // 第三方快速登入設定 (請於申請 Google Client ID 與 LINE LIFF ID 後填入以下內容以啟用)
-const GOOGLE_CLIENT_ID = ""; // 例如："12345678-abc.apps.googleusercontent.com"
+const GOOGLE_CLIENT_ID = "156335217259-n382frpln7k34j0j5v2csgphct2urtt1.apps.googleusercontent.com"; // 靜思妙蓮華 Google 登入 Client ID
 const LINE_LIFF_ID = "";     // 例如："2001234567-abcde123"
 
 // Global State Management
