@@ -1354,7 +1354,7 @@ function initEventListeners() {
                     liff.login();
                 }
             }, (err) => {
-                alert("LINE 登入失敗，模組載入失敗！");
+                alert("LINE 登入失敗，模組載入失敗！\n\n錯誤訊息：" + (err && err.message ? err.message : err));
             });
         });
     }
@@ -1457,7 +1457,7 @@ function initEventListeners() {
                     liff.login();
                 }
             }, (err) => {
-                alert("LINE 連結失敗，登入模組載入失敗！");
+                alert("LINE 連結失敗，登入模組載入失敗！\n\n錯誤訊息：" + (err && err.message ? err.message : err));
             });
         });
     }
