@@ -1405,6 +1405,7 @@ function initEventListeners() {
                 console.error("LINE LIFF SDK failed:", e);
                 alert("無法載入 LINE 登入模組，請確認網路！");
             }
+        });
     }
 
     // Account Linking Helpers and Listeners
