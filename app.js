@@ -1,6 +1,10 @@
 // Google Sheets Web App URL (leave empty "" to run in offline local JSON mode)
 const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzBixT1lzyqQY5JqsjOfXeHwd3FD0msKQnpCwBrfpA-YfpFHuboBFABLeUXzr1KJx1-2Q/exec";
 
+// 第三方快速登入設定 (請於申請 Google Client ID 與 LINE LIFF ID 後填入以下內容以啟用)
+const GOOGLE_CLIENT_ID = ""; // 例如："12345678-abc.apps.googleusercontent.com"
+const LINE_LIFF_ID = "";     // 例如："2001234567-abcde123"
+
 // Global State Management
 let APP_VERSION = "2.7"; // Fallback version, dynamically updated from stylesheet version
 let appState = {
@@ -97,6 +101,8 @@ const elements = {
     syncSubmitBtn: document.getElementById('syncSubmitBtn'),
     syncErrorMessage: document.getElementById('syncErrorMessage'),
     syncModalTitle: document.getElementById('syncModalTitle'),
+    googleAuthBtn: document.getElementById('googleAuthBtn'),
+    lineAuthBtn: document.getElementById('lineAuthBtn'),
     editModal: document.getElementById('editModal'),
     closeEditModalBtn: document.getElementById('closeEditModalBtn'),
     cancelEditBtn: document.getElementById('cancelEditBtn'),
@@ -134,6 +140,26 @@ document.addEventListener('DOMContentLoaded', () => {
     loadSettingsFromStorage();
     initTheme();
     initEventListeners();
+
+    // Automatically initialize LINE LIFF on page load if ID is configured
+    if (typeof LINE_LIFF_ID !== 'undefined' && LINE_LIFF_ID !== "" && typeof liff !== 'undefined') {
+        liff.init({ liffId: LINE_LIFF_ID })
+            .then(() => {
+                if (liff.isLoggedIn()) {
+                    liff.getProfile().then(profile => {
+                        const lineUserId = "line-" + profile.userId;
+                        const lineDisplayName = profile.displayName;
+                        localStorage.setItem('jingsi_sync_key', lineUserId);
+                        updateSyncUI();
+                        if (elements.syncAccountNameDisplay) {
+                            elements.syncAccountNameDisplay.textContent = `LINE (${lineDisplayName})`;
+                        }
+                    });
+                }
+            })
+            .catch(err => console.warn("Background LIFF init failed:", err));
+    }
+
     fetchMetadata();
 
     // Sync localStorage edits to disk automatically on localhost
@@ -1233,6 +1259,112 @@ function initEventListeners() {
                 localStorage.removeItem('jingsi_sync_key');
                 updateSyncUI();
                 alert("已成功登出同步帳號。");
+            }
+        });
+    }
+
+    // Google Sign-In init & callback
+    const handleGoogleCredentialResponse = (response) => {
+        try {
+            const token = response.credential;
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            const email = payload.email;
+            if (email) {
+                elements.googleAuthBtn.disabled = true;
+                elements.googleAuthBtn.textContent = "驗證中...";
+                
+                localStorage.setItem('jingsi_sync_key', email);
+                downloadCloudSync(true).then(() => {
+                    uploadCloudSync(true).then(() => {
+                        updateSyncUI();
+                        elements.syncAccountModal.classList.add('hidden');
+                        alert(`已成功使用 Google 帳號 (${email}) 同步！`);
+                    });
+                })
+                .catch(err => {
+                    console.error("Google sync integration failed:", err);
+                    alert("同步失敗，請確認網路連線。");
+                })
+                .finally(() => {
+                    elements.googleAuthBtn.disabled = false;
+                    elements.googleAuthBtn.textContent = "Google 帳號登入";
+                });
+            }
+        } catch (e) {
+            console.error("Google login parse error:", e);
+            alert("解析 Google 帳號憑證失敗！");
+        }
+    };
+
+    if (elements.googleAuthBtn) {
+        elements.googleAuthBtn.addEventListener('click', () => {
+            if (!GOOGLE_CLIENT_ID || GOOGLE_CLIENT_ID === "") {
+                alert("【系統提示】\n本站已支援 Google 一鍵快速同步！\n\n請創作者於專案設定中填入您申請的 Google Client ID 即可正式啟用此按鈕。");
+                return;
+            }
+            try {
+                google.accounts.id.initialize({
+                    client_id: GOOGLE_CLIENT_ID,
+                    callback: handleGoogleCredentialResponse,
+                    auto_select: false
+                });
+                google.accounts.id.prompt();
+            } catch (e) {
+                console.error("Google GSI client failed to load:", e);
+                alert("無法載入 Google 登入模組，請確認網路或關閉阻擋腳本。");
+            }
+        });
+    }
+
+    // LINE Sign-In Callback
+    if (elements.lineAuthBtn) {
+        elements.lineAuthBtn.addEventListener('click', () => {
+            if (!LINE_LIFF_ID || LINE_LIFF_ID === "") {
+                alert("【系統提示】\n本站已支援 LINE 一鍵快速同步！\n\n請創作者於專案設定中填入您申請的 LINE LIFF ID 即可正式啟用此按鈕。");
+                return;
+            }
+            try {
+                liff.init({ liffId: LINE_LIFF_ID })
+                    .then(() => {
+                        if (liff.isLoggedIn()) {
+                            liff.getProfile().then(profile => {
+                                const lineUserId = "line-" + profile.userId;
+                                const lineDisplayName = profile.displayName;
+                                
+                                elements.lineAuthBtn.disabled = true;
+                                elements.lineAuthBtn.textContent = "連線中...";
+                                
+                                localStorage.setItem('jingsi_sync_key', lineUserId);
+                                downloadCloudSync(true).then(() => {
+                                    uploadCloudSync(true).then(() => {
+                                        updateSyncUI();
+                                        if (elements.syncAccountNameDisplay) {
+                                            elements.syncAccountNameDisplay.textContent = `LINE (${lineDisplayName})`;
+                                        }
+                                        elements.syncAccountModal.classList.add('hidden');
+                                        alert(`已成功使用 LINE 帳號 (${lineDisplayName}) 同步！`);
+                                    });
+                                })
+                                .catch(err => {
+                                    console.error("LINE sync integration failed:", err);
+                                    alert("同步失敗，請確認網路連線。");
+                                })
+                                .finally(() => {
+                                    elements.lineAuthBtn.disabled = false;
+                                    elements.lineAuthBtn.textContent = "LINE 帳號登入";
+                                });
+                            });
+                        } else {
+                            liff.login();
+                        }
+                    })
+                    .catch(err => {
+                        console.error("LINE LIFF init failed:", err);
+                        alert("LINE 登入模組初始化失敗，請確認設定或網路！");
+                    });
+            } catch (e) {
+                console.error("LINE LIFF SDK failed:", e);
+                alert("無法載入 LINE 登入模組，請確認網路！");
             }
         });
     }
