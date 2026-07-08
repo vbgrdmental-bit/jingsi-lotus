@@ -150,6 +150,41 @@ function doGet(e) {
         }
         if (list.length >= 100) break;
       }
+      
+      // Also search preread sheet
+      var prereadSheet = ss.getSheetByName("preread");
+      if (prereadSheet) {
+        var prereadData = prereadSheet.getDataRange().getValues();
+        for (var i = 1; i < prereadData.length; i++) {
+          var prereadId = Number(prereadData[i][0]);
+          var title = prereadData[i][1] || "";
+          var summary = prereadData[i][2] || "";
+          var fullText = prereadData[i][3] || "";
+          
+          var matches = true;
+          for (var k = 0; k < keywords.length; k++) {
+            var kw = keywords[k];
+            if (!(title.toLowerCase().indexOf(kw) !== -1 ||
+                  summary.toLowerCase().indexOf(kw) !== -1 ||
+                  fullText.toLowerCase().indexOf(kw) !== -1)) {
+              matches = false;
+              break;
+            }
+          }
+          
+          if (matches) {
+            list.push({
+              is_preread: true,
+              episode_id: "preread-" + prereadId,
+              title: title,
+              summary: summary,
+              full_text: fullText
+            });
+          }
+          if (list.length >= 100) break;
+        }
+      }
+      
       response = { success: true, data: list };
     } else {
       response = { success: false, error: "無效的操作" };

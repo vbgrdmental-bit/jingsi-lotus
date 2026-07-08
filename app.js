@@ -1142,6 +1142,37 @@ async function localFallbackSearch(query, forceFullText = false) {
             if (results.length >= 100) break;
         }
     }
+
+    // Also search prereads (always perform full text search as they are in-memory and few)
+    if (window._preReadItems && Array.isArray(window._preReadItems)) {
+        window._preReadItems.forEach((entry, idx) => {
+            const titleStr = entry.title.toLowerCase();
+            const summaryStr = (entry.summary || '').toLowerCase();
+            const textStr = (entry.full_text || '').toLowerCase();
+            
+            let matchesAll = true;
+            for (const kw of keywords) {
+                if (!(titleStr.includes(kw) || 
+                      summaryStr.includes(kw) || 
+                      textStr.includes(kw))) {
+                    matchesAll = false;
+                    break;
+                }
+            }
+            
+            if (matchesAll) {
+                results.push({
+                    is_preread: true,
+                    episode_id: `preread-${idx}`,
+                    title: entry.title,
+                    summary: entry.summary || '',
+                    full_text: entry.full_text || '',
+                    raw_date: '品前導讀'
+                });
+            }
+        });
+    }
+
     return results;
 }
 
@@ -1232,16 +1263,18 @@ function renderSearchResults(results, query, isCloudOrFullText = false) {
             });
         }
 
+        const isPreRead = res.is_preread || (typeof res.episode_id === 'string' && res.episode_id.startsWith('preread-'));
+
         const item = document.createElement('div');
         item.className = 'search-result-item';
         item.innerHTML = `
             <div class="search-result-info">
                 <div class="search-result-title-row">
-                    <span class="search-result-number">第 ${res.episode_id} 集</span>
+                    <span class="search-result-number">${isPreRead ? '品前導讀' : `第 ${res.episode_id} 集`}</span>
                     <span class="search-result-title">${res.title}</span>
                 </div>
                 <div class="search-result-snippet">${highlightedSnippet}</div>
-                <div class="search-result-date">播出日期：${res.raw_date || '未知'}</div>
+                <div class="search-result-date">${isPreRead ? '品前導讀影片' : `播出日期：${res.raw_date || '未知'}`}</div>
             </div>
         `;
         item.addEventListener('click', () => {
@@ -1970,6 +2003,14 @@ window.toggleEpisodeCompleteInline = function(event, episodeId, chapterId) {
 
 // Open Episode Reader overlay panel
 window.openEpisodeDetail = function(episodeId, isResume = false) {
+    if (typeof episodeId === 'string' && episodeId.startsWith('preread-')) {
+        const idx = parseInt(episodeId.replace('preread-', ''), 10);
+        if (!isNaN(idx)) {
+            window.openPreReadDetail(idx);
+        }
+        return;
+    }
+
     // Find the header metadata first
     const epHeader = appState.episodesIndex.find(ep => ep.episode_id === episodeId);
     if (!epHeader) return;
