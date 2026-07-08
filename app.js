@@ -306,6 +306,7 @@ function saveProgress() {
     const syncKey = localStorage.getItem('jingsi_sync_key');
     if (syncKey && typeof GOOGLE_SCRIPT_URL !== 'undefined' && GOOGLE_SCRIPT_URL !== "") {
         const payload = {
+            action: 'saveUserProgress',
             sync_key: syncKey,
             last_read: appState.progress.lastRead || "",
             completed_list: Object.keys(appState.progress.completed)
