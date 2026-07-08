@@ -15,7 +15,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="app.css?v=3.26">
+    <link rel="stylesheet" href="app.css?v=3.27">
     <!-- Third-Party Login SDKs -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
@@ -56,37 +56,63 @@
                             <button id="preloadInfoBtn" class="preload-info-btn" aria-label="說明">i</button>
                         </div>
                         <div class="settings-item" style="flex-direction: column; align-items: stretch; gap: 6px; padding: 12px 0; display: flex;" id="syncStateContainer">
-                            <div style="font-size: 0.8rem; font-weight: bold; color: var(--text-color); margin-bottom: 2px;">跨裝置進度同步</div>
-                            <div id="syncLoggedOutView" style="display: flex; flex-direction: column; gap: 6px;">
-                                <div style="font-size: 0.72rem; color: var(--text-secondary); line-height: 1.35;">登入帳號後，您的閱讀紀錄會自動備份並在所有裝置同步。</div>
-                                <button id="openSyncModalBtn" class="btn btn-primary" style="padding: 6px 12px; font-size: 0.75rem; border-radius: 6px; cursor: pointer; border: none; background-color: var(--accent-color); color: white; font-weight: 500; text-align: center; width: 100%;">登入 / 註冊同步帳號</button>
+                            <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <label class="switch">
+                                        <input type="checkbox" id="syncToggle">
+                                        <span class="slider round"></span>
+                                    </label>
+                                    <span id="syncLabel" class="toggle-label" style="font-weight: 500;">進度同步</span>
+                                    <div id="syncProviderIcons" style="display: flex; align-items: center; gap: 4px; margin-left: 2px;">
+                                        <!-- Google/LINE icons dynamically injected here -->
+                                    </div>
+                                </div>
+                                <button id="manualSyncBtn" title="手動同步更新" style="background: none; border: none; padding: 4px; cursor: pointer; color: var(--text-secondary); display: flex; align-items: center; justify-content: center; outline: none; transition: transform 0.2s;">
+                                    <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                        <polyline points="23 4 23 10 17 10"></polyline>
+                                        <polyline points="1 20 1 14 7 14"></polyline>
+                                        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                                    </svg>
+                                </button>
                             </div>
-                            <div id="syncLoggedInView" style="display: none; flex-direction: column; gap: 6px;">
-                                <div style="font-size: 0.72rem; color: var(--text-secondary); display: flex; align-items: center; justify-content: space-between;">
-                                    <span>帳號：<strong id="syncAccountNameDisplay" style="color: var(--text-color);"></strong></span>
-                                    <span style="font-size: 0.65rem; color: var(--accent-color); font-weight: bold;">● 已同步</span>
-                                </div>
-                                <div style="display: flex; gap: 8px; width: 100%; margin-top: 4px;">
-                                    <button id="manualSyncBtn" class="about-website-btn" style="flex: 1; padding: 6px; font-size: 0.7rem; border-radius: 6px; border: 1px solid var(--border-color); background: none; color: var(--text-secondary); cursor: pointer; text-align: center;">🔄 手動同步</button>
-                                    <button id="logoutSyncBtn" class="about-website-btn" style="flex: 1; padding: 6px; font-size: 0.7rem; border-radius: 6px; border: 1px solid var(--border-color); background: none; color: var(--text-secondary); cursor: pointer; text-align: center;">🚪 登出帳號</button>
-                                </div>
-                                <!-- Account Linking UI -->
-                                <div id="accountLinkingContainer" style="margin-top: 6px; border-top: 1px dashed var(--border-color); padding-top: 8px; display: flex; flex-direction: column; gap: 6px;">
-                                    <div style="font-size: 0.65rem; color: var(--text-secondary);">連結其它帳號以共享進度：</div>
-                                    <button id="linkGoogleBtn" class="about-website-btn" style="padding: 6px; font-size: 0.7rem; border-radius: 6px; border: 1px solid var(--border-color); background: none; color: var(--text-secondary); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%;">
-                                        <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor">
+                            
+                            <!-- Login Options Panel -->
+                            <div id="syncLoginOptions" class="hidden" style="margin-top: 6px; display: flex; flex-direction: column; gap: 6px; padding: 4px 6px;">
+                                <div style="font-size: 0.68rem; color: var(--text-secondary); margin-bottom: 2px;">請選擇同步登入方式：</div>
+                                <div style="display: flex; flex-direction: column; gap: 6px;">
+                                    <!-- Google Login Button -->
+                                    <button id="googleAuthBtn" class="about-website-btn" style="width: 100%; padding: 6px; font-size: 0.72rem; border-radius: 6px; border: 1px solid var(--border-color); background: none; color: var(--text-secondary); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; font-weight: 500;">
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
                                             <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
                                             <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
                                             <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05"/>
                                             <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335"/>
                                         </svg>
-                                        <span>連結 Google 帳號</span>
+                                        <span>Google 帳號登入</span>
                                     </button>
-                                    <button id="linkLineBtn" class="about-website-btn" style="padding: 6px; font-size: 0.7rem; border-radius: 6px; border: 1px solid #06C755; background-color: #06C755; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%;">
+                                    <!-- LINE Login Button -->
+                                    <button id="lineAuthBtn" class="about-website-btn" style="padding: 6px; font-size: 0.72rem; border-radius: 6px; border: 1px solid #06C755; background-color: #06C755; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; font-weight: 500;">
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                                            <path d="M24 10.3c0-4.86-5.38-8.8-12-8.8s-12 3.94-12 8.8c0 4.36 4.27 8 10 8.7a1.07 1.07 0 0 1 .68.96c0 .48-.25 1.25-.3 1.74a.43.43 0 0 0 .66.42c1.47-.98 4.24-2.85 5.56-3.87 4.19-.34 7.4-3.52 7.4-7.95zm-15.54 2.88H7.13a.47.47 0 0 1-.47-.47V7.83a.47.47 0 0 1 .47-.47h.33a.47.47 0 0 1 .47.47v4.1h1.07a.47.47 0 0 1 .47.47v.3a.47.47 0 0 1-.47.48zm2.44 0h-.34a.47.47 0 0 1-.47-.47V7.83a.47.47 0 0 1 .47-.47h.34a.47.47 0 0 1 .47.47v4.88a.47.47 0 0 1-.47.47zm5.55 0h-.31a.48.48 0 0 1-.42-.25L13.7 9v3.71a.47.47 0 0 1-.47.47h-.34a.47.47 0 0 1-.47-.47V7.83a.47.47 0 0 1 .47-.47h.31a.48.48 0 0 1 .42.25l2.43 3.49V7.83a.47.47 0 0 1 .47-.47h.34a.47.47 0 0 1 .47.47v4.88a.47.47 0 0 1-.47.47zm3.89-1.21h-1.07V11h1.07a.47.47 0 0 1 .47.47v.3a.47.47 0 0 1-.47.48zm0-1.74h-1.07V9.1h1.07a.47.47 0 0 1 .47.47v.3a.47.47 0 0 1-.47.47zm0-1.73h-1.07V7.83h1.07a.47.47 0 0 1 .47.47v.3a.47.47 0 0 1-.47.47h.33z"/>
+                                        </svg>
+                                        <span>LINE 帳號登入</span>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Connected Details Panel -->
+                            <div id="syncConnectedDetails" class="hidden" style="margin-top: 4px; display: flex; flex-direction: column; gap: 6px; padding: 4px 6px; font-size: 0.72rem; color: var(--text-secondary);">
+                                <div style="display: flex; align-items: center; justify-content: space-between; line-height: 1.3;">
+                                    <span style="word-break: break-all;">帳號：<strong id="syncAccountNameDisplay" style="color: var(--text-color);"></strong></span>
+                                </div>
+                                <div id="accountLinkingContainer" style="margin-top: 4px; border-top: 1px dashed var(--border-color); padding-top: 6px; display: flex; flex-direction: column; gap: 4px;">
+                                    <div style="font-size: 0.62rem; color: var(--text-secondary);">連結其它帳號以共享進度：</div>
+                                    <div id="googleLinkBtnWrapper" style="display: none; width: 100%; justify-content: center;"></div>
+                                    <button id="linkLineBtn" class="about-website-btn" style="display: none; padding: 6px; font-size: 0.7rem; border-radius: 6px; border: 1px solid #06C755; background-color: #06C755; color: white; cursor: pointer; align-items: center; justify-content: center; gap: 6px; width: 100%; font-weight: 500;">
                                         <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor">
                                             <path d="M24 10.3c0-4.86-5.38-8.8-12-8.8s-12 3.94-12 8.8c0 4.36 4.27 8 10 8.7a1.07 1.07 0 0 1 .68.96c0 .48-.25 1.25-.3 1.74a.43.43 0 0 0 .66.42c1.47-.98 4.24-2.85 5.56-3.87 4.19-.34 7.4-3.52 7.4-7.95zm-15.54 2.88H7.13a.47.47 0 0 1-.47-.47V7.83a.47.47 0 0 1 .47-.47h.33a.47.47 0 0 1 .47.47v4.1h1.07a.47.47 0 0 1 .47.47v.3a.47.47 0 0 1-.47.48zm2.44 0h-.34a.47.47 0 0 1-.47-.47V7.83a.47.47 0 0 1 .47-.47h.34a.47.47 0 0 1 .47.47v4.88a.47.47 0 0 1-.47.47zm5.55 0h-.31a.48.48 0 0 1-.42-.25L13.7 9v3.71a.47.47 0 0 1-.47.47h-.34a.47.47 0 0 1-.47-.47V7.83a.47.47 0 0 1 .47-.47h.31a.48.48 0 0 1 .42.25l2.43 3.49V7.83a.47.47 0 0 1 .47-.47h.34a.47.47 0 0 1 .47.47v4.88a.47.47 0 0 1-.47.47zm3.89-1.21h-1.07V11h1.07a.47.47 0 0 1 .47.47v.3a.47.47 0 0 1-.47.48zm0-1.74h-1.07V9.1h1.07a.47.47 0 0 1 .47.47v.3a.47.47 0 0 1-.47.47zm0-1.73h-1.07V7.83h1.07a.47.47 0 0 1 .47.47v.3a.47.47 0 0 1-.47.47h.33z"/>
                                         </svg>
-                                        <span>連結 LINE 帳號</span>
+                                        <span>連結 LINE 帳號以共享進度</span>
                                     </button>
                                 </div>
                             </div>
@@ -470,11 +496,18 @@
     <div id="versionHistoryModal" class="modal-overlay hidden" style="background-color: rgba(0, 0, 0, 0.5); backdrop-filter: blur(8px); z-index: 1100;">
         <div class="modal-card glass-modal-card" style="max-width: 420px; padding: 20px; box-sizing: border-box; background-color: var(--card-bg); opacity: 0.95; border: 1px solid var(--border-color);">
             <div class="modal-header" style="padding-bottom: 12px; margin-bottom: 12px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between;">
-                <h3 style="font-size: 1.05rem;">網頁版本更新歷程 (<span id="appVersion">v3.26</span>)</h3>
+                <h3 style="font-size: 1.05rem;">網頁版本更新歷程 (<span id="appVersion">v3.27</span>)</h3>
                 <button id="closeVersionBtn" class="close-modal-btn" style="font-size: 1.4rem;">&times;</button>
             </div>
             <div class="modal-body" style="line-height: 1.55; font-size: 0.8rem; color: var(--text-color); max-height: 60vh; overflow-y: auto; padding-right: 4px;">
                 <div class="changelog-container" style="font-size: 0.72rem; color: var(--text-secondary); line-height: 1.45; display: flex; flex-direction: column; gap: 12px;">
+                    <div>
+                        <strong style="color: var(--text-color); font-size: 0.78rem;">v3.27 (2026/07/09)</strong><br>
+                        ．簡化與優化同步介面：將「跨裝置進度同步」簡化為「進度同步」開關，關閉時即登出，開啟時提供快捷登入。<br>
+                        ．隱藏自訂帳密登入機制，聚焦 Google 與 LINE 一鍵快速登入。<br>
+                        ．新增動態同步圖標：依據登入狀態於進度同步右側顯示 Google 「G」與「LINE」符號，若兩者已連結則並列呈現。<br>
+                        ．進度列最右方新增「重新整理」圖示，讓訪客快速手動更新。
+                    </div>
                     <div>
                         <strong style="color: var(--text-color); font-size: 0.78rem;">v3.26 (2026/07/09)</strong><br>
                         ．新增「跨裝置背景即時同步」：多裝置登入同個帳號時，背景每 20 秒會自動同步並即時更新已讀集數及「上次閱讀」標籤。<br>
@@ -554,63 +587,9 @@
         </div>
     </div>
 
-    <!-- Sync Account Modal -->
-    <div id="syncAccountModal" class="modal-overlay hidden" style="background-color: rgba(0, 0, 0, 0.5); backdrop-filter: blur(8px); z-index: 1100;">
-        <div class="modal-card glass-modal-card" style="max-width: 360px; padding: 24px; box-sizing: border-box; background-color: var(--card-bg); opacity: 0.95; border: 1px solid var(--border-color); border-radius: 12px;">
-            <div class="modal-header" style="padding-bottom: 12px; margin-bottom: 16px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between;">
-                <h3 id="syncModalTitle" style="font-size: 1.05rem; margin: 0; color: var(--text-color);">登入同步帳號</h3>
-                <button id="closeSyncModalBtn" class="close-modal-btn" style="font-size: 1.4rem; background: none; border: none; color: var(--text-secondary); cursor: pointer;">&times;</button>
-            </div>
-            
-            <!-- Tab Headers -->
-            <div style="display: flex; border-bottom: 1px solid var(--border-color); margin-bottom: 16px;">
-                <button id="syncTabLoginBtn" style="flex: 1; padding: 8px; background: none; border: none; border-bottom: 2px solid var(--accent-color); color: var(--text-color); font-weight: 500; font-size: 0.85rem; cursor: pointer; outline: none;">登入</button>
-                <button id="syncTabRegisterBtn" style="flex: 1; padding: 8px; background: none; border: none; border-bottom: 2px solid transparent; color: var(--text-secondary); font-size: 0.85rem; cursor: pointer; outline: none;">註冊新帳號</button>
-            </div>
-            
-            <div class="modal-body" style="display: flex; flex-direction: column; gap: 12px;">
-                <div style="display: flex; flex-direction: column; gap: 4px;">
-                    <label style="font-size: 0.75rem; color: var(--text-secondary);">帳號名稱</label>
-                    <input type="text" id="syncAccountInput" placeholder="請輸入帳號" style="font-size: 0.8rem; padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border-color); background-color: var(--bg-color); color: var(--text-color); outline: none;">
-                </div>
-                <div style="display: flex; flex-direction: column; gap: 4px;">
-                    <label style="font-size: 0.75rem; color: var(--text-secondary);">密碼</label>
-                    <input type="password" id="syncPasswordInput" placeholder="請輸入密碼 (建議使用簡單好記的密碼)" style="font-size: 0.8rem; padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border-color); background-color: var(--bg-color); color: var(--text-color); outline: none;">
-                </div>
-                <div id="syncErrorMessage" style="font-size: 0.75rem; color: #ff5252; min-height: 16px; display: none;"></div>
-            </div>
-            
-            <div class="modal-footer" style="padding-top: 16px; margin-top: 16px; border-top: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 10px;">
-                <button id="syncSubmitBtn" class="btn btn-primary" style="width: 100%; padding: 8px; font-size: 0.82rem; border-radius: 6px; background-color: var(--accent-color); color: white; border: none; cursor: pointer; font-weight: 500;">立即登入</button>
-                
-                <div style="display: flex; align-items: center; justify-content: center; margin: 6px 0; font-size: 0.72rem; color: var(--text-secondary); width: 100%;">
-                    <div style="flex: 1; height: 1px; background-color: var(--border-color);"></div>
-                    <span style="padding: 0 8px;">或使用快速同步</span>
-                    <div style="flex: 1; height: 1px; background-color: var(--border-color);"></div>
-                </div>
 
-                <div style="display: flex; flex-direction: column; gap: 8px; width: 100%;">
-                    <button id="googleAuthBtn" class="about-website-btn" style="width: 100%; padding: 8px; font-size: 0.78rem; border-radius: 6px; border: 1px solid var(--border-color); background-color: var(--card-bg); color: var(--text-color); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s;">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-                            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-                            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05"/>
-                            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335"/>
-                        </svg>
-                        <span>Google 帳號登入</span>
-                    </button>
-                    <button id="lineAuthBtn" class="about-website-btn" style="width: 100%; padding: 8px; font-size: 0.78rem; border-radius: 6px; border: 1px solid #06C755; background-color: #06C755; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s;">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M24 10.3c0-4.86-5.38-8.8-12-8.8s-12 3.94-12 8.8c0 4.36 4.27 8 10 8.7a1.07 1.07 0 0 1 .68.96c0 .48-.25 1.25-.3 1.74a.43.43 0 0 0 .66.42c1.47-.98 4.24-2.85 5.56-3.87 4.19-.34 7.4-3.52 7.4-7.95zm-15.54 2.88H7.13a.47.47 0 0 1-.47-.47V7.83a.47.47 0 0 1 .47-.47h.33a.47.47 0 0 1 .47.47v4.1h1.07a.47.47 0 0 1 .47.47v.3a.47.47 0 0 1-.47.48zm2.44 0h-.34a.47.47 0 0 1-.47-.47V7.83a.47.47 0 0 1 .47-.47h.34a.47.47 0 0 1 .47.47v4.88a.47.47 0 0 1-.47.47zm5.55 0h-.31a.48.48 0 0 1-.42-.25L13.7 9v3.71a.47.47 0 0 1-.47.47h-.34a.47.47 0 0 1-.47-.47V7.83a.47.47 0 0 1 .47-.47h.31a.48.48 0 0 1 .42.25l2.43 3.49V7.83a.47.47 0 0 1 .47-.47h.34a.47.47 0 0 1 .47.47v4.88a.47.47 0 0 1-.47.47zm3.89-1.21h-1.07V11h1.07a.47.47 0 0 1 .47.47v.3a.47.47 0 0 1-.47.48zm0-1.74h-1.07V9.1h1.07a.47.47 0 0 1 .47.47v.3a.47.47 0 0 1-.47.47zm0-1.73h-1.07V7.83h1.07a.47.47 0 0 1 .47.47v.3a.47.47 0 0 1-.47.47h.33z"/>
-                        </svg>
-                        <span>LINE 帳號登入</span>
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
     
     <!-- App Logic Scripts -->
-    <script src="app.js?v=3.26"></script>
+    <script src="app.js?v=3.27"></script>
 </body>
 </html>

@@ -213,6 +213,49 @@ function doGet(e) {
           last_updated: rowData[3] || ""
         };
       }
+      
+      // Resolve linked providers dynamically
+      var linkedProviders = [];
+      var cleanKey = syncKey.trim().toLowerCase();
+      var originalKey = (e.parameter.sync_key || "").trim().toLowerCase();
+      
+      if (cleanKey.indexOf("@") !== -1 || originalKey.indexOf("@") !== -1) {
+        linkedProviders.push("google");
+      }
+      if (cleanKey.indexOf("line-") === 0 || originalKey.indexOf("line-") === 0) {
+        linkedProviders.push("line");
+      }
+      
+      var linksSheet = ss.getSheetByName("account_links");
+      if (linksSheet) {
+        var linksData = linksSheet.getDataRange().getValues();
+        for (var i = 1; i < linksData.length; i++) {
+          var loginId = linksData[i][0].toString().trim().toLowerCase();
+          var masterId = linksData[i][1].toString().trim().toLowerCase();
+          
+          if (loginId === cleanKey || masterId === cleanKey || loginId === originalKey || masterId === originalKey) {
+            if (loginId.indexOf("@") !== -1 || masterId.indexOf("@") !== -1) {
+              if (linkedProviders.indexOf("google") === -1) linkedProviders.push("google");
+            }
+            if (loginId.indexOf("line-") === 0 || masterId.indexOf("line-") === 0) {
+              if (linkedProviders.indexOf("line") === -1) linkedProviders.push("line");
+            }
+          }
+        }
+      }
+      
+      if (!found) {
+        found = {
+          sync_key: syncKey,
+          last_read: "",
+          completed_list: [],
+          last_updated: "",
+          linked_providers: linkedProviders
+        };
+      } else {
+        found.linked_providers = linkedProviders;
+      }
+      
       response = { success: true, data: found };
     } else {
       response = { success: false, error: "無效的操作" };

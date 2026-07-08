@@ -281,26 +281,72 @@ function loadSettingsFromStorage() {
 }
 
 function updateSyncUI() {
-    if (!elements.syncLoggedOutView) return;
+    const syncToggle = document.getElementById('syncToggle');
+    if (!syncToggle) return;
+    
     const syncKey = localStorage.getItem('jingsi_sync_key');
+    const syncLoginOptions = document.getElementById('syncLoginOptions');
+    const syncConnectedDetails = document.getElementById('syncConnectedDetails');
+    const syncAccountNameDisplay = document.getElementById('syncAccountNameDisplay');
+    const syncProviderIcons = document.getElementById('syncProviderIcons');
+    const linkLineBtn = document.getElementById('linkLineBtn');
+    const googleLinkBtnWrapper = document.getElementById('googleLinkBtnWrapper');
+    
     if (syncKey) {
-        elements.syncLoggedOutView.style.display = 'none';
-        elements.syncLoggedInView.style.display = 'flex';
-        if (syncKey.startsWith('line-')) {
-            if (!elements.syncAccountNameDisplay.textContent.startsWith('LINE (')) {
-                elements.syncAccountNameDisplay.textContent = "LINE 帳號";
+        syncToggle.checked = true;
+        if (syncLoginOptions) syncLoginOptions.classList.add('hidden');
+        if (syncConnectedDetails) syncConnectedDetails.classList.remove('hidden');
+        
+        if (syncAccountNameDisplay) {
+            if (syncKey.startsWith('line-')) {
+                if (!syncAccountNameDisplay.textContent.startsWith('LINE (')) {
+                    syncAccountNameDisplay.textContent = "LINE 帳號";
+                }
+            } else {
+                syncAccountNameDisplay.textContent = syncKey;
             }
-            if (elements.linkLineBtn) elements.linkLineBtn.style.display = 'none';
-            if (elements.linkGoogleBtn) elements.linkGoogleBtn.style.display = 'flex';
+        }
+        
+        if (syncProviderIcons) {
+            let iconsHtml = '';
+            const linkedProviders = (appState.progress && appState.progress.linkedProviders) || [];
+            
+            let showGoogle = syncKey.includes('@') || linkedProviders.includes('google');
+            let showLine = syncKey.startsWith('line-') || linkedProviders.includes('line');
+            
+            if (showGoogle) {
+                iconsHtml += `
+                    <svg width="12" height="12" viewBox="0 0 24 24" style="vertical-align: middle; margin-right: 2px;" title="Google 已同步">
+                        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05"/>
+                        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335"/>
+                    </svg>
+                `;
+            }
+            if (showLine) {
+                iconsHtml += `
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="#06C755" style="vertical-align: middle;" title="LINE 已同步">
+                        <path d="M24 10.3c0-4.86-5.38-8.8-12-8.8s-12 3.94-12 8.8c0 4.36 4.27 8 10 8.7a1.07 1.07 0 0 1 .68.96c0 .48-.25 1.25-.3 1.74a.43.43 0 0 0 .66.42c1.47-.98 4.24-2.85 5.56-3.87 4.19-.34 7.4-3.52 7.4-7.95z"/>
+                    </svg>
+                `;
+            }
+            syncProviderIcons.innerHTML = iconsHtml;
+        }
+        
+        if (syncKey.startsWith('line-')) {
+            if (linkLineBtn) linkLineBtn.style.display = 'none';
+            if (googleLinkBtnWrapper) googleLinkBtnWrapper.style.display = 'flex';
         } else {
-            elements.syncAccountNameDisplay.textContent = syncKey;
-            if (elements.linkLineBtn) elements.linkLineBtn.style.display = 'flex';
-            if (elements.linkGoogleBtn) elements.linkGoogleBtn.style.display = 'none';
+            if (linkLineBtn) linkLineBtn.style.display = 'flex';
+            if (googleLinkBtnWrapper) googleLinkBtnWrapper.style.display = 'none';
         }
     } else {
-        elements.syncLoggedOutView.style.display = 'flex';
-        elements.syncLoggedInView.style.display = 'none';
-        elements.syncAccountNameDisplay.textContent = '';
+        syncToggle.checked = false;
+        if (syncLoginOptions) syncLoginOptions.classList.add('hidden');
+        if (syncConnectedDetails) syncConnectedDetails.classList.add('hidden');
+        if (syncProviderIcons) syncProviderIcons.innerHTML = '';
+        if (syncAccountNameDisplay) syncAccountNameDisplay.textContent = '';
     }
 }
 
@@ -428,6 +474,14 @@ function downloadCloudSync(quiet = false) {
                     });
                 }
                 
+                if (Array.isArray(cloudData.linked_providers)) {
+                    const currentProviders = appState.progress.linkedProviders || [];
+                    if (JSON.stringify(currentProviders) !== JSON.stringify(cloudData.linked_providers)) {
+                        appState.progress.linkedProviders = cloudData.linked_providers;
+                        hasChanges = true;
+                    }
+                }
+                
                 if (hasChanges) {
                     localStorage.setItem('jingsi_progress', JSON.stringify(appState.progress));
                     updateGlobalProgressBar();
@@ -443,6 +497,9 @@ function downloadCloudSync(quiet = false) {
                         alert("您的紀錄已是最新狀態，無需同步。");
                     }
                 }
+                
+                // Always refresh the sync UI (icons/toggle) after download
+                updateSyncUI();
             }
         })
         .finally(() => {
@@ -1158,145 +1215,33 @@ function initEventListeners() {
     }
 
     // ----------------- Cross-Device Progress Sync Event Bindings -----------------
-    let isRegisterTab = false; // Default to Login tab
-
-    // Toggle Modal
-    if (elements.openSyncModalBtn) {
-        elements.openSyncModalBtn.addEventListener('click', () => {
-            elements.syncAccountModal.classList.remove('hidden');
-            elements.syncAccountInput.value = '';
-            elements.syncPasswordInput.value = '';
-            elements.syncErrorMessage.style.display = 'none';
-            switchSyncTab(false);
-        });
-    }
-
-    if (elements.closeSyncModalBtn) {
-        elements.closeSyncModalBtn.addEventListener('click', () => {
-            elements.syncAccountModal.classList.add('hidden');
-        });
-    }
-
-    const switchSyncTab = (toRegister) => {
-        isRegisterTab = toRegister;
-        if (toRegister) {
-            elements.syncTabLoginBtn.style.borderBottomColor = 'transparent';
-            elements.syncTabLoginBtn.style.color = 'var(--text-secondary)';
-            elements.syncTabLoginBtn.style.fontWeight = 'normal';
-            
-            elements.syncTabRegisterBtn.style.borderBottomColor = 'var(--accent-color)';
-            elements.syncTabRegisterBtn.style.color = 'var(--text-color)';
-            elements.syncTabRegisterBtn.style.fontWeight = '500';
-            
-            elements.syncModalTitle.textContent = "註冊新同步帳號";
-            elements.syncSubmitBtn.textContent = "立即註冊";
-        } else {
-            elements.syncTabLoginBtn.style.borderBottomColor = 'var(--accent-color)';
-            elements.syncTabLoginBtn.style.color = 'var(--text-color)';
-            elements.syncTabLoginBtn.style.fontWeight = '500';
-            
-            elements.syncTabRegisterBtn.style.borderBottomColor = 'transparent';
-            elements.syncTabRegisterBtn.style.color = 'var(--text-secondary)';
-            elements.syncTabRegisterBtn.style.fontWeight = 'normal';
-            
-            elements.syncModalTitle.textContent = "登入同步帳號";
-            elements.syncSubmitBtn.textContent = "立即登入";
-        }
-        elements.syncErrorMessage.style.display = 'none';
-    };
-
-    if (elements.syncTabLoginBtn) {
-        elements.syncTabLoginBtn.addEventListener('click', () => switchSyncTab(false));
-    }
-    if (elements.syncTabRegisterBtn) {
-        elements.syncTabRegisterBtn.addEventListener('click', () => switchSyncTab(true));
-    }
-
-    // Submit Logic
-    if (elements.syncSubmitBtn) {
-        elements.syncSubmitBtn.addEventListener('click', () => {
-            const accountId = elements.syncAccountInput.value.trim();
-            const password = elements.syncPasswordInput.value.trim();
-            
-            if (!accountId || !password) {
-                elements.syncErrorMessage.textContent = "帳號與密碼欄位不可為空！";
-                elements.syncErrorMessage.style.display = 'block';
-                return;
-            }
-
-            if (accountId.length < 3) {
-                elements.syncErrorMessage.textContent = "帳號長度需至少為 3 個字元！";
-                elements.syncErrorMessage.style.display = 'block';
-                return;
-            }
-
-            elements.syncSubmitBtn.disabled = true;
-            elements.syncSubmitBtn.textContent = isRegisterTab ? "註冊中..." : "登入中...";
-            elements.syncErrorMessage.style.display = 'none';
-
-            const action = isRegisterTab ? "registerUser" : "loginUser";
-            const payload = {
-                action: action,
-                account_id: accountId,
-                password: password
-            };
-
-            fetch(GOOGLE_SCRIPT_URL, {
-                method: 'POST',
-                body: JSON.stringify(payload)
-            })
-            .then(r => r.json())
-            .then(res => {
-                if (res.success) {
-                    localStorage.setItem('jingsi_sync_key', accountId);
-                    updateSyncUI();
-                    elements.syncAccountModal.classList.add('hidden');
-                    
-                    if (isRegisterTab) {
-                        uploadCloudSync(true).then(() => {
-                            alert("註冊成功！已自動將您的本地紀錄同步至新帳號中！");
-                        });
-                    } else {
-                        if (res.data) {
-                            const cloudData = res.data;
-                            let hasChanges = false;
-                            
-                            if (cloudData.last_read && cloudData.last_read !== appState.progress.lastRead) {
-                                appState.progress.lastRead = cloudData.last_read;
-                                hasChanges = true;
-                            }
-                            
-                            if (Array.isArray(cloudData.completed_list)) {
-                                cloudData.completed_list.forEach(id => {
-                                    if (!appState.progress.completed[id]) {
-                                        appState.progress.completed[id] = true;
-                                        hasChanges = true;
-                                    }
-                                });
-                            }
-                            
-                            localStorage.setItem('jingsi_progress', JSON.stringify(appState.progress));
-                            updateGlobalProgressBar();
-                            if (window._renderPreReadList) window._renderPreReadList();
-                            renderChapterList();
-                            updateResumeBookmark();
-                        }
-                        alert("登入成功！已成功連線並合併您的閱讀紀錄！");
-                    }
-                } else {
-                    elements.syncErrorMessage.textContent = res.error || "操作失敗";
-                    elements.syncErrorMessage.style.display = 'block';
+    const syncToggle = document.getElementById('syncToggle');
+    if (syncToggle) {
+        syncToggle.addEventListener('change', (e) => {
+            const isChecked = e.target.checked;
+            const syncKey = localStorage.getItem('jingsi_sync_key');
+            if (isChecked) {
+                if (!syncKey) {
+                    const options = document.getElementById('syncLoginOptions');
+                    if (options) options.classList.remove('hidden');
+                    const details = document.getElementById('syncConnectedDetails');
+                    if (details) details.classList.add('hidden');
                 }
-            })
-            .catch(err => {
-                console.error("Sync auth error:", err);
-                elements.syncErrorMessage.textContent = "連線失敗，請檢查網路！";
-                elements.syncErrorMessage.style.display = 'block';
-            })
-            .finally(() => {
-                elements.syncSubmitBtn.disabled = false;
-                elements.syncSubmitBtn.textContent = isRegisterTab ? "立即註冊" : "立即登入";
-            });
+            } else {
+                if (confirm("確定要關閉進度同步並登出帳號嗎？\n登出後，您的進度將不再自動上傳備份。")) {
+                    localStorage.removeItem('jingsi_sync_key');
+                    if (typeof liff !== 'undefined' && liff.isLoggedIn()) {
+                        liff.logout();
+                    }
+                    if (appState.progress) {
+                        appState.progress.linkedProviders = [];
+                    }
+                    updateSyncUI();
+                    alert("已關閉進度同步，並成功登出帳號。");
+                } else {
+                    e.target.checked = true;
+                }
+            }
         });
     }
 
@@ -1334,7 +1279,7 @@ function initEventListeners() {
                 downloadCloudSync(true).then(() => {
                     uploadCloudSync(true).then(() => {
                         updateSyncUI();
-                        elements.syncAccountModal.classList.add('hidden');
+                        if (elements.syncAccountModal) elements.syncAccountModal.classList.add('hidden');
                         alert(`已成功使用 Google 帳號 (${email}) 同步！`);
                     });
                 })
@@ -1392,7 +1337,7 @@ function initEventListeners() {
                                 if (elements.syncAccountNameDisplay) {
                                     elements.syncAccountNameDisplay.textContent = `LINE (${lineDisplayName})`;
                                 }
-                                elements.syncAccountModal.classList.add('hidden');
+                                if (elements.syncAccountModal) elements.syncAccountModal.classList.add('hidden');
                                 alert(`已成功使用 LINE 帳號 (${lineDisplayName}) 同步！`);
                             });
                         })
