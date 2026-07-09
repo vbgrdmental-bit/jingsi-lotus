@@ -15,7 +15,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="app.css?v=3.31">
+    <link rel="stylesheet" href="app.css?v=3.32">
     <!-- Third-Party Login SDKs -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
@@ -36,51 +36,47 @@
                     </button>
                     <!-- Settings Dropdown -->
                     <div id="settingsDropdown" class="settings-dropdown hidden">
+                        <!-- Toggle 1: 明/暗切換 -->
                         <div class="settings-item">
-                            <div class="theme-toggle-container">
+                            <div style="display: flex; align-items: center; gap: 8px; flex: 1;">
                                 <label class="switch">
                                     <input type="checkbox" id="themeToggle">
                                     <span class="slider round"></span>
                                 </label>
-                                <span id="themeLabel" class="toggle-label">切換明/暗</span>
+                                <span id="themeLabel" class="toggle-label">網頁 明 / 暗 切換</span>
                             </div>
                         </div>
+                        <!-- Toggle 2: 全文預載 -->
                         <div class="settings-item">
                             <div style="display: flex; align-items: center; gap: 8px; flex: 1;">
                                 <label class="switch">
                                     <input type="checkbox" id="preloadToggle">
                                     <span class="slider round"></span>
                                 </label>
-                                <span id="preloadLabel" class="toggle-label">全文預載模式</span>
+                                <span id="preloadLabel" class="toggle-label">雲端模式</span>
                             </div>
-                            <button id="preloadInfoBtn" class="preload-info-btn" aria-label="說明" style="background: none; border: none; padding: 4px; cursor: pointer; color: var(--text-secondary); display: flex; align-items: center; justify-content: center; outline: none; font-size: 0.7rem; width: 24px; height: 24px; border-radius: 50%; border: 1px solid var(--border-color);">i</button>
+                            <button id="preloadInfoBtn" aria-label="閱讀模式說明" style="background: none; border: 1px solid var(--border-color); padding: 0; cursor: pointer; color: var(--text-secondary); display: flex; align-items: center; justify-content: center; outline: none; font-size: 0.62rem; width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0;">i</button>
                         </div>
-                        <div class="settings-item" style="flex-direction: column; align-items: stretch; gap: 6px; padding: 12px 0; display: flex;" id="syncStateContainer">
+                        <!-- Toggle 3: 進度同步 -->
+                        <div class="settings-item" style="flex-direction: column; align-items: stretch; gap: 6px;" id="syncStateContainer">
                             <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
                                 <div style="display: flex; align-items: center; gap: 8px;">
                                     <label class="switch">
                                         <input type="checkbox" id="syncToggle">
                                         <span class="slider round"></span>
                                     </label>
-                                    <span id="syncLabel" class="toggle-label" style="font-weight: 500;">進度同步</span>
+                                    <span id="syncLabel" class="toggle-label">進度同步</span>
                                     <div id="syncProviderIcons" style="display: flex; align-items: center; gap: 4px; margin-left: 2px;">
-                                        <!-- Google/LINE icons dynamically injected here -->
+                                        <!-- provider icons injected here -->
                                     </div>
                                 </div>
-                                <button id="manualSyncBtn" title="手動同步更新" style="background: none; border: none; padding: 4px; cursor: pointer; color: var(--text-secondary); display: flex; align-items: center; justify-content: center; outline: none; transition: transform 0.2s;">
-                                    <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                                        <polyline points="23 4 23 10 17 10"></polyline>
-                                        <polyline points="1 20 1 14 7 14"></polyline>
-                                        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
-                                    </svg>
-                                </button>
+                                <button id="syncInfoBtn" aria-label="進度同步說明" style="background: none; border: 1px solid var(--border-color); padding: 0; cursor: pointer; color: var(--text-secondary); display: flex; align-items: center; justify-content: center; outline: none; font-size: 0.62rem; width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0;">i</button>
                             </div>
-                            
+
                             <!-- Login Options Panel -->
-                            <div id="syncLoginOptions" class="hidden" style="margin-top: 6px; display: flex; flex-direction: column; gap: 6px; padding: 4px 6px;">
+                            <div id="syncLoginOptions" class="hidden" style="margin-top: 4px; display: flex; flex-direction: column; gap: 6px; padding: 4px 6px;">
                                 <div style="font-size: 0.68rem; color: var(--text-secondary); margin-bottom: 2px;">請選擇同步登入方式：</div>
                                 <div style="display: flex; flex-direction: column; gap: 6px;">
-                                    <!-- Google Login Button -->
                                     <button id="googleAuthBtn" class="about-website-btn" style="width: 100%; padding: 6px; font-size: 0.72rem; border-radius: 6px; border: 1px solid var(--border-color); background: none; color: var(--text-secondary); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; font-weight: 500;">
                                         <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
                                             <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
@@ -90,7 +86,6 @@
                                         </svg>
                                         <span>Google 帳號登入</span>
                                     </button>
-                                    <!-- LINE Login Button -->
                                     <button id="lineAuthBtn" class="about-website-btn" style="padding: 6px; font-size: 0.72rem; border-radius: 6px; border: 1px solid #06C755; background-color: #06C755; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; font-weight: 500;">
                                         <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
                                             <path d="M24 10.3c0-4.86-5.38-8.8-12-8.8s-12 3.94-12 8.8c0 4.36 4.27 8 10 8.7a1.07 1.07 0 0 1 .68.96c0 .48-.25 1.25-.3 1.74a.43.43 0 0 0 .66.42c1.47-.98 4.24-2.85 5.56-3.87 4.19-.34 7.4-3.52 7.4-7.95zm-15.54 2.88H7.13a.47.47 0 0 1-.47-.47V7.83a.47.47 0 0 1 .47-.47h.33a.47.47 0 0 1 .47.47v4.1h1.07a.47.47 0 0 1 .47.47v.3a.47.47 0 0 1-.47.48zm2.44 0h-.34a.47.47 0 0 1-.47-.47V7.83a.47.47 0 0 1 .47-.47h.34a.47.47 0 0 1 .47.47v4.88a.47.47 0 0 1-.47.47zm5.55 0h-.31a.48.48 0 0 1-.42-.25L13.7 9v3.71a.47.47 0 0 1-.47.47h-.34a.47.47 0 0 1-.47-.47V7.83a.47.47 0 0 1 .47-.47h.31a.48.48 0 0 1 .42.25l2.43 3.49V7.83a.47.47 0 0 1 .47-.47h.34a.47.47 0 0 1 .47.47v4.88a.47.47 0 0 1-.47.47zm3.89-1.21h-1.07V11h1.07a.47.47 0 0 1 .47.47v.3a.47.47 0 0 1-.47.48zm0-1.74h-1.07V9.1h1.07a.47.47 0 0 1 .47.47v.3a.47.47 0 0 1-.47.47zm0-1.73h-1.07V7.83h1.07a.47.47 0 0 1 .47.47v.3a.47.47 0 0 1-.47.47h.33z"/>
@@ -99,9 +94,9 @@
                                     </button>
                                 </div>
                             </div>
-                            
-                            <!-- Connected Details Panel: show only linking buttons, no account name -->
-                            <div id="syncConnectedDetails" class="hidden" style="margin-top: 4px; display: flex; flex-direction: column; gap: 6px; padding: 4px 6px; font-size: 0.72rem; color: var(--text-secondary);">
+
+                            <!-- Connected Details Panel -->
+                            <div id="syncConnectedDetails" class="hidden" style="margin-top: 2px; display: flex; flex-direction: column; gap: 6px; padding: 4px 6px; font-size: 0.72rem; color: var(--text-secondary);">
                                 <div id="syncAccountNameDisplay" style="display: none;"></div>
                                 <div id="accountLinkingContainer" style="display: flex; flex-direction: column; gap: 4px;">
                                     <div style="font-size: 0.62rem; color: var(--text-secondary);">連結其它帳號以共享進度：</div>
@@ -115,7 +110,8 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="settings-item settings-action-item" style="border-top: 1px solid var(--border-color); border-bottom: none; padding-top: 8px; justify-content: center; flex-direction: column; gap: 8px; width: 100%; display: flex;">
+                        <!-- Buttons: 關於本站 & 網頁版本 -->
+                        <div class="settings-item" style="border-top: 1px solid var(--border-color); border-bottom: none; padding-top: 8px; justify-content: center; flex-direction: column; gap: 8px; width: 100%; display: flex;">
                             <button id="aboutWebsiteBtn" class="about-website-btn" style="background: none; border: 1px solid var(--border-color); color: var(--text-secondary); font-size: 0.75rem; padding: 6px 16px; border-radius: 20px; cursor: pointer; transition: all 0.2s; font-weight: 500; width: 100%; text-align: center;">關於本站</button>
                             <button id="settingsVersionInfo" class="about-website-btn" style="background: none; border: 1px solid var(--border-color); color: var(--text-secondary); font-size: 0.75rem; padding: 6px 16px; border-radius: 20px; cursor: pointer; transition: all 0.2s; font-weight: 500; width: 100%; text-align: center;">網頁版本</button>
                         </div>
@@ -400,39 +396,70 @@
     <div id="preloadInfoModal" class="modal-overlay hidden" style="background-color: rgba(0, 0, 0, 0.5); backdrop-filter: blur(8px);">
         <div class="modal-card glass-modal-card" style="max-width: 380px; padding: 20px; box-sizing: border-box; background-color: var(--card-bg); opacity: 0.95; border: 1px solid var(--border-color);">
             <div class="modal-header" style="padding-bottom: 12px; margin-bottom: 12px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between;">
-                <h3 style="font-size: 1.05rem;">全文預載模式</h3>
-                <button id="closePreloadInfoBtn" class="close-modal-btn" style="font-size: 1.4rem;">&times;</button>
+                <h3 style="font-size: 1rem;">閱讀模式說明</h3>
+                <button id="closePreloadInfoBtn" aria-label="關閉" style="background: var(--text-secondary); color: var(--card-bg); border: none; border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 0.85rem; line-height: 1; flex-shrink: 0;">&#x2715;</button>
             </div>
-            <div class="modal-body" style="line-height: 1.5; font-size: 0.8rem; color: var(--text-color);">
-                <p style="margin-bottom: 8px; color: var(--text-secondary);">
-                    目前預設為「雲端模式」，在開啟單集、大綱、逐字稿和搜尋關鍵字時會有時間延遲等現象。
+            <div class="modal-body" style="line-height: 1.55; font-size: 0.74rem; color: var(--text-color);">
+                <p style="margin-bottom: 10px; color: var(--text-secondary);">
+                    預設「雲端模式」，適用一般訪客瀏覽各個集數，但在開啟單集、大綱、逐字稿和搜尋關鍵字時，有時會有時間延遲的現象。
                 </p>
                 <p style="margin-bottom: 12px; color: var(--text-secondary);">
-                    開啟「全文預載模式」後，系統會預載站內所有文字檔，能大大改善時間延遲，增加瀏覽效率。
+                    如開啟「全文預載模式」，系統將會預先下載站內所有文字檔至本地，將大幅減少時間延遲，增加瀏覽效率。
                 </p>
-                
-                <div style="background-color: rgba(76, 175, 80, 0.08); border-left: 3px solid #4CAF50; padding: 8px 10px; margin-bottom: 12px; border-radius: 0 6px 6px 0;">
-                    <strong style="color: #4CAF50; display: block; margin-bottom: 3px; font-size: 0.82rem;">👍 優點：</strong>
-                    <ul style="margin: 0; padding-left: 16px; list-style-type: disc; color: var(--text-color); font-size: 0.78rem; line-height: 1.4;">
-                        <li>經文與大綱 0 秒秒開，無讀取延遲。</li>
-                        <li>支援離線全文檢索。</li>
-                        <li>僅一次性下載，日後不再消耗流量。</li>
+
+                <div style="background-color: rgba(76, 175, 80, 0.08); border-left: 3px solid #4CAF50; padding: 8px 10px; margin-bottom: 10px; border-radius: 0 6px 6px 0;">
+                    <strong style="color: #4CAF50; display: block; margin-bottom: 4px; font-size: 0.75rem;">👍 優點：</strong>
+                    <ul style="margin: 0; padding-left: 16px; list-style-type: disc; color: var(--text-color); font-size: 0.7rem; line-height: 1.5;">
+                        <li>開啟經文與大綱 無讀取延遲並支援離線全文檢索。</li>
+                        <li>此為一次性下載，下載完成後，不再消耗流量，適合長閱讀者使用。</li>
                     </ul>
                 </div>
-                
-                <div style="background-color: rgba(244, 67, 54, 0.08); border-left: 3px solid #F44336; padding: 8px 10px; margin-bottom: 12px; border-radius: 0 6px 6px 0;">
-                    <strong style="color: #F44336; display: block; margin-bottom: 3px; font-size: 0.82rem;">⚠️ 缺點與注意：</strong>
-                    <ul style="margin: 0; padding-left: 16px; list-style-type: disc; color: var(--text-color); font-size: 0.78rem; line-height: 1.4;">
-                        <li>首次下載需消耗約 33.6 MB 流量。</li>
-                        <li>依網速需等待約 1~2 分進行下載。</li>
+
+                <div style="background-color: rgba(244, 67, 54, 0.08); border-left: 3px solid #F44336; padding: 8px 10px; border-radius: 0 6px 6px 0;">
+                    <strong style="color: #F44336; display: block; margin-bottom: 4px; font-size: 0.75rem;">⚠️ 缺點與注意：</strong>
+                    <ul style="margin: 0; padding-left: 16px; list-style-type: disc; color: var(--text-color); font-size: 0.7rem; line-height: 1.5;">
+                        <li>首次下載需消耗約 34MB 流量。</li>
+                        <li>依網速不同，需等待約 1~2 分進行下載。</li>
                     </ul>
                 </div>
-            </div>
-            <div class="modal-footer" style="padding-top: 10px; margin-top: 12px;">
-                <button id="understandPreloadBtn" class="btn btn-primary" style="width: 100%; padding: 8px; font-size: 0.82rem; border-radius: 6px;">我知道了</button>
             </div>
         </div>
     </div>
+
+    <!-- Sync Info Modal -->
+    <div id="syncInfoModal" class="modal-overlay hidden" style="background-color: rgba(0, 0, 0, 0.5); backdrop-filter: blur(8px);">
+        <div class="modal-card glass-modal-card" style="max-width: 380px; padding: 20px; box-sizing: border-box; background-color: var(--card-bg); opacity: 0.95; border: 1px solid var(--border-color);">
+            <div class="modal-header" style="padding-bottom: 12px; margin-bottom: 12px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between;">
+                <h3 style="font-size: 1rem;">進度同步說明</h3>
+                <button id="closeSyncInfoBtn" aria-label="關閉" style="background: var(--text-secondary); color: var(--card-bg); border: none; border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 0.85rem; line-height: 1; flex-shrink: 0;">&#x2715;</button>
+            </div>
+            <div class="modal-body" style="line-height: 1.6; font-size: 0.74rem; color: var(--text-secondary);">
+                <p style="margin-bottom: 10px;">
+                    開啟「進度同步」後，可使用 <strong style="color: var(--text-color);">Google</strong> 或 <strong style="color: var(--text-color);">LINE</strong> 帳號登入，系統將自動同步您在各裝置間勾選的完成集數。
+                </p>
+                <p style="margin-bottom: 12px;">
+                    登入成功後，開關旁會出現對應服務的圖示：<strong style="color: var(--text-color);">𝗚</strong>（Google）或 <strong style="color: #06C755;">LINE</strong>，代表目前同步狀態。
+                </p>
+
+                <div style="background-color: rgba(76, 175, 80, 0.08); border-left: 3px solid #4CAF50; padding: 8px 10px; margin-bottom: 10px; border-radius: 0 6px 6px 0;">
+                    <strong style="color: #4CAF50; display: block; margin-bottom: 4px; font-size: 0.75rem;">👍 優點：</strong>
+                    <ul style="margin: 0; padding-left: 16px; list-style-type: disc; color: var(--text-color); font-size: 0.7rem; line-height: 1.5;">
+                        <li>多裝置即時同步閱讀進度，換裝置不漏讀。</li>
+                        <li>支援 Google 與 LINE 雙帳號綁定，彈性登入。</li>
+                    </ul>
+                </div>
+
+                <div style="background-color: rgba(244, 67, 54, 0.08); border-left: 3px solid #F44336; padding: 8px 10px; border-radius: 0 6px 6px 0;">
+                    <strong style="color: #F44336; display: block; margin-bottom: 4px; font-size: 0.75rem;">⚠️ 注意：</strong>
+                    <ul style="margin: 0; padding-left: 16px; list-style-type: disc; color: var(--text-color); font-size: 0.7rem; line-height: 1.5;">
+                        <li>需要網路連線，離線時進度暫存於本地。</li>
+                        <li>關閉開關即登出，進度資料仍保存於雲端。</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
 
     <!-- About Website Modal -->
     <div id="aboutWebsiteModal" class="modal-overlay hidden" style="background-color: rgba(0, 0, 0, 0.5); backdrop-filter: blur(8px);">
@@ -494,11 +521,19 @@
     <div id="versionHistoryModal" class="modal-overlay hidden" style="background-color: rgba(0, 0, 0, 0.5); backdrop-filter: blur(8px); z-index: 1100;">
         <div class="modal-card glass-modal-card" style="max-width: 420px; padding: 20px; box-sizing: border-box; background-color: var(--card-bg); opacity: 0.95; border: 1px solid var(--border-color);">
             <div class="modal-header" style="padding-bottom: 12px; margin-bottom: 12px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between;">
-                <h3 style="font-size: 1.05rem;">網頁版本更新歷程 (<span id="appVersion">v3.31</span>)</h3>
+                <h3 style="font-size: 1.05rem;">網頁版本更新歷程 (<span id="appVersion">v3.32</span>)</h3>
                 <button id="closeVersionBtn" class="close-modal-btn" style="font-size: 1.4rem;">&times;</button>
             </div>
             <div class="modal-body" style="line-height: 1.55; font-size: 0.8rem; color: var(--text-color); max-height: 60vh; overflow-y: auto; padding-right: 4px;">
                 <div class="changelog-container" style="font-size: 0.72rem; color: var(--text-secondary); line-height: 1.45; display: flex; flex-direction: column; gap: 12px;">
+                    <div>
+                        <strong style="color: var(--text-color); font-size: 0.78rem;">v3.32 (2026/07/09)</strong><br>
+                        ．第一開關文字改為「網頁 明 / 暗 切換」。<br>
+                        ．第二開關：關時顯示「雲端模式」，開時顯示「全文預載模式 (xx%)」，修正百分比超過100%的bug，「i」改為小圓圈式按鈕。<br>
+                        ．「i」彈出視窗標題改為「閱讀模式說明」，關閉鈕改為圓圈底色 ×，內容更新並刪除「我知道了」鈕。<br>
+                        ．第三開關：刪除手動同步按鈕，改為「i」說明圓鈕，新增「進度同步說明」彈出視窗。<br>
+                        ．Google 已登入圖示改為藍底白字 G 徽章，更加醒目。
+                    </div>
                     <div>
                         <strong style="color: var(--text-color); font-size: 0.78rem;">v3.31 (2026/07/09)</strong><br>
                         ．整齊齒輪設定面板：全文預載完成後改顯示文字後接小文字百分比（如 100%）取代打勾符號，顏色統一不用綠色。<br>
@@ -607,6 +642,6 @@
 
     
     <!-- App Logic Scripts -->
-    <script src="app.js?v=3.31"></script>
+    <script src="app.js?v=3.32"></script>
 </body>
 </html>
