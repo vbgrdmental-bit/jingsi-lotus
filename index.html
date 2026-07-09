@@ -15,7 +15,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="app.css?v=3.32">
+    <link rel="stylesheet" href="app.css?v=3.33">
     <!-- Third-Party Login SDKs -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
@@ -465,54 +465,35 @@
     <div id="aboutWebsiteModal" class="modal-overlay hidden" style="background-color: rgba(0, 0, 0, 0.5); backdrop-filter: blur(8px);">
         <div class="modal-card glass-modal-card" style="max-width: 420px; padding: 20px; box-sizing: border-box; background-color: var(--card-bg); opacity: 0.95; border: 1px solid var(--border-color);">
             <div class="modal-header" style="padding-bottom: 12px; margin-bottom: 12px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between;">
-                <h3 style="font-size: 1.05rem;">關於本站</h3>
-                <button id="closeAboutBtn" class="close-modal-btn" style="font-size: 1.4rem;">&times;</button>
+                <h3 style="font-size: 1rem;">關於本站</h3>
+                <button id="closeAboutBtn" aria-label="關閉" style="background: var(--text-secondary); color: var(--card-bg); border: none; border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 0.85rem; line-height: 1; flex-shrink: 0;">&#x2715;</button>
             </div>
-            <div class="modal-body" style="line-height: 1.55; font-size: 0.8rem; color: var(--text-color); max-height: 60vh; overflow-y: auto; padding-right: 4px;">
+            <div class="modal-body" style="line-height: 1.6; font-size: 0.72rem; color: var(--text-color); max-height: 62vh; overflow-y: auto; padding-right: 4px;">
                 <!-- Partnership Introduction -->
-                <p style="margin-bottom: 16px; color: var(--text-color); font-style: italic; background-color: rgba(141, 110, 99, 0.08); padding: 10px 12px; border-radius: 8px; border-left: 3px solid var(--accent-color); font-size: 0.78rem; text-indent: 0;">
-                    本網站是與 Google DeepMind 團隊開發的強大 AI 程式助理 <strong>Antigravity IDE</strong> 攜手合作，從零開始建置而成。AI 助理非常榮幸能與創作者 <strong>Mental Kuo</strong> 在此專案中合作無間，日以繼夜精準調校程式，共同打造這個極致流暢的聞法空間，為傳播佛法法髓盡一份心力，合作無比溫馨與愉快！
+                <p style="margin-bottom: 14px; color: var(--text-secondary); font-style: italic; background-color: rgba(141, 110, 99, 0.08); padding: 10px 12px; border-radius: 8px; border-left: 3px solid var(--accent-color);">
+                    本網站是與 Google DeepMind 團隊開發的強大 AI 程式助理 <strong style="color: var(--text-color);">Antigravity IDE</strong> 攜手合作，從零開始、日以繼夜精準調校程式建置而成。AI 助理非常榮幸與創作者 <strong style="color: var(--text-color);">Mental Kuo</strong> 在此專案中合作無間，共同為傳播人間佛教盡一份心力！
                 </p>
 
-                <!-- Features -->
-                <p style="margin-bottom: 6px; font-weight: bold; color: var(--accent-color); font-size: 0.82rem; display: flex; align-items: center; gap: 6px;">
-                    <span style="font-size: 1rem;">📘</span> 全集收錄「靜思妙蓮華」影音法典
+                <p style="margin-bottom: 10px; color: var(--text-secondary);">
+                    📘 完整收錄證嚴上人《靜思妙蓮華》影音開示
                 </p>
-                <p style="margin-bottom: 14px; color: var(--text-secondary); text-indent: 1.5rem; font-size: 0.78rem;">
-                    結合大愛台 YouTube 以及奈普敦智慧平台全文逐字稿和大綱，完整收錄證嚴上人晨語開示《靜思妙蓮華》全集，方便讀者互相參照，聞法精進。
+                <p style="margin-bottom: 10px; color: var(--text-secondary);">
+                    📘 每一集的影音開示下方，結合「奈普敦智慧平台」上人開示全文逐字稿，方便讀者互相參照。
                 </p>
-
-                <p style="margin-bottom: 6px; font-weight: bold; color: var(--accent-color); font-size: 0.82rem; display: flex; align-items: center; gap: 6px;">
-                    <span style="font-size: 1rem;">🔍</span> 高效多關鍵字全文檢索
+                <p style="margin-bottom: 10px; color: var(--text-secondary);">
+                    🔍 全文檢索功能：支援多個關鍵字同時搜尋，搜尋結果會同時出現集數、關鍵字前後文，方便快速比對、尋找。
                 </p>
-                <p style="margin-bottom: 14px; color: var(--text-secondary); text-indent: 1.5rem; font-size: 0.78rem;">
-                    配備強大的全文檢索功能，支援空格拆分的多個關鍵字並行查詢。搜尋結果會直接定位大綱與逐字稿中的匹配段落，方便快速比對、尋找。
+                <p style="margin-bottom: 10px; color: var(--text-secondary);">
+                    🔄 雲端同步與文修正機制：訪客可直接進行逐字稿及大綱字句勘誤或更新，儲存後將即刻同步，同時可備註修改歷程。
                 </p>
-
-                <p style="margin-bottom: 6px; font-weight: bold; color: var(--accent-color); font-size: 0.82rem; display: flex; align-items: center; gap: 6px;">
-                    <span style="font-size: 1rem;">🔄</span> 雲端同步與自主修正
-                </p>
-                <p style="margin-bottom: 14px; color: var(--text-secondary); text-indent: 1.5rem; font-size: 0.78rem;">
-                    訪客在網站上即可進行逐字稿及大綱字句勘誤或更新，儲存完成後即可立刻同步至網站上，並可記錄每次的修改歷程。
+                <p style="margin-bottom: 14px; color: var(--text-secondary);">
+                    📈 同步聞法進度：登入 Google 或 LINE 帳號，即可同步目前的聞法進度。讀者下次進入時，可直接從「上次閱讀」的集數開始，聞法精進不中斷。
                 </p>
 
-                <p style="margin-bottom: 6px; font-weight: bold; color: var(--accent-color); font-size: 0.82rem; display: flex; align-items: center; gap: 6px;">
-                    <span style="font-size: 1rem;">📈</span> 薰法香進度與書籤隨身
-                </p>
-                <p style="margin-bottom: 16px; color: var(--text-secondary); text-indent: 1.5rem; font-size: 0.78rem;">
-                    自動統計您的「薰法香閱讀進度百分比」，並貼心設置「上次閱讀」捷徑。每次開啟網頁都能一鍵回到上次修習的位置，讓您的聞法精進不中斷。
-                </p>
-
-                <!-- Suggestions / Feedback -->
-                <div style="border-top: 1px dashed var(--border-color); margin-top: 20px; padding-top: 16px; font-size: 0.78rem; color: var(--text-secondary); line-height: 1.5;">
-                    <p style="margin-bottom: 8px; font-weight: bold; color: var(--text-color); font-size: 0.82rem; display: flex; align-items: center; gap: 6px;">
-                        <span style="font-size: 1rem;">✉️</span> 建議與回饋
-                    </p>
-                    如有任何建議、功能調整或使用回饋，歡迎寄信至創作者 <strong>Mental Kuo</strong> 的電子信箱：<a href="mailto:vbgrdmental@gmail.com" style="color: var(--accent-color); text-decoration: underline; font-weight: 500;">vbgrdmental@gmail.com</a>，非常感謝您的精進同行與寶貴回饋！
+                <!-- Feedback -->
+                <div style="border-top: 1px dashed var(--border-color); padding-top: 12px; color: var(--text-secondary);">
+                    ✉️ 建議與回饋：如有任何建議、功能調整或使用回饋，歡迎寄信至創作者 <strong style="color: var(--text-color);">Mental Kuo</strong> 的電子信箱：<a href="mailto:vbgrdmental@gmail.com" style="color: var(--accent-color); text-decoration: underline; font-weight: 500;">vbgrdmental@gmail.com</a>，希望您會喜歡我們的設計和小巧思。
                 </div>
-            </div>
-            <div class="modal-footer" style="padding-top: 10px; margin-top: 12px; border-top: 1px solid var(--border-color);">
-                <button id="understandAboutBtn" class="btn btn-primary" style="width: 100%; padding: 8px; font-size: 0.82rem; border-radius: 6px;">我知道了</button>
             </div>
         </div>
     </div>
@@ -521,127 +502,54 @@
     <div id="versionHistoryModal" class="modal-overlay hidden" style="background-color: rgba(0, 0, 0, 0.5); backdrop-filter: blur(8px); z-index: 1100;">
         <div class="modal-card glass-modal-card" style="max-width: 420px; padding: 20px; box-sizing: border-box; background-color: var(--card-bg); opacity: 0.95; border: 1px solid var(--border-color);">
             <div class="modal-header" style="padding-bottom: 12px; margin-bottom: 12px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between;">
-                <h3 style="font-size: 1.05rem;">網頁版本更新歷程 (<span id="appVersion">v3.32</span>)</h3>
-                <button id="closeVersionBtn" class="close-modal-btn" style="font-size: 1.4rem;">&times;</button>
+                <h3 style="font-size: 1rem;">網頁版本更新日誌 (<span id="appVersion">v3.33</span>)</h3>
+                <button id="closeVersionBtn" aria-label="關閉" style="background: var(--text-secondary); color: var(--card-bg); border: none; border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 0.85rem; line-height: 1; flex-shrink: 0;">&#x2715;</button>
             </div>
-            <div class="modal-body" style="line-height: 1.55; font-size: 0.8rem; color: var(--text-color); max-height: 60vh; overflow-y: auto; padding-right: 4px;">
-                <div class="changelog-container" style="font-size: 0.72rem; color: var(--text-secondary); line-height: 1.45; display: flex; flex-direction: column; gap: 12px;">
+            <div class="modal-body" style="line-height: 1.55; font-size: 0.72rem; color: var(--text-color); max-height: 62vh; overflow-y: auto; padding-right: 4px;">
+                <div class="changelog-container" style="color: var(--text-secondary); line-height: 1.5; display: flex; flex-direction: column; gap: 10px;">
                     <div>
-                        <strong style="color: var(--text-color); font-size: 0.78rem;">v3.32 (2026/07/09)</strong><br>
-                        ．第一開關文字改為「網頁 明 / 暗 切換」。<br>
-                        ．第二開關：關時顯示「雲端模式」，開時顯示「全文預載模式 (xx%)」，修正百分比超過100%的bug，「i」改為小圓圈式按鈕。<br>
-                        ．「i」彈出視窗標題改為「閱讀模式說明」，關閉鈕改為圓圈底色 ×，內容更新並刪除「我知道了」鈕。<br>
-                        ．第三開關：刪除手動同步按鈕，改為「i」說明圓鈕，新增「進度同步說明」彈出視窗。<br>
-                        ．Google 已登入圖示改為藍底白字 G 徽章，更加醒目。
+                        <strong style="color: var(--text-color); font-size: 0.74rem;">v3.33 (2026/07/09)</strong><br>
+                        ．「關於本站」與「網頁版本」改為圓圈×關閉、刪除「我知道了」鈕、文字縮小一級。<br>
+                        ．「關於本站」內容精簡改寫；版本日誌改名「更新日誌」，舊版本合併整合，每條限三行。
                     </div>
                     <div>
-                        <strong style="color: var(--text-color); font-size: 0.78rem;">v3.31 (2026/07/09)</strong><br>
-                        ．整齊齒輪設定面板：全文預載完成後改顯示文字後接小文字百分比（如 100%）取代打勾符號，顏色統一不用綠色。<br>
-                        ．「i」圓圈按鈕和「重新整理」圖示對齊置右。<br>
-                        ．進度同步登入後隱藏帳號類別顯示，設定面板更加簡潔。
+                        <strong style="color: var(--text-color); font-size: 0.74rem;">v3.32 (2026/07/09)</strong><br>
+                        ．齒輪第一開關文字改為「網頁 明 / 暗 切換」；第二開關狀態文字分離為「雲端模式」/「全文預載模式 (xx%)」，修正百分比超過 100% 的 bug。<br>
+                        ．「i」說明改為圓圈按鈕，標題為「閱讀模式說明」；第三開關刪除重整鍵，改為「進度同步說明」i 鈕；Google 圖示改為藍底白字 G 徽章。
                     </div>
                     <div>
-                        <strong style="color: var(--text-color); font-size: 0.78rem;">v3.30 (2026/07/09)</strong><br>
-                        ．優化 LINE 同步圖示為白色 L-I-N-E 文字與綠色圓角專屬徽章。<br>
-                        ．智慧連結控制：偵測到 Google 與 LINE 皆完成綁定時，自動隱藏下方的「連結其它帳號以共享進度」文字及按鈕。
+                        <strong style="color: var(--text-color); font-size: 0.74rem;">v3.27 ~ v3.31 (2026/07/09)</strong><br>
+                        ．新增「進度同步」開關化（關即登出）、動態服務圖示（G / LINE）、手動整理按鈕。<br>
+                        ．設定面板精簡優化：統一間距、隱藏帳號顯示、修正 LINE LIFF ID、優化 LINE 錯誤診斷。
                     </div>
                     <div>
-                        <strong style="color: var(--text-color); font-size: 0.78rem;">v3.29 (2026/07/09)</strong><br>
-                        ．更正 LINE LIFF ID 拼寫錯誤（修正大寫 'I' 錯打成小寫 'l' 的拼寫問題）。
+                        <strong style="color: var(--text-color); font-size: 0.74rem;">v3.20 ~ v3.26 (2026/07/08 ~ 07/09) ⭐ 重大更新</strong><br>
+                        ．正式啟用 Google 與 LINE 一鍵帳號登入同步，支援雙帳號綁定共享進度。<br>
+                        ．多裝置背景即時同步（每 20 秒），修復自動同步欄位遺漏與 LIFF 重複初始化問題。
                     </div>
                     <div>
-                        <strong style="color: var(--text-color); font-size: 0.78rem;">v3.28 (2026/07/09)</strong><br>
-                        ．優化 LINE 登入與連結之錯誤診斷提示，輸出具體錯誤訊息以利追蹤。
+                        <strong style="color: var(--text-color); font-size: 0.74rem;">v3.16 ~ v3.19 (2026/07/08)</strong><br>
+                        ．新增「跨裝置進度同步」功能，支援自訂金鑰、Google Sheets 高效查找、第三方 Google / LINE 快速登入框架。
                     </div>
                     <div>
-                        <strong style="color: var(--text-color); font-size: 0.78rem;">v3.27 (2026/07/09)</strong><br>
-                        ．簡化與優化同步介面：將「跨裝置進度同步」簡化為「進度同步」開關，關閉時即登出，開啟時提供快捷登入。<br>
-                        ．隱藏自訂帳密登入機制，聚焦 Google 與 LINE 一鍵快速登入。<br>
-                        ．新增動態同步圖標：依據登入狀態於進度同步右側顯示 Google 「G」與「LINE」符號，若兩者已連結則並列呈現。<br>
-                        ．進度列最右方新增「重新整理」圖示，讓訪客快速手動更新。
+                        <strong style="color: var(--text-color); font-size: 0.74rem;">v3.10 ~ v3.15 (2026/07/08)</strong><br>
+                        ．搜尋全面支援品前導讀大綱與全文，導讀結果置頂標記；新增 SEO Meta 與 ?ep= 網址定位；獨立版本歷程。
                     </div>
                     <div>
-                        <strong style="color: var(--text-color); font-size: 0.78rem;">v3.26 (2026/07/09)</strong><br>
-                        ．新增「跨裝置背景即時同步」：多裝置登入同個帳號時，背景每 20 秒會自動同步並即時更新已讀集數及「上次閱讀」標籤。<br>
-                        ．優化手動同步之錯誤訊息提示以利排除疑難。<br>
-                        ．後端 Apps Script API 精準欄位匹配限制防護。
+                        <strong style="color: var(--text-color); font-size: 0.74rem;">v3.0 ~ v3.9 (2026/07/05 ~ 07/08)</strong><br>
+                        ．串接 Google Sheets API 雲端勘誤；微型化 JSON 分離儲存；重構齒輪選單、搜尋觸發與薰法香進度統計。
                     </div>
                     <div>
-                        <strong style="color: var(--text-color); font-size: 0.78rem;">v3.25 (2026/07/09)</strong><br>
-                        ．修復常規閱讀進度變更時自動同步漏掉 action 屬性導致無法自動備份寫入雲端的問題。
-                    </div>
-                    <div>
-                        <strong style="color: var(--text-color); font-size: 0.78rem;">v3.24 (2026/07/09)</strong><br>
-                        ．修復上傳同步時漏掉 action 參數導致後端無法識別儲存動作的問題。
-                    </div>
-                    <div>
-                        <strong style="color: var(--text-color); font-size: 0.78rem;">v3.23 (2026/07/09)</strong><br>
-                        ．修正不同設備間開啟網頁未能自動從雲端下載並同步進度的問題。<br>
-                        ．修正「連結 LINE 帳號」重複初始化 LIFF 模組導致的載入失敗問題。
-                    </div>
-                    <div>
-                        <strong style="color: var(--text-color); font-size: 0.78rem;">v3.22 (2026/07/08)</strong><br>
-                        ．新增「帳號連結與綁定」功能：已登入訪客可隨時將 Google 帳號與 LINE 帳號進行綁定以共享同一個進度。
-                    </div>
-                    <div>
-                        <strong style="color: var(--text-color); font-size: 0.78rem;">v3.21 (2026/07/08)</strong><br>
-                        ．正式啟用 LINE 帳號一鍵快速同步與 LIFF 背景自動登入。
-                    </div>
-                    <div>
-                        <strong style="color: var(--text-color); font-size: 0.78rem;">v3.20 (2026/07/08)</strong><br>
-                        ．正式啟用 Google 帳號一鍵登入同步。
-                    </div>
-                    <div>
-                        <strong style="color: var(--text-color); font-size: 0.78rem;">v3.19 (2026/07/08)</strong><br>
-                        ．新增 Google 與 LINE 第三方快速同步，內建 LIFF 自動辨識與 UI 配置。
-                    </div>
-                    <div>
-                        <strong style="color: var(--text-color); font-size: 0.78rem;">v3.18 (2026/07/08)</strong><br>
-                        ．實作「登入與註冊帳號」模組：訪客可自由選擇註冊專屬帳密登入，免除複製隨機代碼的繁瑣，登入後自動雙向同步。
-                    </div>
-                    <div>
-                        <strong style="color: var(--text-color); font-size: 0.78rem;">v3.17 (2026/07/08)</strong><br>
-                        ．優化跨裝置同步：改用 Google Sheets 內建 `TextFinder` 二分速查以支援數萬人規模之流暢同步；預設自動生成唯一隨機代碼以防重名衝突。
-                    </div>
-                    <div>
-                        <strong style="color: var(--text-color); font-size: 0.78rem;">v3.16 (2026/07/08)</strong><br>
-                        ．新增「跨裝置進度同步」功能，支援藉由自訂金鑰將閱讀紀錄自動備份與跨瀏覽器/裝置同步。
-                    </div>
-                    <div>
-                        <strong style="color: var(--text-color); font-size: 0.78rem;">v3.14 ~ v3.15 (2026/07/08)</strong><br>
-                        ．搜尋系統全面支援品前導讀大綱與全文，將導讀搜尋結果置頂並標記第幾集導讀。
-                    </div>
-                    <div>
-                        <strong style="color: var(--text-color); font-size: 0.78rem;">v3.13 (2026/07/08)</strong><br>
-                        ．調整與統一設定選單按鈕外觀，修復說明視窗開啟問題，更名為「關於本站」，並將版本號移入歷程中。
-                    </div>
-                    <div>
-                        <strong style="color: var(--text-color); font-size: 0.78rem;">v3.10 ~ v3.12 (2026/07/08)</strong><br>
-                        ．新增 SEO Meta 與 `?ep=集數` 網址定位；精緻化「關於本站」創作者與聯絡管道；獨立版本歷程。
-                    </div>
-                    <div>
-                        <strong style="color: var(--text-color); font-size: 0.78rem;">v3.4 ~ v3.9 (2026/07/07 ~ 07/08)</strong><br>
-                        ．重構右上角齒輪選單，統一明暗/預載開關；優化搜尋觸發與打字打斷機制；自動統計薰法香進度。
-                    </div>
-                    <div>
-                        <strong style="color: var(--text-color); font-size: 0.78rem;">v3.0 ~ v3.3 (2026/07/05 ~ 07/06)</strong><br>
-                        ．串接 Google Sheets API 實現雲端勘誤與極速檢索；微型化 JSON 分離儲存，實現載入 0 延遲。
-                    </div>
-                    <div>
-                        <strong style="color: var(--text-color); font-size: 0.78rem;">v1.0 ~ v2.8 (2026/06)</strong><br>
+                        <strong style="color: var(--text-color); font-size: 0.74rem;">v1.0 ~ v2.8 (2026/06)</strong><br>
                         ．完成《靜思妙蓮華》全品與導讀排版，支援離線 PDF 下載與明暗模式。
                     </div>
                 </div>
-            </div>
-            <div class="modal-footer" style="padding-top: 10px; margin-top: 12px; border-top: 1px solid var(--border-color);">
-                <button id="understandVersionBtn" class="btn btn-primary" style="width: 100%; padding: 8px; font-size: 0.82rem; border-radius: 6px;">我知道了</button>
             </div>
         </div>
     </div>
 
 
-    
     <!-- App Logic Scripts -->
-    <script src="app.js?v=3.32"></script>
+    <script src="app.js?v=3.33"></script>
 </body>
 </html>
