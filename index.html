@@ -15,7 +15,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="app.css?v=3.33">
+    <link rel="stylesheet" href="app.css?v=3.34">
     <!-- Third-Party Login SDKs -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
@@ -399,7 +399,7 @@
                 <h3 style="font-size: 1rem;">閱讀模式說明</h3>
                 <button id="closePreloadInfoBtn" aria-label="關閉" style="background: var(--text-secondary); color: var(--card-bg); border: none; border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 0.85rem; line-height: 1; flex-shrink: 0;">&#x2715;</button>
             </div>
-            <div class="modal-body" style="line-height: 1.55; font-size: 0.74rem; color: var(--text-color);">
+            <div class="modal-body" style="line-height: 1.35; font-size: 0.74rem; color: var(--text-color);">
                 <p style="margin-bottom: 10px; color: var(--text-secondary);">
                     預設「雲端模式」，適用一般訪客瀏覽各個集數，但在開啟單集、大綱、逐字稿和搜尋關鍵字時，有時會有時間延遲的現象。
                 </p>
@@ -433,7 +433,7 @@
                 <h3 style="font-size: 1rem;">進度同步說明</h3>
                 <button id="closeSyncInfoBtn" aria-label="關閉" style="background: var(--text-secondary); color: var(--card-bg); border: none; border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 0.85rem; line-height: 1; flex-shrink: 0;">&#x2715;</button>
             </div>
-            <div class="modal-body" style="line-height: 1.6; font-size: 0.74rem; color: var(--text-secondary);">
+            <div class="modal-body" style="line-height: 1.35; font-size: 0.74rem; color: var(--text-secondary);">
                 <p style="margin-bottom: 10px;">
                     開啟「進度同步」後，可使用 <strong style="color: var(--text-color);">Google</strong> 或 <strong style="color: var(--text-color);">LINE</strong> 帳號登入，系統將自動同步您在各裝置間勾選的完成集數。
                 </p>
@@ -468,7 +468,7 @@
                 <h3 style="font-size: 1rem;">關於本站</h3>
                 <button id="closeAboutBtn" aria-label="關閉" style="background: var(--text-secondary); color: var(--card-bg); border: none; border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 0.85rem; line-height: 1; flex-shrink: 0;">&#x2715;</button>
             </div>
-            <div class="modal-body" style="line-height: 1.6; font-size: 0.72rem; color: var(--text-color); max-height: 62vh; overflow-y: auto; padding-right: 4px;">
+            <div class="modal-body" style="line-height: 1.35; font-size: 0.72rem; color: var(--text-color); max-height: 62vh; overflow-y: auto; padding-right: 4px;">
                 <!-- Partnership Introduction -->
                 <p style="margin-bottom: 14px; color: var(--text-secondary); font-style: italic; background-color: rgba(141, 110, 99, 0.08); padding: 10px 12px; border-radius: 8px; border-left: 3px solid var(--accent-color);">
                     本網站是與 Google DeepMind 團隊開發的強大 AI 程式助理 <strong style="color: var(--text-color);">Antigravity IDE</strong> 攜手合作，從零開始、日以繼夜精準調校程式建置而成。AI 助理非常榮幸與創作者 <strong style="color: var(--text-color);">Mental Kuo</strong> 在此專案中合作無間，共同為傳播人間佛教盡一份心力！
@@ -502,11 +502,17 @@
     <div id="versionHistoryModal" class="modal-overlay hidden" style="background-color: rgba(0, 0, 0, 0.5); backdrop-filter: blur(8px); z-index: 1100;">
         <div class="modal-card glass-modal-card" style="max-width: 420px; padding: 20px; box-sizing: border-box; background-color: var(--card-bg); opacity: 0.95; border: 1px solid var(--border-color);">
             <div class="modal-header" style="padding-bottom: 12px; margin-bottom: 12px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between;">
-                <h3 style="font-size: 1rem;">網頁版本更新日誌 (<span id="appVersion">v3.33</span>)</h3>
+                <h3 style="font-size: 1rem;">網頁版本更新日誌 (<span id="appVersion">v3.34</span>)</h3>
                 <button id="closeVersionBtn" aria-label="關閉" style="background: var(--text-secondary); color: var(--card-bg); border: none; border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 0.85rem; line-height: 1; flex-shrink: 0;">&#x2715;</button>
             </div>
-            <div class="modal-body" style="line-height: 1.55; font-size: 0.72rem; color: var(--text-color); max-height: 62vh; overflow-y: auto; padding-right: 4px;">
-                <div class="changelog-container" style="color: var(--text-secondary); line-height: 1.5; display: flex; flex-direction: column; gap: 10px;">
+            <div class="modal-body" style="line-height: 1.35; font-size: 0.72rem; color: var(--text-color); max-height: 62vh; overflow-y: auto; padding-right: 4px;">
+                <div class="changelog-container" style="color: var(--text-secondary); line-height: 1.35; display: flex; flex-direction: column; gap: 10px;">
+                    <div>
+                        <strong style="color: var(--text-color); font-size: 0.74rem;">v3.34 (2026/07/09)</strong><br>
+                        ．第2開關：關閉時中止下載（不消耗流量），再開啟時從上次進度繼續；下載 100% 後不重複下載。<br>
+                        ．第3開關：LINE 首次登入現提示先用 Google 登入再連動；Google 同步圖示改為標準四色 G 標誌。<br>
+                        ．「i」說明、關於本站、更新日誌行距從 1.6 調整為 1.35，更緊湊易讀。
+                    </div>
                     <div>
                         <strong style="color: var(--text-color); font-size: 0.74rem;">v3.33 (2026/07/09)</strong><br>
                         ．「關於本站」與「網頁版本」改為圓圈×關閉、刪除「我知道了」鈕、文字縮小一級。<br>
@@ -550,6 +556,6 @@
 
 
     <!-- App Logic Scripts -->
-    <script src="app.js?v=3.33"></script>
+    <script src="app.js?v=3.34"></script>
 </body>
 </html>
