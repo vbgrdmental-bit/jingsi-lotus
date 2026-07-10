@@ -2768,10 +2768,13 @@ window.openEpisodeDetail = function(episodeId, isResume = false) {
                                     }
                                     const notesOnlyEpisodes = [16, 17, 19, 20, 23, 29];
                                     const isNotesOnly = notesOnlyEpisodes.includes(episodeId) && !res.data.edit_history.length;
-                                    const sermonSourceText = isNotesOnly 
+                                    const sermonOutlineText = isNotesOnly
                                         ? `※ 以上內容參考自「奈普敦智慧平台」（本集僅有導讀問答與心得筆記，無逐字稿）`
                                         : `※ 以上內容參考自「奈普敦智慧平台」`;
-                                    appendBottomInfoBar(elements.sutraSummary, sermonSourceText, true, summaryHistory);
+                                    const sermonTranscriptText = isNotesOnly
+                                        ? `※ 以上內容參考自「奈普敦智慧平台」（本集僅有導讀問答與心得筆記，無逐字稿）`
+                                        : `※ 以上內容參考自「奈普敦智慧平台」/「大愛電視 YouTube 」`;
+                                    appendBottomInfoBar(elements.sutraSummary, sermonOutlineText, true, summaryHistory);
 
                                     // Re-render full text tab content
                                     elements.sutraFullText.innerHTML = '';
@@ -2791,7 +2794,7 @@ window.openEpisodeDetail = function(episodeId, isResume = false) {
                                             }
                                         });
                                     }
-                                    appendBottomInfoBar(elements.sutraFullText, sermonSourceText, false, fullTextHistory);
+                                    appendBottomInfoBar(elements.sutraFullText, sermonTranscriptText, false, fullTextHistory);
                                 }
                             }
                         }
@@ -3915,13 +3918,18 @@ function performPanelSearch(query) {
     const clean = query.trim();
     if (!clean) return;
 
-    // 2. Escape special characters for regex
-    const escaped = clean.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-    const regex = new RegExp(escaped, 'gi');
+    // 2. Split into multiple keywords and build a combined regex
+    //    e.g. "広大 慈悟" → matches "広大" OR "慈悟"
+    const keywords = clean.split(/[\s　]+/).filter(k => k.length > 0);
+    if (keywords.length === 0) return;
 
-    // 3. Highlight matches in text nodes recursively
-    highlightTextInNode(summaryContainer, regex);
-    highlightTextInNode(textContainer, regex);
+    // Escape each keyword for use in regex
+    const escapedKeywords = keywords.map(k => k.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'));
+    const combinedRegex = new RegExp('(' + escapedKeywords.join('|') + ')', 'gi');
+
+    // 3. Highlight all keyword matches in text nodes recursively
+    highlightTextInNode(summaryContainer, combinedRegex);
+    highlightTextInNode(textContainer, combinedRegex);
 }
 
 function highlightTextInNode(node, regex) {
@@ -3983,9 +3991,12 @@ function populateEpisodeTexts(episodeId) {
     // Update source note text for notes-only episodes
     const notesOnlyEpisodes = [16, 17, 19, 20, 23, 29];
     const isNotesOnly = notesOnlyEpisodes.includes(episodeId) && !episode.is_edited;
-    const sermonSourceText = isNotesOnly 
+    const sermonOutlineText = isNotesOnly
         ? `※ 以上內容參考自「奈普敦智慧平台」（本集僅有導讀問答與心得筆記，無逐字稿）`
         : `※ 以上內容參考自「奈普敦智慧平台」`;
+    const sermonTranscriptText = isNotesOnly
+        ? `※ 以上內容參考自「奈普敦智慧平台」（本集僅有導讀問答與心得筆記，無逐字稿）`
+        : `※ 以上內容參考自「奈普敦智慧平台」/「大愛電視 YouTube 」`;
     // 1. Populate Outline (summary)
     elements.sutraSummary.innerHTML = '';
 
@@ -4030,7 +4041,7 @@ function populateEpisodeTexts(episodeId) {
     }
 
     // Append bottom bar at Outline tab
-    appendBottomInfoBar(elements.sutraSummary, sermonSourceText, true, summaryHistory);
+    appendBottomInfoBar(elements.sutraSummary, sermonOutlineText, true, summaryHistory);
 
     // 2. Populate Sermon Text (full_text)
     elements.sutraFullText.innerHTML = '';
@@ -4071,7 +4082,7 @@ function populateEpisodeTexts(episodeId) {
     }
 
     // Append bottom bar at Transcript tab
-    appendBottomInfoBar(elements.sutraFullText, sermonSourceText, false, fullTextHistory);
+    appendBottomInfoBar(elements.sutraFullText, sermonTranscriptText, false, fullTextHistory);
 
     // 3. Save original HTML for inline search
     if (typeof saveOriginalPanelHTML === 'function') {
