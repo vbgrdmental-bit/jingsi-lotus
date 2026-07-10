@@ -15,7 +15,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="app.css?v=3.34">
+    <link rel="stylesheet" href="app.css?v=3.36">
     <!-- Third-Party Login SDKs -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
@@ -502,58 +502,63 @@
     <div id="versionHistoryModal" class="modal-overlay hidden" style="background-color: rgba(0, 0, 0, 0.5); backdrop-filter: blur(8px); z-index: 1100;">
         <div class="modal-card glass-modal-card" style="max-width: 420px; padding: 20px; box-sizing: border-box; background-color: var(--card-bg); opacity: 0.95; border: 1px solid var(--border-color);">
             <div class="modal-header" style="padding-bottom: 12px; margin-bottom: 12px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between;">
-                <h3 style="font-size: 1rem;">網頁版本更新日誌 (<span id="appVersion">v3.35</span>)</h3>
+                <h3 style="font-size: 1rem;">網頁版本更新日誌 (<span id="appVersion">v3.36</span>)</h3>
                 <button id="closeVersionBtn" aria-label="關閉" style="background: var(--text-secondary); color: var(--card-bg); border: none; border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 0.85rem; line-height: 1; flex-shrink: 0;">&#x2715;</button>
             </div>
             <div class="modal-body" style="line-height: 1.35; font-size: 0.72rem; color: var(--text-color); max-height: 62vh; overflow-y: auto; padding-right: 4px;">
                 <div class="changelog-container" style="color: var(--text-secondary); line-height: 1.35; display: flex; flex-direction: column; gap: 10px;">
                     <div>
+                        <strong style="color: var(--text-color); font-size: 0.74rem;">v3.36 (2026/07/10)</strong><br>
+                        ．分頁樣式升級為 Google 圓角分頁額包覆效果。<br>
+                        ．滿版檢視鈕點後文字改為「縮版閱讀」，再點尌復。<br>
+                        ．大綱、逐字稿出處文字正確修改為「參考自」。
+                    </div>
+                    <div>
                         <strong style="color: var(--text-color); font-size: 0.74rem;">v3.35 (2026/07/10)</strong><br>
-                        ．同步升級為「時間戳記合併」機制：打勾/取消均記錄時間點，多裝置以最後操作時間為準（Last-Write-Wins）。<br>
-                        ．支援跨裝置「取消打勾」同步，且同一帳號在 A、B、C 多台裝置同時使用時能正確收斂為最新狀態。<br>
-                        ．上次閱讀記錄亦以時間戳記決定最新值；後端 Google Sheets 自動新增欄位，無需手動操作。
+                        ．同步升級：打勾/取消均記錄時間點，多裝置以最後操作為準。<br>
+                        ．支援跨裝置「取消打勾」同步，多台裝置正確收斂。<br>
+                        ． Google Sheets 自動新增欄位，無需手動操作。
                     </div>
                     <div>
                         <strong style="color: var(--text-color); font-size: 0.74rem;">v3.34 (2026/07/09)</strong><br>
-                        ．第2開關：關閉時中止下載（不消耗流量），再開啟時從上次進度繼續；下載 100% 後不重複下載。<br>
-                        ．第3開關：LINE 首次登入現提示先用 Google 登入再連動；Google 同步圖示改為標準四色 G 標誌。<br>
-                        ．「i」說明、關於本站、更新日誌行距從 1.6 調整為 1.35，更緊湊易讀。
+                        ．第2開關：關閉中止下載，再開啟從上次進度繼續。<br>
+                        ．第3開關：LINE 首次登入提示先用 Google；G 標改為四色標準。<br>
+                        ．對話框行距從 1.6 調整為 1.35。
                     </div>
                     <div>
-                        <strong style="color: var(--text-color); font-size: 0.74rem;">v3.33 (2026/07/09)</strong><br>
-                        ．「關於本站」與「網頁版本」改為圓圈×關閉、刪除「我知道了」鈕、文字縮小一級。<br>
-                        ．「關於本站」內容精簡改寫；版本日誌改名「更新日誌」，舊版本合併整合，每條限三行。
-                    </div>
-                    <div>
-                        <strong style="color: var(--text-color); font-size: 0.74rem;">v3.32 (2026/07/09)</strong><br>
-                        ．齒輪第一開關文字改為「網頁 明 / 暗 切換」；第二開關狀態文字分離為「雲端模式」/「全文預載模式 (xx%)」，修正百分比超過 100% 的 bug。<br>
-                        ．「i」說明改為圓圈按鈕，標題為「閱讀模式說明」；第三開關刪除重整鍵，改為「進度同步說明」i 鈕；Google 圖示改為藍底白字 G 徽章。
+                        <strong style="color: var(--text-color); font-size: 0.74rem;">v3.32 ~ v3.33 (2026/07/09)</strong><br>
+                        ．第一開關文字改為「明 / 暗切換」；第二開關分離雲端模式與預載模式狀態。<br>
+                        ．「i」說明改為圓圈按鈕；第三開關加入「進度同步說明」 i 鈕。
                     </div>
                     <div>
                         <strong style="color: var(--text-color); font-size: 0.74rem;">v3.27 ~ v3.31 (2026/07/09)</strong><br>
-                        ．新增「進度同步」開關化（關即登出）、動態服務圖示（G / LINE）、手動整理按鈕。<br>
-                        ．設定面板精簡優化：統一間距、隱藏帳號顯示、修正 LINE LIFF ID、優化 LINE 錯誤診斷。
+                        ．同步開關化（關即登出）、動態服務圖示、手動整理按鈕。<br>
+                        ．設定面板精簡；修正 LINE LIFF ID 與錯誤診斷。
                     </div>
                     <div>
                         <strong style="color: var(--text-color); font-size: 0.74rem;">v3.20 ~ v3.26 (2026/07/08 ~ 07/09) ⭐ 重大更新</strong><br>
-                        ．正式啟用 Google 與 LINE 一鍵帳號登入同步，支援雙帳號綁定共享進度。<br>
-                        ．多裝置背景即時同步（每 20 秒），修復自動同步欄位遺漏與 LIFF 重複初始化問題。
+                        ．正式啟用 Google / LINE 一鍵登入同步。<br>
+                        ．支援雙帳號綁定共享進度，背景即時同步。
                     </div>
                     <div>
-                        <strong style="color: var(--text-color); font-size: 0.74rem;">v3.16 ~ v3.19 (2026/07/08)</strong><br>
-                        ．新增「跨裝置進度同步」功能，支援自訂金鑰、Google Sheets 高效查找、第三方 Google / LINE 快速登入框架。
+                        <strong style="color: var(--text-color); font-size: 0.74rem;">v3.16 ~ v3.19 (2026/07/08) ⭐ 重大更新</strong><br>
+                        ．新增跨裝置進度同步功能。<br>
+                        ．支援 Google / LINE 快速登入框架。
                     </div>
                     <div>
-                        <strong style="color: var(--text-color); font-size: 0.74rem;">v3.10 ~ v3.15 (2026/07/08)</strong><br>
-                        ．搜尋全面支援品前導讀大綱與全文，導讀結果置頂標記；新增 SEO Meta 與 ?ep= 網址定位；獨立版本歷程。
+                        <strong style="color: var(--text-color); font-size: 0.74rem;">v3.10 ~ v3.15 (2026/07/08) ⭐ 重大更新</strong><br>
+                        ．搜尋支援品前導讀，導讀結果置頂標記。<br>
+                        ．新增 SEO Meta 與 ?ep= 網址定位。
                     </div>
                     <div>
-                        <strong style="color: var(--text-color); font-size: 0.74rem;">v3.0 ~ v3.9 (2026/07/05 ~ 07/08)</strong><br>
-                        ．串接 Google Sheets API 雲端勘誤；微型化 JSON 分離儲存；重構齒輪選單、搜尋觸發與薰法香進度統計。
+                        <strong style="color: var(--text-color); font-size: 0.74rem;">v3.0 ~ v3.9 (2026/07/05 ~ 07/08) ⭐ 重大更新</strong><br>
+                        ．串接 Google Sheets API 雲端勘誤。<br>
+                        ．微型化 JSON 分離；重構齒輪選單、搜尋觸發與藰法香進度統計。
                     </div>
                     <div>
                         <strong style="color: var(--text-color); font-size: 0.74rem;">v1.0 ~ v2.8 (2026/06)</strong><br>
-                        ．完成《靜思妙蓮華》全品與導讀排版，支援離線 PDF 下載與明暗模式。
+                        ．完成《静思妙蓮耆》全品與導讀排版。<br>
+                        ．支援離線 PDF 下載與明暗模式。
                     </div>
                 </div>
             </div>
@@ -562,6 +567,6 @@
 
 
     <!-- App Logic Scripts -->
-    <script src="app.js?v=3.35"></script>
+    <script src="app.js?v=3.36"></script>
 </body>
 </html>

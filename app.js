@@ -684,6 +684,7 @@ function initEventListeners() {
 
     // Zen Mode (Full-screen Reading Mode) Toggle
     if (elements.zenModeBtn) {
+        const zenBtnLabel = elements.zenModeBtn.querySelector('span:last-child');
         elements.zenModeBtn.addEventListener('click', () => {
             appState.zenMode = !appState.zenMode;
             const panel = document.getElementById('detailPanel');
@@ -691,9 +692,11 @@ function initEventListeners() {
                 if (appState.zenMode) {
                     panel.classList.add('zen-mode');
                     elements.zenModeBtn.classList.add('active');
+                    if (zenBtnLabel) zenBtnLabel.textContent = '縮版閱讀';
                 } else {
                     panel.classList.remove('zen-mode');
                     elements.zenModeBtn.classList.remove('active');
+                    if (zenBtnLabel) zenBtnLabel.textContent = '滿版閱讀';
                 }
             }
         });
@@ -2766,8 +2769,8 @@ window.openEpisodeDetail = function(episodeId, isResume = false) {
                                     const notesOnlyEpisodes = [16, 17, 19, 20, 23, 29];
                                     const isNotesOnly = notesOnlyEpisodes.includes(episodeId) && !res.data.edit_history.length;
                                     const sermonSourceText = isNotesOnly 
-                                        ? `※ 以上內容摘自「奈普敦智慧平台」 & 大愛電視 YouTube（本集僅有導讀問答與心得筆記，無逐字稿）`
-                                        : `※ 以上內容摘自「奈普敦智慧平台」 & 大愛電視 YouTube`;
+                                        ? `※ 以上內容參考自「奈普敦智慧平台」（本集僅有導讀問答與心得筆記，無逐字稿）`
+                                        : `※ 以上內容參考自「奈普敦智慧平台」`;
                                     appendBottomInfoBar(elements.sutraSummary, sermonSourceText, true, summaryHistory);
 
                                     // Re-render full text tab content
@@ -3723,7 +3726,7 @@ window.openPreReadDetail = function(idx) {
         }
 
         // Append bottom bar at Outline tab
-        appendBottomInfoBar(elements.sutraSummary, `※ 以上內容精選自「大愛台YouTube」`, true, summaryHistory);
+        appendBottomInfoBar(elements.sutraSummary, `※ 以上內容參考自「大愛台YouTube」`, true, summaryHistory);
 
         // --- Transcript tab (逐字稿) ---
         elements.sutraFullText.innerHTML = '';
@@ -3757,7 +3760,7 @@ window.openPreReadDetail = function(idx) {
         }
 
         // Append bottom bar at Transcript tab
-        appendBottomInfoBar(elements.sutraFullText, `※ 以上內容精選自「大愛台YouTube」`, false, fullTextHistory);
+        appendBottomInfoBar(elements.sutraFullText, `※ 以上內容參考自「奈普敦智慧平台」`, false, fullTextHistory);
 
         // --- Navigation: prev / next among pre-read items ---
         if (idx > 0) {
@@ -3844,7 +3847,7 @@ window.openPreReadDetail = function(idx) {
                                     }
                                 });
                             }
-                            appendBottomInfoBar(elements.sutraSummary, `※ 以上內容精選自「大愛台YouTube」`, true, summaryHistory);
+                            appendBottomInfoBar(elements.sutraSummary, `※ 以上內容參考自「大愛台YouTube」`, true, summaryHistory);
 
                             // Re-render full text
                             elements.sutraFullText.innerHTML = '';
@@ -3870,7 +3873,7 @@ window.openPreReadDetail = function(idx) {
                                     }
                                 });
                             }
-                            appendBottomInfoBar(elements.sutraFullText, `※ 以上內容精選自「大愛台YouTube」`, false, fullTextHistory);
+                            appendBottomInfoBar(elements.sutraFullText, `※ 以上內容參考自「奈普敦智慧平台」`, false, fullTextHistory);
                             if (typeof saveOriginalPanelHTML === 'function') {
                                 saveOriginalPanelHTML();
                             }
@@ -3981,9 +3984,8 @@ function populateEpisodeTexts(episodeId) {
     const notesOnlyEpisodes = [16, 17, 19, 20, 23, 29];
     const isNotesOnly = notesOnlyEpisodes.includes(episodeId) && !episode.is_edited;
     const sermonSourceText = isNotesOnly 
-        ? `※ 以上內容摘自「奈普敦智慧平台」 & 大愛電視 YouTube（本集僅有導讀問答與心得筆記，無逐字稿）`
-        : `※ 以上內容摘自「奈普敦智慧平台」 & 大愛電視 YouTube`;
-
+        ? `※ 以上內容參考自「奈普敦智慧平台」（本集僅有導讀問答與心得筆記，無逐字稿）`
+        : `※ 以上內容參考自「奈普敦智慧平台」`;
     // 1. Populate Outline (summary)
     elements.sutraSummary.innerHTML = '';
 
