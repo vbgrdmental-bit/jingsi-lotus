@@ -502,11 +502,17 @@
     <div id="versionHistoryModal" class="modal-overlay hidden" style="background-color: rgba(0, 0, 0, 0.5); backdrop-filter: blur(8px); z-index: 1100;">
         <div class="modal-card glass-modal-card" style="max-width: 420px; padding: 20px; box-sizing: border-box; background-color: var(--card-bg); opacity: 0.95; border: 1px solid var(--border-color);">
             <div class="modal-header" style="padding-bottom: 12px; margin-bottom: 12px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between;">
-                <h3 style="font-size: 1rem;">網頁版本更新日誌 (<span id="appVersion">v3.34</span>)</h3>
+                <h3 style="font-size: 1rem;">網頁版本更新日誌 (<span id="appVersion">v3.35</span>)</h3>
                 <button id="closeVersionBtn" aria-label="關閉" style="background: var(--text-secondary); color: var(--card-bg); border: none; border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 0.85rem; line-height: 1; flex-shrink: 0;">&#x2715;</button>
             </div>
             <div class="modal-body" style="line-height: 1.35; font-size: 0.72rem; color: var(--text-color); max-height: 62vh; overflow-y: auto; padding-right: 4px;">
                 <div class="changelog-container" style="color: var(--text-secondary); line-height: 1.35; display: flex; flex-direction: column; gap: 10px;">
+                    <div>
+                        <strong style="color: var(--text-color); font-size: 0.74rem;">v3.35 (2026/07/10)</strong><br>
+                        ．同步升級為「時間戳記合併」機制：打勾/取消均記錄時間點，多裝置以最後操作時間為準（Last-Write-Wins）。<br>
+                        ．支援跨裝置「取消打勾」同步，且同一帳號在 A、B、C 多台裝置同時使用時能正確收斂為最新狀態。<br>
+                        ．上次閱讀記錄亦以時間戳記決定最新值；後端 Google Sheets 自動新增欄位，無需手動操作。
+                    </div>
                     <div>
                         <strong style="color: var(--text-color); font-size: 0.74rem;">v3.34 (2026/07/09)</strong><br>
                         ．第2開關：關閉時中止下載（不消耗流量），再開啟時從上次進度繼續；下載 100% 後不重複下載。<br>
@@ -556,6 +562,6 @@
 
 
     <!-- App Logic Scripts -->
-    <script src="app.js?v=3.34"></script>
+    <script src="app.js?v=3.35"></script>
 </body>
 </html>

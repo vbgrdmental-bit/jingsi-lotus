@@ -197,7 +197,20 @@ function doGet(e) {
       var sheet = ss.getSheetByName("user_progress");
       if (!sheet) {
         sheet = ss.insertSheet("user_progress");
-        sheet.appendRow(["sync_key", "last_read", "completed_list", "last_updated"]);
+        sheet.appendRow(["sync_key", "last_read", "completed_list", "last_updated", "completed_events", "last_read_ts"]);
+      }
+      
+      // Dynamically detect column count and ensure new columns exist
+      var headerRow = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+      var colCompletedEvents = headerRow.indexOf("completed_events") + 1;
+      var colLastReadTs = headerRow.indexOf("last_read_ts") + 1;
+      if (colCompletedEvents === 0) {
+        colCompletedEvents = sheet.getLastColumn() + 1;
+        sheet.getRange(1, colCompletedEvents).setValue("completed_events");
+      }
+      if (colLastReadTs === 0) {
+        colLastReadTs = sheet.getLastColumn() + 1;
+        sheet.getRange(1, colLastReadTs).setValue("last_read_ts");
       }
       
       var found = null;
@@ -205,12 +218,17 @@ function doGet(e) {
       var cell = finder.findNext();
       if (cell) {
         var foundRow = cell.getRow();
-        var rowData = sheet.getRange(foundRow, 1, 1, 4).getValues()[0];
+        var numCols = Math.max(sheet.getLastColumn(), colLastReadTs);
+        var rowData = sheet.getRange(foundRow, 1, 1, numCols).getValues()[0];
+        var rawEvents = rowData[colCompletedEvents - 1];
+        var rawLastReadTs = rowData[colLastReadTs - 1];
         found = {
           sync_key: rowData[0],
           last_read: rowData[1] || "",
           completed_list: rowData[2] ? JSON.parse(rowData[2]) : [],
-          last_updated: rowData[3] || ""
+          last_updated: rowData[3] || "",
+          completed_events: rawEvents ? JSON.parse(rawEvents) : {},
+          last_read_ts: rawLastReadTs ? Number(rawLastReadTs) : 0
         };
       }
       
@@ -402,7 +420,20 @@ function doPost(e) {
       var sheet = ss.getSheetByName("user_progress");
       if (!sheet) {
         sheet = ss.insertSheet("user_progress");
-        sheet.appendRow(["sync_key", "last_read", "completed_list", "last_updated"]);
+        sheet.appendRow(["sync_key", "last_read", "completed_list", "last_updated", "completed_events", "last_read_ts"]);
+      }
+      
+      // Dynamically detect / create extra columns
+      var headerRow = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+      var colCompletedEvents = headerRow.indexOf("completed_events") + 1;
+      var colLastReadTs = headerRow.indexOf("last_read_ts") + 1;
+      if (colCompletedEvents === 0) {
+        colCompletedEvents = sheet.getLastColumn() + 1;
+        sheet.getRange(1, colCompletedEvents).setValue("completed_events");
+      }
+      if (colLastReadTs === 0) {
+        colLastReadTs = sheet.getLastColumn() + 1;
+        sheet.getRange(1, colLastReadTs).setValue("last_read_ts");
       }
       
       var foundRow = -1;
@@ -413,14 +444,62 @@ function doPost(e) {
       }
       
       var nowStr = Utilities.formatDate(new Date(), "GMT+8", "yyyy/MM/dd HH:mm:ss");
-      var completedStr = JSON.stringify(payload.completed_list || []);
+      
+      // --- Last-Write-Wins merge for completed_events ---
+      var incomingEvents = payload.completed_events || {};
+      var incomingLastReadTs = payload.last_read_ts || 0;
+      var incomingLastRead = payload.last_read || "";
+      var mergedEvents = {};
+      var existingLastRead = "";
+      var existingLastReadTs = 0;
       
       if (foundRow !== -1) {
-        sheet.getRange(foundRow, 2).setValue(payload.last_read || "");
-        sheet.getRange(foundRow, 3).setValue(completedStr);
-        sheet.getRange(foundRow, 4).setValue(nowStr);
+        var numCols = Math.max(sheet.getLastColumn(), colLastReadTs);
+        var rowData = sheet.getRange(foundRow, 1, 1, numCols).getValues()[0];
+        existingLastRead = rowData[1] || "";
+        existingLastReadTs = rowData[colLastReadTs - 1] ? Number(rowData[colLastReadTs - 1]) : 0;
+        var existingEventsStr = rowData[colCompletedEvents - 1];
+        var existingEvents = existingEventsStr ? JSON.parse(existingEventsStr) : {};
+        
+        // Merge: keep whichever timestamp is larger (absolute value)
+        var allIds = {};
+        Object.keys(existingEvents).forEach(function(id) { allIds[id] = true; });
+        Object.keys(incomingEvents).forEach(function(id) { allIds[id] = true; });
+        
+        Object.keys(allIds).forEach(function(id) {
+          var existTs = existingEvents[id] || 0;
+          var incomTs = incomingEvents[id] || 0;
+          mergedEvents[id] = (Math.abs(incomTs) >= Math.abs(existTs)) ? incomTs : existTs;
+        });
       } else {
-        sheet.appendRow([syncKey, payload.last_read || "", completedStr, nowStr]);
+        // No existing row — use incoming events as-is
+        mergedEvents = incomingEvents;
+      }
+      
+      // Derive completed_list from merged events (positive ts = completed)
+      var mergedList = Object.keys(mergedEvents).filter(function(id) { return mergedEvents[id] > 0; });
+      
+      // Last-Write-Wins for lastRead
+      var finalLastRead = (incomingLastReadTs >= existingLastReadTs) ? incomingLastRead : existingLastRead;
+      var finalLastReadTs = Math.max(incomingLastReadTs, existingLastReadTs);
+      
+      var mergedEventsStr = JSON.stringify(mergedEvents);
+      var mergedListStr = JSON.stringify(mergedList);
+      
+      if (foundRow !== -1) {
+        sheet.getRange(foundRow, 2).setValue(finalLastRead);
+        sheet.getRange(foundRow, 3).setValue(mergedListStr);
+        sheet.getRange(foundRow, 4).setValue(nowStr);
+        sheet.getRange(foundRow, colCompletedEvents).setValue(mergedEventsStr);
+        sheet.getRange(foundRow, colLastReadTs).setValue(finalLastReadTs);
+      } else {
+        var newRow = [syncKey, finalLastRead, mergedListStr, nowStr];
+        // Pad to reach colCompletedEvents and colLastReadTs
+        while (newRow.length < colCompletedEvents - 1) newRow.push("");
+        newRow[colCompletedEvents - 1] = mergedEventsStr;
+        while (newRow.length < colLastReadTs - 1) newRow.push("");
+        newRow[colLastReadTs - 1] = finalLastReadTs;
+        sheet.appendRow(newRow);
       }
       response = { success: true };
     } else if (action === "linkAccount") {
@@ -477,26 +556,67 @@ function doPost(e) {
           
           if (secondaryProgressCell) {
             var secondaryRow = secondaryProgressCell.getRow();
-            var secondaryLastRead = progressSheet.getRange(secondaryRow, 2).getValue() || "";
-            var sListStr = progressSheet.getRange(secondaryRow, 3).getValue();
-            var secondaryList = [];
-            if (sListStr) secondaryList = JSON.parse(sListStr);
             
-            // Merge lists
-            var mergedMap = {};
-            primaryList.forEach(function(id) { mergedMap[id] = true; });
-            secondaryList.forEach(function(id) { mergedMap[id] = true; });
-            var mergedList = Object.keys(mergedMap);
-            
-            var finalLastRead = primaryLastRead || secondaryLastRead;
-            
-            if (primaryRow !== -1) {
-              progressSheet.getRange(primaryRow, 2).setValue(finalLastRead);
-              progressSheet.getRange(primaryRow, 3).setValue(JSON.stringify(mergedList));
-              progressSheet.getRange(primaryRow, 4).setValue(nowStr);
-            } else {
-              progressSheet.appendRow([resolvedPrimary, finalLastRead, JSON.stringify(mergedList), nowStr]);
-            }
+            // Merge lists using Last-Write-Wins on completed_events
+          var numCols = Math.max(progressSheet.getLastColumn(), 6);
+          var headerRow = progressSheet.getRange(1, 1, 1, numCols).getValues()[0];
+          var colCE = headerRow.indexOf("completed_events") + 1 || 5;
+          var colLRT = headerRow.indexOf("last_read_ts") + 1 || 6;
+          
+          var pRowData = primaryRow !== -1 ? progressSheet.getRange(primaryRow, 1, 1, numCols).getValues()[0] : null;
+          var sRowData = progressSheet.getRange(secondaryRow, 1, 1, numCols).getValues()[0];
+          
+          var pEvents = (pRowData && pRowData[colCE - 1]) ? JSON.parse(pRowData[colCE - 1]) : {};
+          var sEvents = sRowData[colCE - 1] ? JSON.parse(sRowData[colCE - 1]) : {};
+          
+          // Fallback: if events empty, build from completed_list with ts=1
+          if (Object.keys(pEvents).length === 0 && pRowData) {
+            var pList = pRowData[2] ? JSON.parse(pRowData[2]) : [];
+            pList.forEach(function(id) { pEvents[id] = 1; });
+          }
+          if (Object.keys(sEvents).length === 0) {
+            var sList = sRowData[2] ? JSON.parse(sRowData[2]) : [];
+            sList.forEach(function(id) { sEvents[id] = 1; });
+          }
+          
+          // Merge
+          var mergedEvents = {};
+          var allIds = {};
+          Object.keys(pEvents).forEach(function(id) { allIds[id] = true; });
+          Object.keys(sEvents).forEach(function(id) { allIds[id] = true; });
+          Object.keys(allIds).forEach(function(id) {
+            var pTs = pEvents[id] || 0;
+            var sTs = sEvents[id] || 0;
+            mergedEvents[id] = (Math.abs(sTs) >= Math.abs(pTs)) ? sTs : pTs;
+          });
+          
+          var mergedList = Object.keys(mergedEvents).filter(function(id) { return mergedEvents[id] > 0; });
+          
+          // Last-Write-Wins for lastRead
+          var pLastReadTs = (pRowData && pRowData[colLRT - 1]) ? Number(pRowData[colLRT - 1]) : 0;
+          var sLastReadTs = sRowData[colLRT - 1] ? Number(sRowData[colLRT - 1]) : 0;
+          var finalLastRead = (sLastReadTs >= pLastReadTs)
+            ? (sRowData[1] || (pRowData ? pRowData[1] : "") || "")
+            : (pRowData ? pRowData[1] : "") || sRowData[1] || "";
+          var finalLastReadTs = Math.max(pLastReadTs, sLastReadTs);
+          
+          var mergedEventsStr = JSON.stringify(mergedEvents);
+          var mergedListStr = JSON.stringify(mergedList);
+          
+          if (primaryRow !== -1) {
+            progressSheet.getRange(primaryRow, 2).setValue(finalLastRead);
+            progressSheet.getRange(primaryRow, 3).setValue(mergedListStr);
+            progressSheet.getRange(primaryRow, 4).setValue(nowStr);
+            progressSheet.getRange(primaryRow, colCE).setValue(mergedEventsStr);
+            progressSheet.getRange(primaryRow, colLRT).setValue(finalLastReadTs);
+          } else {
+            var newRow = [resolvedPrimary, finalLastRead, mergedListStr, nowStr];
+            while (newRow.length < colCE - 1) newRow.push("");
+            newRow[colCE - 1] = mergedEventsStr;
+            while (newRow.length < colLRT - 1) newRow.push("");
+            newRow[colLRT - 1] = finalLastReadTs;
+            progressSheet.appendRow(newRow);
+          }
             
             // Delete secondary progress record
             progressSheet.deleteRow(secondaryRow);

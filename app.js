@@ -14,8 +14,10 @@ let appState = {
     chapterEpisodesCache: {}, // Maps chapterId -> full episode lists
     episodeDetailsCache: {},  // Maps episodeId -> full episode object
     progress: {
-        completed: {}, // Map of episodeId -> true
+        completed: {}, // Map of episodeId -> true (derived from completedEvents)
+        completedEvents: {}, // Map of episodeId -> timestamp (positive=checked, negative=unchecked)
         lastRead: null, // Last read episodeId
+        lastReadTs: 0,  // Timestamp of the lastRead update (for cross-device merge)
         lastScroll: 0  // Scroll offset of the last read episode
     },
     activeChapterId: null,
@@ -243,6 +245,15 @@ function loadSettingsFromStorage() {
         try {
             appState.progress = JSON.parse(savedProgress);
             if (!appState.progress.completed) appState.progress.completed = {};
+            // Migration: if no completedEvents yet, derive from existing completed map
+            if (!appState.progress.completedEvents) {
+                const now = Date.now();
+                appState.progress.completedEvents = {};
+                Object.keys(appState.progress.completed).forEach(function(id) {
+                    appState.progress.completedEvents[id] = now; // treat all existing as checked "now"
+                });
+            }
+            if (!appState.progress.lastReadTs) appState.progress.lastReadTs = 0;
         } catch (e) {
             console.error("Error loading progress", e);
         }
@@ -427,7 +438,9 @@ function saveProgress() {
             action: 'saveUserProgress',
             sync_key: syncKey,
             last_read: appState.progress.lastRead || "",
-            completed_list: Object.keys(appState.progress.completed)
+            last_read_ts: appState.progress.lastReadTs || 0,
+            completed_list: Object.keys(appState.progress.completed),      // backward compat
+            completed_events: appState.progress.completedEvents || {}       // new: timestamp map
         };
         fetch(`${GOOGLE_SCRIPT_URL}?action=saveUserProgress`, {
             method: 'POST',
@@ -483,7 +496,9 @@ function uploadCloudSync(quiet = false) {
         action: 'saveUserProgress',
         sync_key: syncKey,
         last_read: appState.progress.lastRead || "",
-        completed_list: Object.keys(appState.progress.completed)
+        last_read_ts: appState.progress.lastReadTs || 0,
+        completed_list: Object.keys(appState.progress.completed),      // backward compat
+        completed_events: appState.progress.completedEvents || {}       // new: timestamp map
     };
     
     return fetch(`${GOOGLE_SCRIPT_URL}?action=saveUserProgress`, {
@@ -525,19 +540,49 @@ function downloadCloudSync(quiet = false) {
                 const cloudData = res.data;
                 let hasChanges = false;
                 
-                if (cloudData.last_read && cloudData.last_read !== appState.progress.lastRead) {
+                // --- Last-Write-Wins merge for lastRead ---
+                const cloudLastReadTs = cloudData.last_read_ts || 0;
+                const localLastReadTs = appState.progress.lastReadTs || 0;
+                if (cloudData.last_read && cloudLastReadTs > localLastReadTs) {
                     appState.progress.lastRead = cloudData.last_read;
+                    appState.progress.lastReadTs = cloudLastReadTs;
                     hasChanges = true;
                 }
                 
-                if (Array.isArray(cloudData.completed_list)) {
+                // --- Last-Write-Wins merge for completedEvents ---
+                const localEvents = appState.progress.completedEvents || {};
+                let cloudEvents = cloudData.completed_events || {};
+                
+                // Fallback: if server has no events yet but has completed_list, treat list entries
+                // as events with timestamp 1 (very old) so local changes always win over legacy data
+                if (Object.keys(cloudEvents).length === 0 && Array.isArray(cloudData.completed_list)) {
                     cloudData.completed_list.forEach(id => {
-                        if (!appState.progress.completed[id]) {
-                            appState.progress.completed[id] = true;
-                            hasChanges = true;
+                        if (!localEvents[id]) {  // only apply if local has no record at all
+                            cloudEvents[id] = 1;
                         }
                     });
                 }
+                
+                // Merge: for each id, keep the record with the larger absolute timestamp
+                const allIds = new Set([...Object.keys(localEvents), ...Object.keys(cloudEvents)]);
+                allIds.forEach(id => {
+                    const localTs  = localEvents[id]  || 0;
+                    const cloudTs  = cloudEvents[id]  || 0;
+                    const localAbs = Math.abs(localTs);
+                    const cloudAbs = Math.abs(cloudTs);
+                    
+                    if (cloudAbs > localAbs) {
+                        // Cloud is newer → adopt cloud's decision
+                        appState.progress.completedEvents[id] = cloudTs;
+                        if (cloudTs > 0) {
+                            appState.progress.completed[id] = true;
+                        } else {
+                            delete appState.progress.completed[id];
+                        }
+                        hasChanges = true;
+                    }
+                    // else: local is newer or equal → keep local (no-op)
+                });
                 
                 if (Array.isArray(cloudData.linked_providers)) {
                     const currentProviders = appState.progress.linkedProviders || [];
@@ -553,6 +598,9 @@ function downloadCloudSync(quiet = false) {
                     if (window._renderPreReadList) window._renderPreReadList();
                     renderChapterList();
                     updateResumeBookmark();
+                    
+                    // Push local-newer entries back up to cloud so all devices converge
+                    uploadCloudSync(true);
                     
                     if (!quiet) {
                         alert("閱讀紀錄已成功與雲端同步並合併！");
@@ -2273,10 +2321,13 @@ function renderChapterList() {
         
         const key = `preread-${idx}`;
         const isCompleted = !appState.progress.completed[key];
+        const ts = Date.now();
         if (isCompleted) {
             appState.progress.completed[key] = true;
+            appState.progress.completedEvents[key] = ts;    // positive = checked
         } else {
             delete appState.progress.completed[key];
+            appState.progress.completedEvents[key] = -ts;   // negative = unchecked
         }
         
         saveProgress();
@@ -2596,10 +2647,13 @@ window.toggleEpisodeCompleteInline = function(event, episodeId, chapterId) {
     event.stopPropagation(); // Avoid triggering openDetail
     
     const isCompleted = !appState.progress.completed[episodeId];
+    const ts = Date.now();
     if (isCompleted) {
         appState.progress.completed[episodeId] = true;
+        appState.progress.completedEvents[episodeId] = ts;    // positive = checked
     } else {
         delete appState.progress.completed[episodeId];
+        appState.progress.completedEvents[episodeId] = -ts;   // negative = unchecked
     }
     
     saveProgress();
@@ -2998,6 +3052,7 @@ function showDetailPanel(episodeId, isResume) {
 
     // 10. Update last read bookmark
     appState.progress.lastRead = episodeId;
+    appState.progress.lastReadTs = Date.now();
     saveProgress();
     updateResumeBookmark();
 
@@ -3048,12 +3103,15 @@ function toggleActiveEpisodeCompleted() {
         const idx = appState.activeEpisode._preReadIdx;
         const key = `preread-${idx}`;
         const isCompleted = !appState.progress.completed[key];
+        const ts = Date.now();
         
         if (isCompleted) {
             appState.progress.completed[key] = true;
+            appState.progress.completedEvents[key] = ts;    // positive = checked
             elements.panelCompleteBtn.classList.add('completed');
         } else {
             delete appState.progress.completed[key];
+            appState.progress.completedEvents[key] = -ts;   // negative = unchecked
             elements.panelCompleteBtn.classList.remove('completed');
         }
 
@@ -3072,12 +3130,15 @@ function toggleActiveEpisodeCompleted() {
 
     const episodeId = appState.activeEpisode.episode_id;
     const isCompleted = !appState.progress.completed[episodeId];
+    const ts = Date.now();
     
     if (isCompleted) {
         appState.progress.completed[episodeId] = true;
+        appState.progress.completedEvents[episodeId] = ts;    // positive = checked
         elements.panelCompleteBtn.classList.add('completed');
     } else {
         delete appState.progress.completed[episodeId];
+        appState.progress.completedEvents[episodeId] = -ts;   // negative = unchecked
         elements.panelCompleteBtn.classList.remove('completed');
     }
 
@@ -3557,6 +3618,7 @@ window.openPreReadDetail = function(idx) {
 
         // Update last read bookmark for pre-read
         appState.progress.lastRead = `preread-${idx}`;
+        appState.progress.lastReadTs = Date.now();
         saveProgress();
         updateResumeBookmark();
 
