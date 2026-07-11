@@ -772,7 +772,7 @@ h1 .subtitle {
 .tab-btn::before {
     content: '';
     position: absolute;
-    top: 6px;
+    top: 10px; /* 往下移，不頂到最上面邊緣，看起來更自然 */
     left: -4px;
     right: -4px;
     bottom: 0;
@@ -816,25 +816,23 @@ h1 .subtitle {
 .tabs-action-btn {
     background-color: var(--accent-light) !important;
     color: var(--accent-color) !important;
-    border: 1px solid var(--accent-color) !important;
-    padding: 4px 10px !important;
-    border-radius: 15px !important;
-    font-size: 0.82rem !important;
-    font-weight: bold !important;
+    border: none !important; /* 取消邊框 */
+    padding: 0 !important; /* 清除內邊距 */
+    border-radius: 50% !important; /* 圖形為圓圈 */
+    width: 32px !important; /* 寬度 32px */
+    height: 32px !important; /* 高度 32px */
+    min-width: 32px !important;
     cursor: pointer !important;
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
-    gap: 4px !important;
-    transition: background-color 0.2s, color 0.2s, border-color 0.2s !important;
-    height: 30px !important;
-    line-height: 1 !important;
-    min-width: 40px !important;
+    transition: background-color 0.2s, color 0.2s !important;
     position: relative;
-    top: -2px; /* aligns vertically with tabs */
+    top: 0; /* 移除微調，由 flex 垂直置中，不頂到上面 */
 }
 
-.tabs-action-btn:hover {
+.tabs-action-btn:hover,
+.tabs-action-btn.active {
     background-color: var(--accent-color) !important;
     color: var(--bg-color) !important;
 }
@@ -844,31 +842,8 @@ h1 .subtitle {
     transition: stroke 0.2s !important;
 }
 
-.tabs-action-btn:hover svg {
-    stroke: var(--bg-color) !important;
-}
-
-/* PDF download button customization (Yellow theme) */
-.menu-item-btn.pdf-download-btn {
-    background-color: var(--gold-light) !important;
-    color: var(--gold-color) !important;
-    border: 1px dashed var(--gold-color) !important;
-    margin: 4px 8px !important;
-    border-radius: 6px !important;
-    width: calc(100% - 16px) !important;
-    font-weight: bold !important;
-}
-
-.menu-item-btn.pdf-download-btn:hover {
-    background-color: var(--gold-color) !important;
-    color: var(--bg-color) !important;
-}
-
-.menu-item-btn.pdf-download-btn svg {
-    stroke: var(--gold-color) !important;
-}
-
-.menu-item-btn.pdf-download-btn:hover svg {
+.tabs-action-btn:hover svg,
+.tabs-action-btn.active svg {
     stroke: var(--bg-color) !important;
 }
 
@@ -1964,7 +1939,7 @@ mark.search-highlight {
     background: none !important;
     border: none !important;
     cursor: pointer !important;
-    padding: 10px 16px !important;
+    padding: 6px 16px !important; /* 排列更緊密一點，原本是 10px 16px */
     width: 100% !important;
     display: flex !important;
     align-items: center !important;
@@ -1995,23 +1970,53 @@ mark.search-highlight {
     flex-shrink: 0 !important;
 }
 
+/* Green theme circles for text-based items (文, A+, A-) */
 .menu-text-icon {
-    width: 16px !important;
-    height: 16px !important;
-    font-size: 0.72rem !important;
+    width: 18px !important; /* 稍微放大到 18px */
+    height: 18px !important;
+    font-size: 0.7rem !important;
     font-weight: bold !important;
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
-    border-radius: 3px !important;
-    background-color: var(--gold-light) !important;
-    color: var(--gold-color) !important;
+    border-radius: 50% !important; /* 改為正圓形 */
+    background-color: var(--accent-light) !important; /* 淡綠色底色 */
+    color: var(--accent-color) !important; /* 主綠色字 */
     flex-shrink: 0 !important;
+    transition: background-color 0.2s, color 0.2s !important;
 }
 
 .menu-item-btn:hover .menu-text-icon {
-    background-color: var(--gold-color) !important;
+    background-color: var(--accent-color) !important;
     color: #fff !important;
+}
+
+/* Gold theme circles for PDF icon */
+.menu-pdf-icon-wrapper {
+    width: 18px !important;
+    height: 18px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 50% !important; /* 正圓形 */
+    background-color: var(--gold-light) !important; /* 淡黃色底色 */
+    color: var(--gold-color) !important; /* 黃色 */
+    flex-shrink: 0 !important;
+    transition: background-color 0.2s, color 0.2s !important;
+}
+
+.menu-pdf-icon-wrapper svg.menu-icon {
+    width: 11px !important; /* 在圓圈中稍小一點，比例更好看 */
+    height: 11px !important;
+    stroke: var(--gold-color) !important;
+}
+
+.menu-item-btn:hover .menu-pdf-icon-wrapper {
+    background-color: var(--gold-color) !important;
+}
+
+.menu-item-btn:hover .menu-pdf-icon-wrapper svg.menu-icon {
+    stroke: #fff !important;
 }
 
 /* Panel Inline Search Bar */

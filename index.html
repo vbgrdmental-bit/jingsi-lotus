@@ -15,7 +15,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="app.css?v=3.41">
+    <link rel="stylesheet" href="app.css?v=3.42">
     <!-- Third-Party Login SDKs -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
@@ -297,11 +297,13 @@
                             <span>縮小字體</span>
                         </button>
                         <a id="pdfDownloadLink" href="#" target="_blank" class="menu-item-btn hidden pdf-download-btn">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="menu-icon" width="16" height="16">
-                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                                <polyline points="7 10 12 15 17 10"></polyline>
-                                <line x1="12" y1="15" x2="12" y2="3"></line>
-                            </svg>
+                            <span class="menu-pdf-icon-wrapper">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="menu-icon" width="12" height="12">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                    <polyline points="7 10 12 15 17 10"></polyline>
+                                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                                </svg>
+                            </span>
                             <span>下載PDF</span>
                         </a>
                     </div>
@@ -502,16 +504,22 @@
     <div id="versionHistoryModal" class="modal-overlay hidden" style="background-color: rgba(0, 0, 0, 0.5); backdrop-filter: blur(8px); z-index: 1100;">
         <div class="modal-card glass-modal-card" style="max-width: 420px; padding: 20px; box-sizing: border-box; background-color: var(--card-bg); opacity: 0.95; border: 1px solid var(--border-color);">
             <div class="modal-header" style="padding-bottom: 12px; margin-bottom: 12px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between;">
-                <h3 style="font-size: 1rem;">網頁版本更新日誌 (<span id="appVersion">v3.41</span>)</h3>
+                <h3 style="font-size: 1rem;">網頁版本更新日誌 (<span id="appVersion">v3.42</span>)</h3>
                 <button id="closeVersionBtn" aria-label="關閉" style="background: var(--text-secondary); color: var(--card-bg); border: none; border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 0.85rem; line-height: 1; flex-shrink: 0;">&#x2715;</button>
             </div>
             <div class="modal-body" style="line-height: 1.35; font-size: 0.72rem; color: var(--text-color); max-height: 62vh; overflow-y: auto; padding-right: 4px;">
                 <div class="changelog-container" style="color: var(--text-secondary); line-height: 1.35; display: flex; flex-direction: column; gap: 10px;">
                     <div>
+                        <strong style="color: var(--text-color); font-size: 0.74rem;">v3.42 (2026/07/12)</strong><br>
+                        ．微調梯形分頁上部間隔（top: 10px），避免頂到最上邊緣。<br>
+                        ．搜尋與 Aa 按鈕取消邊框，改為正圓形淡綠底，並在行內完美居中。<br>
+                        ．下載 PDF 回歸預設無框線文字，僅左側小圖示改為精美金黃/淡黃色圓圈。<br>
+                        ．選單項目緊密重排，減少間隔。
+                    </div>
+                    <div>
                         <strong style="color: var(--text-color); font-size: 0.74rem;">v3.41 (2026/07/12)</strong><br>
                         ．影片頁控制欄獨立搜尋按鈕，選單改為「Aa」（內含文、A+、A-、下載PDF）。<br>
-                        ．大綱與逐字稿改為梯形分頁，點選時與下方內容區融合一體。<br>
-                        ．下載 PDF 按鈕改為金黃色圖示/字體與淺黃色底色。
+                        ．大綱與逐字稿改為梯形分頁，點選時與下方內容區融合一體。
                     </div>
                     <div>
                         <strong style="color: var(--text-color); font-size: 0.74rem;">v3.40 (2026/07/12)</strong><br>
@@ -590,6 +598,6 @@
 
 
     <!-- App Logic Scripts -->
-    <script src="app.js?v=3.41"></script>
+    <script src="app.js?v=3.42"></script>
 </body>
 </html>
