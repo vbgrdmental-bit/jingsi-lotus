@@ -15,7 +15,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="app.css?v=3.39">
+    <link rel="stylesheet" href="app.css?v=3.40">
     <!-- Third-Party Login SDKs -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
@@ -508,12 +508,19 @@
             <div class="modal-body" style="line-height: 1.35; font-size: 0.72rem; color: var(--text-color); max-height: 62vh; overflow-y: auto; padding-right: 4px;">
                 <div class="changelog-container" style="color: var(--text-secondary); line-height: 1.35; display: flex; flex-direction: column; gap: 10px;">
                     <div>
+                        <strong style="color: var(--text-color); font-size: 0.74rem;">v3.40 (2026/07/12)</strong><br>
+                        ．修復更新日誌 HTML 標籤結構異常導致無法關閉之問題。
+                    </div>
+                    <div>
                         <strong style="color: var(--text-color); font-size: 0.74rem;">v3.39 (2026/07/11)</strong><br>
                         ．首頁搜尋點入集數時，話導文字自動帶入影片頁搜尋列並高亮。
                     </div>
+                    <div>
                         <strong style="color: var(--text-color); font-size: 0.74rem;">v3.38 (2026/07/11)</strong><br>
                         ．修正多關鍵字搜尋高亮段落錯位（capture group 導致 offset 讀取錯誤）。
                     </div>
+                    <div>
+                        <strong style="color: var(--text-color); font-size: 0.74rem;">v3.37 (2026/07/10)</strong><br>
                         ．逐字稿出處改為「奈普敦智慧平台」/「大愛電視 YouTube」，大綱獨立不變。<br>
                         ．面板搜尋支援空格分隔多關鍵字同時標示。
                     </div>
@@ -577,6 +584,6 @@
 
 
     <!-- App Logic Scripts -->
-    <script src="app.js?v=3.39"></script>
+    <script src="app.js?v=3.40"></script>
 </body>
 </html>
