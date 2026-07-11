@@ -711,7 +711,7 @@ h1 .subtitle {
     align-items: flex-end;
     background-color: var(--bg-color);
     flex-shrink: 0;
-    height: 44px;
+    height: 48px; /* 加大到 48px */
     padding: 0 12px 0 12px;
     transition: background-color var(--transition-speed);
     position: relative;
@@ -753,7 +753,7 @@ h1 .subtitle {
     background: transparent !important;
     border: none !important;
     padding: 0 24px !important;
-    height: calc(100% - 4px) !important;
+    height: 38px !important; /* 固定高度 38px，配合容器 48px，使頂部自然留白 10px */
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
@@ -772,7 +772,7 @@ h1 .subtitle {
 .tab-btn::before {
     content: '';
     position: absolute;
-    top: 10px; /* 往下移，不頂到最上面邊緣，看起來更自然 */
+    top: 0; /* 覆蓋整個 38px 按鈕，使文字在梯形背景中完美垂直居中 */
     left: -4px;
     right: -4px;
     bottom: 0;
@@ -1732,7 +1732,7 @@ body.sepia-mode .episode-global-completes {
     }
     
     .tabs-container {
-        height: 36px !important;
+        height: 40px !important;
         padding-right: 12px !important;
         padding-left: 0 !important;
     }
@@ -1743,7 +1743,7 @@ body.sepia-mode .episode-global-completes {
     
     .tab-btn {
         padding: 0 16px !important;
-        height: calc(100% - 2px) !important;
+        height: 32px !important; /* 固定高度 32px */
         font-size: 0.8rem !important;
         display: inline-flex !important;
         align-items: center !important;
@@ -1991,7 +1991,7 @@ mark.search-highlight {
     color: #fff !important;
 }
 
-/* Gold theme circles for PDF icon */
+/* Green theme circles for PDF icon, matching text icons */
 .menu-pdf-icon-wrapper {
     width: 18px !important;
     height: 18px !important;
@@ -1999,8 +1999,8 @@ mark.search-highlight {
     align-items: center !important;
     justify-content: center !important;
     border-radius: 50% !important; /* 正圓形 */
-    background-color: var(--gold-light) !important; /* 淡黃色底色 */
-    color: var(--gold-color) !important; /* 黃色 */
+    background-color: var(--accent-light) !important; /* 淡綠色底色 */
+    color: var(--accent-color) !important; /* 主綠色 */
     flex-shrink: 0 !important;
     transition: background-color 0.2s, color 0.2s !important;
 }
@@ -2008,11 +2008,11 @@ mark.search-highlight {
 .menu-pdf-icon-wrapper svg.menu-icon {
     width: 11px !important; /* 在圓圈中稍小一點，比例更好看 */
     height: 11px !important;
-    stroke: var(--gold-color) !important;
+    stroke: var(--accent-color) !important;
 }
 
 .menu-item-btn:hover .menu-pdf-icon-wrapper {
-    background-color: var(--gold-color) !important;
+    background-color: var(--accent-color) !important;
 }
 
 .menu-item-btn:hover .menu-pdf-icon-wrapper svg.menu-icon {
