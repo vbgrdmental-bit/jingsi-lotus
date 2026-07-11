@@ -3919,13 +3919,15 @@ function performPanelSearch(query) {
     if (!clean) return;
 
     // 2. Split into multiple keywords and build a combined regex
-    //    e.g. "広大 慈悟" → matches "広大" OR "慈悟"
-    const keywords = clean.split(/[\s　]+/).filter(k => k.length > 0);
+    //    e.g. "廣大 慈悲" → matches "廣大" OR "慈悲"
+    const keywords = clean.split(/[\s\u3000]+/).filter(k => k.length > 0);
     if (keywords.length === 0) return;
 
     // Escape each keyword for use in regex
+    // IMPORTANT: use non-capturing group (?:...) so the replace() callback
+    // signature remains (match, offset, string) without extra capture-group args.
     const escapedKeywords = keywords.map(k => k.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'));
-    const combinedRegex = new RegExp('(' + escapedKeywords.join('|') + ')', 'gi');
+    const combinedRegex = new RegExp('(?:' + escapedKeywords.join('|') + ')', 'gi');
 
     // 3. Highlight all keyword matches in text nodes recursively
     highlightTextInNode(summaryContainer, combinedRegex);
