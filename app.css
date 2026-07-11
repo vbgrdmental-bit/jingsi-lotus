@@ -748,39 +748,128 @@ h1 .subtitle {
     z-index: 1;
 }
 
+/* Tab Selector & Trapezoid Tabs */
 .tab-btn {
-    background: var(--bg-color);
-    border: 1px solid transparent;
+    background: transparent !important;
+    border: none !important;
+    padding: 0 24px !important;
+    height: calc(100% - 4px) !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 0.88rem !important;
+    font-weight: 500 !important;
+    color: var(--text-secondary) !important;
+    cursor: pointer !important;
+    text-align: center !important;
+    position: relative !important;
+    bottom: -1px !important;
+    margin-bottom: 0 !important;
+    z-index: 1 !important;
+    transition: color var(--transition-speed) !important;
+}
+
+.tab-btn::before {
+    content: '';
+    position: absolute;
+    top: 6px;
+    left: -4px;
+    right: -4px;
+    bottom: 0;
+    z-index: -1;
+    background-color: var(--bg-color);
+    border: 1px solid var(--border-color);
     border-bottom: none;
-    padding: 0 18px;
-    height: calc(100% - 4px);
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.88rem;
-    font-weight: 500;
-    color: var(--text-secondary);
-    cursor: pointer;
-    border-radius: 10px 10px 0 0;
-    transition: color 0.2s, background 0.2s, border-color 0.2s;
-    text-align: center;
-    position: relative;
-    bottom: -1px; /* overlap the separator so active tab sits on top */
-    margin-bottom: 0;
+    border-radius: 8px 8px 0 0;
+    transform: perspective(10px) rotateX(3deg);
+    transform-origin: bottom;
+    transition: background-color var(--transition-speed), border-color var(--transition-speed);
 }
 
 .tab-btn:hover:not(.active) {
+    color: var(--accent-color) !important;
+}
+
+.tab-btn:hover:not(.active)::before {
     background-color: var(--accent-light);
-    color: var(--text-color);
+    border-color: var(--accent-color);
 }
 
 .tab-btn.active {
-    color: var(--accent-color);
-    border-color: var(--border-color);
-    border-bottom-color: var(--card-bg);
-    background-color: var(--card-bg);
-    font-weight: 700;
-    /* fake rounded 'outer' corners using box-shadow pseudo-trick via border-radius */
+    color: var(--accent-color) !important;
+    font-weight: 700 !important;
+    z-index: 3 !important;
+}
+
+.tab-btn.active::before {
+    background-color: var(--card-bg) !important;
+    border-color: var(--border-color) !important;
+    bottom: -2px !important; /* overlap the separator line */
+}
+
+/* Action buttons on the right side of tabs (Aa, Search) */
+.dropdown-wrapper {
+    position: relative;
+    display: inline-flex;
+}
+
+.tabs-action-btn {
+    background-color: var(--accent-light) !important;
+    color: var(--accent-color) !important;
+    border: 1px solid var(--accent-color) !important;
+    padding: 4px 10px !important;
+    border-radius: 15px !important;
+    font-size: 0.82rem !important;
+    font-weight: bold !important;
+    cursor: pointer !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 4px !important;
+    transition: background-color 0.2s, color 0.2s, border-color 0.2s !important;
+    height: 30px !important;
+    line-height: 1 !important;
+    min-width: 40px !important;
+    position: relative;
+    top: -2px; /* aligns vertically with tabs */
+}
+
+.tabs-action-btn:hover {
+    background-color: var(--accent-color) !important;
+    color: var(--bg-color) !important;
+}
+
+.tabs-action-btn svg {
+    stroke: var(--accent-color) !important;
+    transition: stroke 0.2s !important;
+}
+
+.tabs-action-btn:hover svg {
+    stroke: var(--bg-color) !important;
+}
+
+/* PDF download button customization (Yellow theme) */
+.menu-item-btn.pdf-download-btn {
+    background-color: var(--gold-light) !important;
+    color: var(--gold-color) !important;
+    border: 1px dashed var(--gold-color) !important;
+    margin: 4px 8px !important;
+    border-radius: 6px !important;
+    width: calc(100% - 16px) !important;
+    font-weight: bold !important;
+}
+
+.menu-item-btn.pdf-download-btn:hover {
+    background-color: var(--gold-color) !important;
+    color: var(--bg-color) !important;
+}
+
+.menu-item-btn.pdf-download-btn svg {
+    stroke: var(--gold-color) !important;
+}
+
+.menu-item-btn.pdf-download-btn:hover svg {
+    stroke: var(--bg-color) !important;
 }
 
 .font-adjust-btn {
@@ -1678,9 +1767,9 @@ body.sepia-mode .episode-global-completes {
     }
     
     .tab-btn {
-        padding: 0 8px !important;
-        height: 100% !important;
-        font-size: 0.82rem !important;
+        padding: 0 16px !important;
+        height: calc(100% - 2px) !important;
+        font-size: 0.8rem !important;
         display: inline-flex !important;
         align-items: center !important;
     }
@@ -1763,7 +1852,7 @@ body.sepia-mode .episode-global-completes {
 
 /* Active tab button background styling */
 .tab-btn.active {
-    background-color: var(--accent-light) !important;
+    background-color: transparent !important;
 }
 
 /* Search Snippet and Highlight */

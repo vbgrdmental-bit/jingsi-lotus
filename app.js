@@ -796,13 +796,15 @@ function initEventListeners() {
     // Toggle inline search bar from hamburger menu
     if (panelSearchToggleBtn && panelSearchBar && panelSearchInput) {
         panelSearchToggleBtn.addEventListener('click', () => {
-            actionMenuDropdown.classList.add('hidden'); // Close menu
+            if (actionMenuDropdown) actionMenuDropdown.classList.add('hidden'); // Close menu
             const isHidden = panelSearchBar.classList.contains('hidden');
             if (isHidden) {
                 panelSearchBar.classList.remove('hidden');
+                panelSearchToggleBtn.classList.add('active');
                 panelSearchInput.focus();
             } else {
                 panelSearchBar.classList.add('hidden');
+                panelSearchToggleBtn.classList.remove('active');
                 panelSearchInput.value = '';
                 if (clearPanelSearchBtn) clearPanelSearchBtn.classList.add('hidden');
                 performPanelSearch(''); // Clear highlights
@@ -3068,6 +3070,7 @@ function showDetailPanel(episodeId, isResume) {
     const searchBar = document.getElementById('panelSearchBar');
     const searchInput = document.getElementById('panelSearchInput');
     const clearSearchBtn = document.getElementById('clearPanelSearchBtn');
+    const searchToggleBtn = document.getElementById('panelSearchToggleBtn');
 
     if (appState._pendingPanelSearch) {
         // Pre-fill the panel search input BEFORE saveOriginalPanelHTML,
@@ -3075,11 +3078,13 @@ function showDetailPanel(episodeId, isResume) {
         if (searchBar) searchBar.classList.remove('hidden');
         if (searchInput) searchInput.value = appState._pendingPanelSearch;
         if (clearSearchBtn) clearSearchBtn.classList.remove('hidden');
+        if (searchToggleBtn) searchToggleBtn.classList.add('active');
         appState._pendingPanelSearch = null;
     } else {
         if (searchBar) searchBar.classList.add('hidden');
         if (searchInput) searchInput.value = '';
         if (clearSearchBtn) clearSearchBtn.classList.add('hidden');
+        if (searchToggleBtn) searchToggleBtn.classList.remove('active');
     }
 
     // Now save the snapshot; this also re-applies any current search query to
@@ -3809,16 +3814,19 @@ window.openPreReadDetail = function(idx) {
         const searchBar = document.getElementById('panelSearchBar');
         const searchInput = document.getElementById('panelSearchInput');
         const clearSearchBtn = document.getElementById('clearPanelSearchBtn');
+        const searchToggleBtn = document.getElementById('panelSearchToggleBtn');
 
         if (appState._pendingPanelSearch) {
             if (searchBar) searchBar.classList.remove('hidden');
             if (searchInput) searchInput.value = appState._pendingPanelSearch;
             if (clearSearchBtn) clearSearchBtn.classList.remove('hidden');
+            if (searchToggleBtn) searchToggleBtn.classList.add('active');
             appState._pendingPanelSearch = null;
         } else {
             if (searchBar) searchBar.classList.add('hidden');
             if (searchInput) searchInput.value = '';
             if (clearSearchBtn) clearSearchBtn.classList.add('hidden');
+            if (searchToggleBtn) searchToggleBtn.classList.remove('active');
         }
 
         if (typeof saveOriginalPanelHTML === 'function') {

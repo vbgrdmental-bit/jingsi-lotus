@@ -15,7 +15,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="app.css?v=3.40">
+    <link rel="stylesheet" href="app.css?v=3.41">
     <!-- Third-Party Login SDKs -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
@@ -270,41 +270,41 @@
                 <button class="tab-btn" data-tab="tab-text">全文逐字稿</button>
             </div>
             <div class="tabs-right">
-                <button id="menuToggleBtn" class="menu-toggle-btn" aria-label="選單">
-                    <svg class="hamburger-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
-                        <line x1="3" y1="12" x2="21" y2="12"></line>
-                        <line x1="3" y1="6" x2="21" y2="6"></line>
-                        <line x1="3" y1="18" x2="21" y2="18"></line>
+                <!-- Independent Search Button -->
+                <button id="panelSearchToggleBtn" class="tabs-action-btn" aria-label="搜尋此集">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                     </svg>
                 </button>
-                <div id="actionMenuDropdown" class="menu-dropdown hidden">
-                    <button id="panelSearchToggleBtn" class="menu-item-btn">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="menu-icon" width="16" height="16">
-                            <circle cx="11" cy="11" r="8"></circle>
-                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                        </svg>
-                        <span>搜尋</span>
+                
+                <!-- Aa Settings Button Wrapper -->
+                <div class="dropdown-wrapper">
+                    <button id="menuToggleBtn" class="tabs-action-btn" aria-label="字型與閱讀設定">
+                        <span>Aa</span>
                     </button>
-                    <button id="zenModeBtn" class="menu-item-btn">
-                        <span class="menu-text-icon">文</span>
-                        <span>滿版閱讀</span>
-                    </button>
-                    <button id="fontIncBtn" class="menu-item-btn">
-                        <span class="menu-text-icon">A+</span>
-                        <span>放大字體</span>
-                    </button>
-                    <button id="fontDecBtn" class="menu-item-btn">
-                        <span class="menu-text-icon">A-</span>
-                        <span>縮小字體</span>
-                    </button>
-                    <a id="pdfDownloadLink" href="#" target="_blank" class="menu-item-btn hidden">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="menu-icon" width="16" height="16">
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                            <polyline points="7 10 12 15 17 10"></polyline>
-                            <line x1="12" y1="15" x2="12" y2="3"></line>
-                        </svg>
-                        <span>下載PDF</span>
-                    </a>
+                    <div id="actionMenuDropdown" class="menu-dropdown hidden">
+                        <button id="zenModeBtn" class="menu-item-btn">
+                            <span class="menu-text-icon">文</span>
+                            <span>滿版閱讀</span>
+                        </button>
+                        <button id="fontIncBtn" class="menu-item-btn">
+                            <span class="menu-text-icon">A+</span>
+                            <span>放大字體</span>
+                        </button>
+                        <button id="fontDecBtn" class="menu-item-btn">
+                            <span class="menu-text-icon">A-</span>
+                            <span>縮小字體</span>
+                        </button>
+                        <a id="pdfDownloadLink" href="#" target="_blank" class="menu-item-btn hidden pdf-download-btn">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="menu-icon" width="16" height="16">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="7 10 12 15 17 10"></polyline>
+                                <line x1="12" y1="15" x2="12" y2="3"></line>
+                            </svg>
+                            <span>下載PDF</span>
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -502,11 +502,17 @@
     <div id="versionHistoryModal" class="modal-overlay hidden" style="background-color: rgba(0, 0, 0, 0.5); backdrop-filter: blur(8px); z-index: 1100;">
         <div class="modal-card glass-modal-card" style="max-width: 420px; padding: 20px; box-sizing: border-box; background-color: var(--card-bg); opacity: 0.95; border: 1px solid var(--border-color);">
             <div class="modal-header" style="padding-bottom: 12px; margin-bottom: 12px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between;">
-                <h3 style="font-size: 1rem;">網頁版本更新日誌 (<span id="appVersion">v3.39</span>)</h3>
+                <h3 style="font-size: 1rem;">網頁版本更新日誌 (<span id="appVersion">v3.41</span>)</h3>
                 <button id="closeVersionBtn" aria-label="關閉" style="background: var(--text-secondary); color: var(--card-bg); border: none; border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 0.85rem; line-height: 1; flex-shrink: 0;">&#x2715;</button>
             </div>
             <div class="modal-body" style="line-height: 1.35; font-size: 0.72rem; color: var(--text-color); max-height: 62vh; overflow-y: auto; padding-right: 4px;">
                 <div class="changelog-container" style="color: var(--text-secondary); line-height: 1.35; display: flex; flex-direction: column; gap: 10px;">
+                    <div>
+                        <strong style="color: var(--text-color); font-size: 0.74rem;">v3.41 (2026/07/12)</strong><br>
+                        ．影片頁控制欄獨立搜尋按鈕，選單改為「Aa」（內含文、A+、A-、下載PDF）。<br>
+                        ．大綱與逐字稿改為梯形分頁，點選時與下方內容區融合一體。<br>
+                        ．下載 PDF 按鈕改為金黃色圖示/字體與淺黃色底色。
+                    </div>
                     <div>
                         <strong style="color: var(--text-color); font-size: 0.74rem;">v3.40 (2026/07/12)</strong><br>
                         ．修復更新日誌 HTML 標籤結構異常導致無法關閉之問題。
@@ -584,6 +590,6 @@
 
 
     <!-- App Logic Scripts -->
-    <script src="app.js?v=3.40"></script>
+    <script src="app.js?v=3.41"></script>
 </body>
 </html>
