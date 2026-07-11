@@ -1953,6 +1953,8 @@ function renderSearchResults(results, query, isCloudOrFullText = false) {
             </div>
         `;
         item.addEventListener('click', () => {
+            // Carry over the current homepage search query into the panel search
+            appState._pendingPanelSearch = query.trim();
             openEpisodeDetail(res.episode_id);
         });
         elements.searchResults.appendChild(item);
@@ -3062,16 +3064,29 @@ function showDetailPanel(episodeId, isResume) {
     saveProgress();
     updateResumeBookmark();
 
-    // 11. Save original HTML for inline search and clear previous search input
+    // 11. Save original HTML for inline search; handle search carry-over from homepage
+    const searchBar = document.getElementById('panelSearchBar');
+    const searchInput = document.getElementById('panelSearchInput');
+    const clearSearchBtn = document.getElementById('clearPanelSearchBtn');
+
+    if (appState._pendingPanelSearch) {
+        // Pre-fill the panel search input BEFORE saveOriginalPanelHTML,
+        // so any subsequent background re-render also auto-applies the query.
+        if (searchBar) searchBar.classList.remove('hidden');
+        if (searchInput) searchInput.value = appState._pendingPanelSearch;
+        if (clearSearchBtn) clearSearchBtn.classList.remove('hidden');
+        appState._pendingPanelSearch = null;
+    } else {
+        if (searchBar) searchBar.classList.add('hidden');
+        if (searchInput) searchInput.value = '';
+        if (clearSearchBtn) clearSearchBtn.classList.add('hidden');
+    }
+
+    // Now save the snapshot; this also re-applies any current search query to
+    // whatever text is currently rendered (including the pending one just set).
     if (typeof saveOriginalPanelHTML === 'function') {
         saveOriginalPanelHTML();
     }
-    const searchBar = document.getElementById('panelSearchBar');
-    if (searchBar) searchBar.classList.add('hidden');
-    const searchInput = document.getElementById('panelSearchInput');
-    if (searchInput) searchInput.value = '';
-    const clearSearchBtn = document.getElementById('clearPanelSearchBtn');
-    if (clearSearchBtn) clearSearchBtn.classList.add('hidden');
 }
 
 // Close Episode Reader Panel
@@ -3790,16 +3805,25 @@ window.openPreReadDetail = function(idx) {
         elements.detailPanel.classList.add('visible');
         elements.panelBody.scrollTop = 0;
 
-        // Save original HTML for inline search and clear previous search input
+        // Save original HTML for inline search; handle search carry-over from homepage
+        const searchBar = document.getElementById('panelSearchBar');
+        const searchInput = document.getElementById('panelSearchInput');
+        const clearSearchBtn = document.getElementById('clearPanelSearchBtn');
+
+        if (appState._pendingPanelSearch) {
+            if (searchBar) searchBar.classList.remove('hidden');
+            if (searchInput) searchInput.value = appState._pendingPanelSearch;
+            if (clearSearchBtn) clearSearchBtn.classList.remove('hidden');
+            appState._pendingPanelSearch = null;
+        } else {
+            if (searchBar) searchBar.classList.add('hidden');
+            if (searchInput) searchInput.value = '';
+            if (clearSearchBtn) clearSearchBtn.classList.add('hidden');
+        }
+
         if (typeof saveOriginalPanelHTML === 'function') {
             saveOriginalPanelHTML();
         }
-        const searchBar = document.getElementById('panelSearchBar');
-        if (searchBar) searchBar.classList.add('hidden');
-        const searchInput = document.getElementById('panelSearchInput');
-        if (searchInput) searchInput.value = '';
-        const clearSearchBtn = document.getElementById('clearPanelSearchBtn');
-        if (clearSearchBtn) clearSearchBtn.classList.add('hidden');
     };
 
     // Render instantly using cached memory
